@@ -1,0 +1,6 @@
+TOPIC_FILE_EVENTS = "file_events"
+TOPIC_SCAN_EVENTS = "scan_events"
+
+FILE_EVENT_TYPE_DELETED = "deleted"
+FILE_EVENT_TYPE_CREATED = "created"
+FILE_EVENT_TYPE_CLOSED = "closed"

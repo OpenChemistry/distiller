@@ -51,6 +51,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
 
+    KAFKA_BOOTSTRAP_SERVER: str
+
     class Config:
         case_sensitive = True
         env_file = ".env"

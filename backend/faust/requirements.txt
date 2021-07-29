@@ -2,3 +2,4 @@ faust
 tenacity
 aiohttp
 python-rocksdb
+pydantic[dotenv]

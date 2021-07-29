@@ -2,6 +2,7 @@ import asyncio
 
 from aiokafka import AIOKafkaProducer
 
+from app.core.config import settings
 from app.schemas import FileSystemEvent
 
 
@@ -11,7 +12,7 @@ def serializer(event: FileSystemEvent) -> bytes:
 
 producer = AIOKafkaProducer(
     loop=asyncio.get_event_loop(),
-    bootstrap_servers="localhost:9092",
+    bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVER,
     value_serializer=serializer,
 )
 

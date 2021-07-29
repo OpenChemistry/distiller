@@ -1,4 +1,3 @@
-from backend.app.app.schemas.scan import ScanState
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 
@@ -19,16 +18,16 @@ def get_scans(
     skip: int = 0,
     limit: int = 100,
     scan_id: int = -1,
-    state: ScanState = None,
+    state: schemas.ScanState = None,
 ):
     query = db.query(models.Scan)
     if scan_id > -1:
         query = db.query.filter(models.Scan.scan_id == scan_id)
 
     if state is not None:
-        if state == ScanState.TRANSFER:
+        if state == schemas.ScanState.TRANSFER:
             query = query.filter(models.Scan.log_files < constants.NUMBER_OF_LOG_FILES)
-        elif state == ScanState.COMPLETE:
+        elif state == schemas.ScanState.COMPLETE:
 
             query = query.filter(models.Scan.log_files == constants.NUMBER_OF_LOG_FILES)
 

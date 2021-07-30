@@ -24,10 +24,6 @@ def get_db() -> Generator:
 
 
 # API key
-
-API_KEY = "letmein"
-API_KEY_NAME = "access_token"
-
 api_key_query = APIKeyQuery(name=settings.API_KEY_NAME, auto_error=False)
 api_key_header = APIKeyHeader(name=settings.API_KEY_NAME, auto_error=False)
 api_key_cookie = APIKeyCookie(name=settings.API_KEY_NAME, auto_error=False)

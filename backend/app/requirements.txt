@@ -7,3 +7,4 @@ sqlalchemy
 pydantic[dotenv]
 psycopg2
 aiokafka
+alembic

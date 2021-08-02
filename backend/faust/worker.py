@@ -39,9 +39,9 @@ scan_events_topic = app.topic(TOPIC_SCAN_EVENTS, value_type=ScanEvent)
 
 
 class LogFileState(faust.Record):
-    created: bool = False
-    closed: bool = False
-    create: datetime = None
+    received_created_event: bool = False
+    received_closed_event: bool = False
+    created: datetime = None
     processed: bool = False
 
 
@@ -49,6 +49,9 @@ log_files = app.Table("log_files", default=LogFileState)
 scan_id_to_id = app.Table("scan_id_to_id", default=int)
 scan_id_to_log_files = app.Table("scan_id_to_log_files", default=list)
 
+
+def scan_complete(scan_log_files: List[str]):
+    return len(scan_log_files) == 72
 
 async def process_delete_event(path: str) -> None:
     scan_id = extract_scan_id(path)
@@ -97,7 +100,7 @@ async def process_log_file(
         session, ScanUpdate(id=scan_id_to_id[scan_id], log_files=len(scan_log_files))
     )
 
-    if len(scan_log_files) == 72:
+    if scan_complete(scan_log_files):
         logger.info(f"Transfer complete for scan {scan_id}")
 
 
@@ -128,12 +131,12 @@ async def watch_for_logs(file_events):
 
             state.created = event.created
             if event_type == FILE_EVENT_TYPE_CREATED:
-                state.created = True
+                state.received_created_event = True
             elif event_type == FILE_EVENT_TYPE_CLOSED:
-                state.closed = True
+                state.received_closed_event = True
 
             # We have seen the right events process the logfile
-            if state.created and state.closed:
+            if state.received_created_event and state.received_created_event:
                 await process_log_file(session, event)
 
                 state.processed = True

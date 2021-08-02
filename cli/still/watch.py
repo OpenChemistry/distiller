@@ -14,6 +14,7 @@ from constants import LOG_FILE_GLOB
 from schemas import FileSystemEvent as FileSystemEventModel
 from watchdog.events import FileClosedEvent, FileCreatedEvent
 from watchdog.observers import Observer
+from aiolimiter import AsyncLimiter
 
 # Setup logger
 logger = logging.getLogger("watch")
@@ -76,7 +77,7 @@ async def post_event(
 
 
 async def monitor(queue: asyncio.Queue) -> None:
-    semaphore = asyncio.Semaphore(1)
+    rate_limit = AsyncLimiter(100, 1)
 
     async with aiohttp.ClientSession() as session:
         while True:
@@ -93,7 +94,7 @@ async def monitor(queue: asyncio.Queue) -> None:
                     stat_info = await path.stat()
                     model.created = datetime.fromtimestamp(stat_info.st_ctime)
 
-                async with semaphore:
+                async with rate_limit:
                     await post_event(session, model)
             await asyncio.sleep(1)
 

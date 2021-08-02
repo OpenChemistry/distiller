@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-
 import aiohttp
 
 import faust
@@ -110,6 +109,7 @@ async def watch_for_logs(file_events):
         async for event in file_events:
             path = event.src_path
             event_type = event.event_type
+
 
             # Skip event we are not interested in
             if event_type not in [

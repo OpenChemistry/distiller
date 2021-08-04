@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -31,9 +32,12 @@ def read_scans(
     limit: int = 100,
     scan_id: int = -1,
     state: schemas.ScanState = None,
+    created: datetime = None,
     db: Session = Depends(get_db),
 ):
-    scans = crud.get_scans(db, skip=skip, limit=limit, scan_id=scan_id, state=state)
+    scans = crud.get_scans(
+        db, skip=skip, limit=limit, scan_id=scan_id, state=state, created=created
+    )
 
     return scans
 

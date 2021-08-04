@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import Enum
+from typing import List
 
 from pydantic import BaseModel
 
@@ -23,3 +24,12 @@ class FileSystemEvent(BaseModel):
     src_path: str
     is_directory: bool
     created: datetime = None
+
+
+class File(BaseModel):
+    path: str
+    created: datetime = None
+
+
+class SyncEvent(BaseModel):
+    files: List[File]

@@ -3,7 +3,7 @@ import asyncio
 from aiokafka import AIOKafkaProducer
 
 from app.core.config import settings
-from app.schemas import FileSystemEvent
+from app.schemas import FileSystemEvent, SyncEvent
 
 
 def serializer(event: FileSystemEvent) -> bytes:
@@ -27,3 +27,7 @@ async def stop():
 
 async def send_filesystem_event_to_kafka(event: FileSystemEvent) -> None:
     await producer.send("file_events", event)
+
+
+async def send_sync_event_to_kafka(event: SyncEvent) -> None:
+    await producer.send("file_sync_events", event)

@@ -1,6 +1,7 @@
 import logging
 import re
 from datetime import datetime
+from enum import Enum
 from typing import List
 
 import aiohttp
@@ -33,9 +34,31 @@ class FileSystemEvent(faust.Record):
 file_events_topic = app.topic(TOPIC_FILE_EVENTS, value_type=FileSystemEvent)
 
 
+class ScanEventType(str, Enum):
+    CREATED = "scan.created"
+    UPDATED = "scan.updated"
+
+    def __str__(self) -> str:
+        return self.value
+
+    def __repr__(self) -> str:
+        return self.value
+
+
 class ScanEvent(faust.Record):
-    scan_id: int
+    id: int
     log_files: int
+    event_type: ScanEventType
+
+
+class ScanCreatedEvent(ScanEvent):
+    scan_id: int
+    created: datetime
+    event_type = ScanEventType.CREATED
+
+
+class ScanUpdateEvent(ScanEvent):
+    event_type = ScanEventType.UPDATED
 
 
 scan_events_topic = app.topic(TOPIC_SCAN_EVENTS, value_type=ScanEvent)
@@ -119,18 +142,27 @@ async def process_log_file(
                 ),
             )
             scan_id_to_id[scan_id] = scan.id
+
+            scan_event = ScanCreatedEvent(
+                id=scan.id,
+                scan_id=scan_id,
+                log_files=len(scan_log_files),
+                created=event.created,
+            )
+            await scan_events_topic.send(value=scan_event)
         else:
             scan = scans[0]
             scan_id_to_id[scan_id] = scan.id
-
-    scan_event = ScanEvent(scan_id, len(scan_log_files))
-    await scan_events_topic.send(value=scan_event)
 
     if scan_id in scan_id_to_id:
         await update_scan(
             session,
             ScanUpdate(id=scan_id_to_id[scan_id], log_files=len(scan_log_files)),
         )
+        scan_event = ScanUpdateEvent(
+            id=scan_id_to_id[scan_id], log_files=len(scan_log_files)
+        )
+        await scan_events_topic.send(value=scan_event)
 
     if scan_complete(scan_log_files):
         logger.info(f"Transfer complete for scan {scan_id}")

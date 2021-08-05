@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 
@@ -19,10 +21,11 @@ def get_scans(
     limit: int = 100,
     scan_id: int = -1,
     state: schemas.ScanState = None,
+    created: datetime = None,
 ):
     query = db.query(models.Scan)
     if scan_id > -1:
-        query = db.query.filter(models.Scan.scan_id == scan_id)
+        query = query.filter(models.Scan.scan_id == scan_id)
 
     if state is not None:
         if state == schemas.ScanState.TRANSFER:
@@ -30,6 +33,9 @@ def get_scans(
         elif state == schemas.ScanState.COMPLETE:
 
             query = query.filter(models.Scan.log_files == constants.NUMBER_OF_LOG_FILES)
+
+    if created is not None:
+        query = query.filter(models.Scan.created == created)
 
     return query.offset(skip).limit(limit).all()
 

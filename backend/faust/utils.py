@@ -1,5 +1,7 @@
 import re
+from datetime import datetime
 from pathlib import Path
+from typing import Union
 
 import aiohttp
 import tenacity
@@ -71,18 +73,29 @@ async def update_scan(session: aiohttp.ClientSession, event: ScanUpdate) -> dict
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
-async def get_scan(session: aiohttp.ClientSession, scan_id: int, state: str) -> dict:
+async def get_scans(
+    session: aiohttp.ClientSession,
+    scan_id: int,
+    state: str = None,
+    created: datetime = None,
+) -> Union[Scan, None]:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,
         "Content-Type": "application/json",
     }
 
-    params = {"scan_id": scan_id, "state": state}
+    params = {"scan_id": scan_id}
 
-    async with session.patch(
+    if state is not None:
+        params["state"] = state
+
+    if created is not None:
+        params["created"] = created
+
+    async with session.get(
         f"{settings.API_URL}/scans", headers=headers, params=params
     ) as r:
         r.raise_for_status()
         json = await r.json()
 
-        return Scan(**json)
+        return [Scan(**x) for x in json]

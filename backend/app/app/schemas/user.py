@@ -16,3 +16,8 @@ class UserCreate(BaseModel):
     username: str
     full_name: Optional[str] = None
     password: str
+
+
+class UserResponse(BaseModel):
+    username: str
+    full_name: Optional[str] = None

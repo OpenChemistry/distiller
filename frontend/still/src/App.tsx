@@ -9,17 +9,14 @@ import {
 import { CssBaseline } from '@material-ui/core';
 
 import './App.css';
-import HomePage from './pages/home';
 import PrivateRoute from './routes/private';
 import {
   HOME_PATH,
   AUTH_PATH,
-  SCANS_PATH,
 } from './routes';
 import ScansPage from './pages/scans';
 import AuthPage from './pages/auth';
 import HeaderComponent from './components/header';
-import NavigationComponent from './components/navigation';
 
 function App() {
   return (
@@ -34,16 +31,12 @@ function App() {
             <Route path={AUTH_PATH}>
               <AuthPage/>
             </Route>
-            <PrivateRoute path={SCANS_PATH} redirect={AUTH_PATH}>
+            <PrivateRoute path={HOME_PATH} redirect={AUTH_PATH}>
               <ScansPage/>
             </PrivateRoute>
-            <Route path={HOME_PATH}>
-              <HomePage/>
-            </Route>
           </Switch>
         </div>
         <div className="navigation">
-          <NavigationComponent/>
         </div>
       </div>
     </Router>

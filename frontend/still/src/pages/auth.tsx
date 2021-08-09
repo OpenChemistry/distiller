@@ -10,6 +10,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { login, logout, getUser, isAuthenticated } from '../features/auth';
+import { connectNotifications } from '../features/notifications';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -56,6 +57,7 @@ const AuthPage: React.FC = () => {
 
     dispatch(login({username, password})).then(res => {
       if (res.type === login.fulfilled.toString()) {
+        dispatch(connectNotifications());
         history.replace(from)
       } else {
         setError('Unable to login with the provided credentials.');

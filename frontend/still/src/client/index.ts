@@ -9,6 +9,10 @@ export interface IRequestOptions {
   extra?: { [key: string]: any };
 }
 
+export interface IWebsocketOptions {
+  url: string;
+}
+
 export interface IApiClient {
   getToken(): string | undefined;
   setToken(token: string | undefined): void;
@@ -19,6 +23,7 @@ export interface IApiClient {
   put(options: IRequestOptions): Promise<Response>;
   patch(options: IRequestOptions): Promise<Response>;
   delete(options: IRequestOptions): Promise<Response>;
+  ws(options: IWebsocketOptions): Promise<WebSocket>;
 }
 
 export class ApiClient implements IApiClient {
@@ -61,6 +66,28 @@ export class ApiClient implements IApiClient {
     return this.request({ ...options, method: 'DELETE' });
   }
 
+  ws(options: IWebsocketOptions) {
+    return new Promise<WebSocket>((resolve, reject) => {
+      try {
+        const {url} = options;
+        const baseUrl = this.getBaseURL().replace('http', 'ws');
+        const params: any = {};
+        const token = this.getToken();
+        if (token !== undefined) {
+          params['token'] = token;
+        }
+        const fullURL = `${baseUrl}/${url}?${new URLSearchParams(
+          params
+        ).toString()}`;
+        const ws = new WebSocket(fullURL);
+        ws.onopen = (_ev) => resolve(ws);
+        ws.onerror = (ev) => reject(ev);
+      } catch(e) {
+        reject(e);
+      }
+    })
+  }
+
   protected request(options: IRequestOptions) {
     return this.rawRequest(options);
   }
@@ -79,7 +106,7 @@ export class ApiClient implements IApiClient {
       headers = {
         ...headers,
         // Add appropriate auth header
-        Authorization: token,
+        Authorization: `bearer ${token}`,
       };
     }
 

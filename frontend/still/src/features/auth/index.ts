@@ -17,13 +17,14 @@ const initialState: AuthState = {
 type AuthenticatePayload = {username: string, password: string};
 export const login = createAsyncThunk<User, AuthenticatePayload>(
   'auth/authenticate',
-  async (payload, _thunkAPI) => {
+  async (payload, thunkAPI) => {
     const {username, password} = payload;
 
     const auth = await authenticateAPI(username, password);
 
-    const {access_token, token_type } = auth;
-    apiClient.setToken(`${token_type} ${access_token}`);
+    const {access_token } = auth;
+    apiClient.setToken(access_token);
+
     const user = await getUserAPI();
 
     return user;

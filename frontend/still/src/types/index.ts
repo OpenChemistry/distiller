@@ -8,5 +8,5 @@ export type Scan = {
   id: IdType;
   scan_id: IdType;
   log_files: number;
-  created: Date;
+  created: string;
 }

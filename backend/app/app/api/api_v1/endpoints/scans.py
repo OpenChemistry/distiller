@@ -81,3 +81,17 @@ def update_scan(
         raise HTTPException(status_code=404, detail="Scan not found")
 
     return crud.delete_scan(db, id)
+
+@router.delete("/{id}/locations/{location_id}")
+def update_scan(
+    id: int, location_id: int, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)
+):
+    db_scan = crud.get_scan(db, id=id)
+    if db_scan is None:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    location = crud.get_location(db, id=location_id)
+    if location is None:
+        raise HTTPException(status_code=404, detail="Location not found")
+
+    return crud.delete_location(db, location_id)

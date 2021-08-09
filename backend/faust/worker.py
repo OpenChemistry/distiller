@@ -2,6 +2,7 @@ import logging
 import re
 from datetime import datetime
 from typing import List
+from pathlib import Path
 
 import aiohttp
 
@@ -11,7 +12,7 @@ from constants import (FILE_EVENT_TYPE_CLOSED, FILE_EVENT_TYPE_CREATED,
                        FILE_EVENT_TYPE_DELETED, FILE_EVENT_TYPE_MODIFIED,
                        PRIMARY_LOG_FILE_REGEX, TOPIC_FILE_EVENTS,
                        TOPIC_SCAN_EVENTS, TOPIC_SYNC_EVENTS)
-from schemas import ScanCreate, ScanUpdate
+from schemas import ScanCreate, ScanUpdate, Location
 from utils import create_scan, extract_scan_id, get_scans, update_scan
 
 # Setup logger
@@ -28,6 +29,7 @@ class FileSystemEvent(faust.Record):
     src_path: str
     is_directory: bool
     created: datetime
+    host: str
 
 
 file_events_topic = app.topic(TOPIC_FILE_EVENTS, value_type=FileSystemEvent)
@@ -44,6 +46,7 @@ scan_events_topic = app.topic(TOPIC_SCAN_EVENTS, value_type=ScanEvent)
 class File(faust.Record):
     path: str
     created: datetime
+    host: str
 
 
 class SyncEvent(faust.Record):
@@ -86,6 +89,15 @@ async def process_delete_event(path: str) -> None:
     else:
         scan_id_to_log_files[scan_id] = scan_log_files
 
+async def get_locations(scan_id):
+    locations = set()
+    for p in scan_id_to_log_files[scan_id]:
+        state = log_files[p]
+
+        locations.add(Location(host=state.host, path=Path(p).parent))
+
+    return locationss
+
 
 async def process_log_file(
     session: aiohttp.ClientSession, event: FileSystemEvent
@@ -110,12 +122,14 @@ async def process_log_file(
             raise Exception("Multiple scans with the same id and creation time!")
 
         if len(scans) == 0:
+            location = Location(host=event.host, path=Path(path).parent)
             scan = await create_scan(
                 session,
                 ScanCreate(
                     scan_id=scan_id,
                     created=event.created,
                     logs_files=len(scan_log_files),
+                    locations=[location],
                 ),
             )
             scan_id_to_id[scan_id] = scan.id
@@ -129,7 +143,7 @@ async def process_log_file(
     if scan_id in scan_id_to_id:
         await update_scan(
             session,
-            ScanUpdate(id=scan_id_to_id[scan_id], log_files=len(scan_log_files)),
+            ScanUpdate(id=scan_id_to_id[scan_id], log_files=len(scan_log_files), locations=get_locations(scan_id)),
         )
 
     if scan_complete(scan_log_files):
@@ -147,7 +161,6 @@ async def process_override(event: FileSystemEvent) -> None:
     for p in log_files.keys():
         if scan_id == extract_scan_id(p):
             del log_files[p]
-
 
 @app.agent(file_events_topic)
 async def watch_for_logs(file_events):

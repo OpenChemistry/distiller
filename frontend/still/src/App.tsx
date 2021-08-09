@@ -27,14 +27,16 @@ function App() {
           <HeaderComponent/>
         </div>
         <div className="content">
-          <Switch>
-            <Route path={AUTH_PATH}>
-              <AuthPage/>
-            </Route>
-            <PrivateRoute path={HOME_PATH} redirect={AUTH_PATH}>
-              <ScansPage/>
-            </PrivateRoute>
-          </Switch>
+          <div className="inner-content">
+            <Switch>
+              <Route path={AUTH_PATH}>
+                <AuthPage/>
+              </Route>
+              <PrivateRoute path={HOME_PATH} redirect={AUTH_PATH}>
+                <ScansPage/>
+              </PrivateRoute>
+            </Switch>
+          </div>
         </div>
         <div className="navigation">
         </div>

@@ -4,6 +4,7 @@ from typing import List
 
 from pydantic import BaseModel
 
+
 class Location(BaseModel):
     id: int
     host: str
@@ -16,6 +17,7 @@ class Location(BaseModel):
 class LocationCreate(BaseModel):
     host: str
     path: str
+
 
 class ScanState(str, Enum):
     TRANSFER = "transfer"

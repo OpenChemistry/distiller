@@ -1,8 +1,8 @@
 import logging
 import re
 from datetime import datetime
-from typing import List
 from pathlib import Path
+from typing import List
 
 import aiohttp
 
@@ -12,7 +12,7 @@ from constants import (FILE_EVENT_TYPE_CLOSED, FILE_EVENT_TYPE_CREATED,
                        FILE_EVENT_TYPE_DELETED, FILE_EVENT_TYPE_MODIFIED,
                        PRIMARY_LOG_FILE_REGEX, TOPIC_FILE_EVENTS,
                        TOPIC_SCAN_EVENTS, TOPIC_SYNC_EVENTS)
-from schemas import ScanCreate, ScanUpdate, Location
+from schemas import Location, ScanCreate, ScanUpdate
 from utils import create_scan, extract_scan_id, get_scans, update_scan
 
 # Setup logger
@@ -89,6 +89,7 @@ async def process_delete_event(path: str) -> None:
     else:
         scan_id_to_log_files[scan_id] = scan_log_files
 
+
 async def get_locations(scan_id):
     locations = set()
     for p in scan_id_to_log_files[scan_id]:
@@ -143,7 +144,11 @@ async def process_log_file(
     if scan_id in scan_id_to_id:
         await update_scan(
             session,
-            ScanUpdate(id=scan_id_to_id[scan_id], log_files=len(scan_log_files), locations=get_locations(scan_id)),
+            ScanUpdate(
+                id=scan_id_to_id[scan_id],
+                log_files=len(scan_log_files),
+                locations=get_locations(scan_id),
+            ),
         )
 
     if scan_complete(scan_log_files):
@@ -161,6 +166,7 @@ async def process_override(event: FileSystemEvent) -> None:
     for p in log_files.keys():
         if scan_id == extract_scan_id(p):
             del log_files[p]
+
 
 @app.agent(file_events_topic)
 async def watch_for_logs(file_events):

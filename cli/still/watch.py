@@ -1,9 +1,9 @@
 import asyncio
 import logging
+import platform
 import sys
 from datetime import datetime
 from typing import List
-import platform
 
 import aiohttp
 import coloredlogs
@@ -117,7 +117,7 @@ async def monitor(queue: asyncio.Queue) -> None:
                         event_type=event.event_type,
                         src_path=event.src_path,
                         is_directory=event.is_directory,
-                        host=host
+                        host=host,
                     )
 
                     if await path.exists():

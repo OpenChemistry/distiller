@@ -64,7 +64,12 @@ def update_scan(db: Session, id: int, updates: schemas.ScanUpdate):
     )
     locations = updates.locations
     for l in locations:
-        exists = db.query(models.Location.id).filter_by(scan_id=id, host=l.host, path=l.path).first() is not None
+        exists = (
+            db.query(models.Location.id)
+            .filter_by(scan_id=id, host=l.host, path=l.path)
+            .first()
+            is not None
+        )
         if not exists:
             l = models.Location(**l.dict(), scan_id=id)
             db.add(l)
@@ -82,6 +87,7 @@ def delete_scan(db: Session, id: int) -> None:
 
 def get_location(db: Session, id: int):
     return db.query(models.Location).filter(models.Location.id == id).first()
+
 
 def delete_location(db: Session, id: int) -> None:
     db.query(models.Location).filter(models.Location.id == id).delete()

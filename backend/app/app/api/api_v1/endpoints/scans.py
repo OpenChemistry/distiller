@@ -82,9 +82,13 @@ def update_scan(
 
     return crud.delete_scan(db, id)
 
+
 @router.delete("/{id}/locations/{location_id}")
 def update_scan(
-    id: int, location_id: int, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)
+    id: int,
+    location_id: int,
+    db: Session = Depends(get_db),
+    api_key: APIKey = Depends(get_api_key),
 ):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:

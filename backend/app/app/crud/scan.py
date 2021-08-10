@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import update, asc
+from sqlalchemy import update, desc
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -37,7 +37,7 @@ def get_scans(
     if created is not None:
         query = query.filter(models.Scan.created == created)
 
-    return query.order_by(asc(models.Scan.created)).offset(skip).limit(limit).all()
+    return query.order_by(desc(models.Scan.created)).offset(skip).limit(limit).all()
 
 
 def create_scan(db: Session, scan: schemas.ScanCreate):

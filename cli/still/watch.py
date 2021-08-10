@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import platform
 import sys
 from datetime import datetime
 from typing import List
@@ -32,12 +33,13 @@ logger.addHandler(handler)
 
 async def create_sync_snapshot(watch_dirs: List[str]) -> List[File]:
     files = []
+    host = platform.node()
     for watch_dir in watch_dirs:
         async for f in AsyncPath(watch_dir).glob(LOG_FILE_GLOB):
             path = AsyncPath(f)
             stat_info = await path.stat()
             created = datetime.fromtimestamp(stat_info.st_ctime)
-            files.append(File(path=str(f), created=created))
+            files.append(File(path=str(f), created=created, host=host))
 
     return files
 
@@ -103,6 +105,7 @@ async def post_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -> N
 
 async def monitor(queue: asyncio.Queue) -> None:
     rate_limit = AsyncLimiter(100, 1)
+    host = platform.node()
 
     async with aiohttp.ClientSession() as session:
         while True:
@@ -114,6 +117,7 @@ async def monitor(queue: asyncio.Queue) -> None:
                         event_type=event.event_type,
                         src_path=event.src_path,
                         is_directory=event.is_directory,
+                        host=host,
                     )
 
                     if await path.exists():

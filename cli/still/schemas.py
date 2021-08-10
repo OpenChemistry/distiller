@@ -21,12 +21,14 @@ class FileSystemEventType(str, Enum):
 
 class FileSystemEvent(BaseModel):
     event_type: FileSystemEventType
+    host: str
     src_path: str
     is_directory: bool
     created: datetime = None
 
 
 class File(BaseModel):
+    host: str
     path: str
     created: datetime = None
 

@@ -2,6 +2,7 @@ import logging
 import re
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 from typing import List
 
 import aiohttp
@@ -12,6 +13,7 @@ from constants import (FILE_EVENT_TYPE_CLOSED, FILE_EVENT_TYPE_CREATED,
                        FILE_EVENT_TYPE_DELETED, FILE_EVENT_TYPE_MODIFIED,
                        PRIMARY_LOG_FILE_REGEX, TOPIC_FILE_EVENTS,
                        TOPIC_SCAN_EVENTS, TOPIC_SYNC_EVENTS)
+from schemas import Location as LocationRest
 from schemas import ScanCreate, ScanUpdate
 from utils import create_scan, extract_scan_id, get_scans, update_scan
 
@@ -29,6 +31,7 @@ class FileSystemEvent(faust.Record):
     src_path: str
     is_directory: bool
     created: datetime
+    host: str
 
 
 file_events_topic = app.topic(TOPIC_FILE_EVENTS, value_type=FileSystemEvent)
@@ -45,9 +48,15 @@ class ScanEventType(str, Enum):
         return self.value
 
 
+class Location(faust.Record):
+    host: str
+    path: str
+
+
 class ScanEvent(faust.Record):
     id: int
     log_files: int
+    locations: List[Location]
     event_type: ScanEventType
 
 
@@ -67,6 +76,7 @@ scan_events_topic = app.topic(TOPIC_SCAN_EVENTS, value_type=ScanEvent)
 class File(faust.Record):
     path: str
     created: datetime
+    host: str
 
 
 class SyncEvent(faust.Record):
@@ -81,6 +91,7 @@ class LogFileState(faust.Record):
     received_closed_event: bool = False
     created: datetime = None
     processed: bool = False
+    host: str = None
 
 
 # path to log file state
@@ -133,21 +144,26 @@ async def process_log_file(
             raise Exception("Multiple scans with the same id and creation time!")
 
         if len(scans) == 0:
+            locations = [LocationRest(host=event.host, path=str(Path(path).parent))]
             scan = await create_scan(
                 session,
                 ScanCreate(
                     scan_id=scan_id,
                     created=event.created,
                     logs_files=len(scan_log_files),
+                    locations=locations,
                 ),
             )
             scan_id_to_id[scan_id] = scan.id
 
+            # Faust version
+            locations = [Location(host=event.host, path=str(Path(path).parent))]
             scan_event = ScanCreatedEvent(
                 id=scan.id,
                 scan_id=scan_id,
                 log_files=len(scan_log_files),
                 created=event.created,
+                locations=locations,
             )
             await scan_events_topic.send(value=scan_event)
         else:
@@ -155,12 +171,22 @@ async def process_log_file(
             scan_id_to_id[scan_id] = scan.id
 
     if scan_id in scan_id_to_id:
+        locations = [LocationRest(host=event.host, path=str(Path(path).parent))]
         await update_scan(
             session,
-            ScanUpdate(id=scan_id_to_id[scan_id], log_files=len(scan_log_files)),
+            ScanUpdate(
+                id=scan_id_to_id[scan_id],
+                log_files=len(scan_log_files),
+                locations=locations,
+            ),
         )
+
+        # Faust version
+        locations = [Location(host=event.host, path=str(Path(path).parent))]
         scan_event = ScanUpdateEvent(
-            id=scan_id_to_id[scan_id], log_files=len(scan_log_files)
+            id=scan_id_to_id[scan_id],
+            log_files=len(scan_log_files),
+            locations=locations,
         )
         await scan_events_topic.send(value=scan_event)
 
@@ -216,6 +242,7 @@ async def watch_for_logs(file_events):
                 await process_override(event)
 
             state.created = event.created
+            state.host = event.host
             if event_type in [FILE_EVENT_TYPE_CREATED, FILE_EVENT_TYPE_MODIFIED]:
                 state.received_created_event = True
             elif event_type == FILE_EVENT_TYPE_CLOSED:
@@ -258,6 +285,7 @@ async def process_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -
             created=f.created,
             event_type=FILE_EVENT_TYPE_CREATED,
             is_directory=False,
+            host=f.host,
         )
         # We are seeing a scan being overridden
         if is_override(file_event, state):
@@ -266,6 +294,7 @@ async def process_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -
         await process_log_file(session, file_event)
 
         state.created = f.created
+        state.host = f.host
         state.received_created_event = True
         state.received_closed_event = True
         state.processed = True

@@ -20,9 +20,9 @@ export interface ScanUpdatedEvent extends ScanEvent<ScanEventType.Updated> {
 }
 
 export function isCreatedEvent(ev: any): ev is ScanCreatedEvent {
-  return ev.event_type === ScanEventType.Created;
+  return ev && ev.event_type === ScanEventType.Created;
 }
 
 export function isUpdatedEvent(ev: any): ev is ScanUpdatedEvent {
-  return ev.event_type === ScanEventType.Updated;
+  return ev && ev.event_type === ScanEventType.Updated;
 }

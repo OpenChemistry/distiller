@@ -15,7 +15,7 @@ router = APIRouter()
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.crud.user import get_user
-from app.schemas import User
+from app.schemas import User, UserResponse
 
 
 def authenticate_user(db: Session, username: str, password: str):
@@ -60,4 +60,6 @@ async def login_for_access_token(
 
 @router.get("/users/me")
 async def read_users_me(current_user: User = Depends(get_current_user)):
-    return current_user
+    return UserResponse(
+        username=current_user.username, full_name=current_user.full_name
+    )

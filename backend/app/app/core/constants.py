@@ -1,1 +1,3 @@
 NUMBER_OF_LOG_FILES = 72
+
+TOPIC_SCAN_EVENTS = "scan_events"

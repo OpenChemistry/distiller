@@ -222,10 +222,18 @@ async def watch_for_logs(file_events):
                 state.received_closed_event = True
 
             # We have seen the right events process the logfile
-            if state.received_created_event and state.received_created_event:
-                await process_log_file(session, event)
-
+            if state.received_created_event and state.received_closed_event:
+                # First set processed to True, otherwise another event for this
+                # file could trigger double processing ...
                 state.processed = True
+                log_files[path] = state
+                try:
+                    await process_log_file(session, event)
+                except:
+                    # Reset the processed state
+                    state.processed = False
+                    log_files[path] = state
+                    raise
 
             # Ensure changelog is updated
             log_files[path] = state

@@ -8,8 +8,12 @@ import { setScan, updateScan } from '../scans';
 
 class NotificationHub {
   constructor(ws: WebSocket, getState: () => RootState, dispatch: AppDispatch) {
-    const messageListener = (ev: MessageEvent<ScanEvent<any>>) => {
-      const msg = ev.data || {};
+    const messageListener = (ev: MessageEvent<string>) => {
+      let msg: any = undefined;
+      try {
+        msg = JSON.parse(ev.data);
+      } catch {}
+
       if (isCreatedEvent(msg)) {
         dispatch(setScan(msg));
       } else if (isUpdatedEvent(msg)) {

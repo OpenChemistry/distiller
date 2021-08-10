@@ -29,14 +29,14 @@ async function mockScanUpdates(ws: WebSocket, id: IdType) {
   {
     await sleep(0);
     const ev: any = new Event('message');
-    ev.data = makeCreatedEvent(id);
+    ev.data = JSON.stringify(makeCreatedEvent(id));
     ws.dispatchEvent(ev);
   }
 
   for (let log_files of [10, 20, 30, 40, 50, 60, 72]) {
     await sleep(500);
     const ev: any = new Event('message');
-    ev.data = makeUpdatedEvent(id, log_files);
+    ev.data = JSON.stringify(makeUpdatedEvent(id, log_files));
     ws.dispatchEvent(ev);
   }
 }

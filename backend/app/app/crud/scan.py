@@ -37,7 +37,7 @@ def get_scans(
     if created is not None:
         query = query.filter(models.Scan.created == created)
 
-    return query.offset(skip).limit(limit).all()
+    return query.order_by(models.Scan.created).offset(skip).limit(limit).all()
 
 
 def create_scan(db: Session, scan: schemas.ScanCreate):

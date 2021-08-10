@@ -51,7 +51,7 @@ class ScanEvent(faust.Record):
     id: int
     log_files: int
     event_type: ScanEventType
-
+    locations: List[Location]
 
 class ScanCreatedEvent(ScanEvent):
     scan_id: int
@@ -137,14 +137,14 @@ async def process_log_file(
             raise Exception("Multiple scans with the same id and creation time!")
 
         if len(scans) == 0:
-            location = Location(host=event.host, path=str(Path(path).parent))
+            locations = [Location(host=event.host, path=str(Path(path).parent))]
             scan = await create_scan(
                 session,
                 ScanCreate(
                     scan_id=scan_id,
                     created=event.created,
                     logs_files=len(scan_log_files),
-                    locations=[location],
+                    locations=locations,
                 ),
             )
             scan_id_to_id[scan_id] = scan.id
@@ -154,6 +154,7 @@ async def process_log_file(
                 scan_id=scan_id,
                 log_files=len(scan_log_files),
                 created=event.created,
+                locations=locations
             )
             await scan_events_topic.send(value=scan_event)
         else:
@@ -161,16 +162,18 @@ async def process_log_file(
             scan_id_to_id[scan_id] = scan.id
 
     if scan_id in scan_id_to_id:
+        locations = [Location(host=event.host, path=str(Path(path).parent))]
         await update_scan(
             session,
             ScanUpdate(
                 id=scan_id_to_id[scan_id],
                 log_files=len(scan_log_files),
-                locations=[Location(host=event.host, path=str(Path(path).parent))],
+                locations=locations,
             ),
         )
         scan_event = ScanUpdateEvent(
-            id=scan_id_to_id[scan_id], log_files=len(scan_log_files)
+            id=scan_id_to_id[scan_id], log_files=len(scan_log_files),
+            locations=locations
         )
         await scan_events_topic.send(value=scan_event)
 

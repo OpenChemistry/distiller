@@ -11,21 +11,12 @@ RUN apt-get update -y --fix-missing \
     zlib1g-dev \
     librocksdb-dev
 
+# We are done these packages so remove.
 RUN apt-get remove -y \
   build-essential \
   curl \
-  && rm -rf /tmp
+  && rm -rf /tmp/*
 
-RUN mkdir -p /app
-WORKDIR /app
-
-COPY requirements.txt /app/requirements.txt
+COPY requirements.base.txt /app/requirements.txt
 
 RUN pip install -r /app/requirements.txt
-
-COPY *.py /app/
-COPY *.env /app/
-
-ARG WORKER
-
-CMD ["faust", "-A", $WORKER, "worker", "-l", "info"]

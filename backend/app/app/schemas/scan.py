@@ -4,6 +4,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
+from app.schemas.job import Job
+
 
 class Location(BaseModel):
     id: int
@@ -52,3 +54,8 @@ class ScanUpdate(BaseModel):
 class ScanHaadfUpdate(BaseModel):
     id: int
     haadf_path: str
+
+
+class ScanUpdateEvent(BaseModel):
+    id: int
+    jobs: List[Job]

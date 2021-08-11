@@ -7,7 +7,7 @@ import aiohttp
 import tenacity
 
 from config import settings
-from schemas import Scan, ScanCreate, ScanUpdate
+from schemas import Job, JobUpdate, Scan, ScanCreate, ScanUpdate
 
 pattern = re.compile(r"^log_scan([0-9]*)_.*\.data")
 
@@ -99,3 +99,69 @@ async def get_scans(
         json = await r.json()
 
         return [Scan(**x) for x in json]
+
+
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    ),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
+async def update_job(session: aiohttp.ClientSession, event: JobUpdate) -> dict:
+    headers = {
+        settings.API_KEY_NAME: settings.API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    async with session.patch(
+        f"{settings.API_URL}/jobs/{event.id}", headers=headers, data=event.json()
+    ) as r:
+        r.raise_for_status()
+        json = await r.json()
+
+        return Job(**json)
+
+
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    ),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
+async def get_jobs(session: aiohttp.ClientSession, slurm_id: int) -> Union[Scan, None]:
+    headers = {
+        settings.API_KEY_NAME: settings.API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    params = {"slurm_id": slurm_id}
+
+    async with session.get(
+        f"{settings.API_URL}/jobs", headers=headers, params=params
+    ) as r:
+        r.raise_for_status()
+        json = await r.json()
+
+        return [Job(**x) for x in json]
+
+
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    ),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
+async def get_job(session: aiohttp.ClientSession, id: int) -> Union[Scan, None]:
+    headers = {
+        settings.API_KEY_NAME: settings.API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    async with session.get(f"{settings.API_URL}/jobs/{id}", headers=headers) as r:
+        r.raise_for_status()
+        json = await r.json()
+
+        return Job(**json)

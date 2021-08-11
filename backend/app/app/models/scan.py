@@ -13,5 +13,6 @@ class Scan(Base):
 
     locations = relationship("Location", cascade="delete")
     notes = Column(String, nullable=True)
+    jobs = relationship("Job", cascade="delete")
 
     __table_args__ = (UniqueConstraint("scan_id", "created", name="scan_id_created"),)

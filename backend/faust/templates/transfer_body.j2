@@ -1,0 +1,27 @@
+
+export HDF5_USE_FILE_LOCKING=FALSE
+
+error_exit()
+{
+  echo "$1" 1>&2
+  exit 1
+}
+
+list_files() {
+  local host=$1
+  local path=$2
+
+  data_files=($(ssh {{settings.ACQUISITION_USER}}@$host ls $path/data_scan0*0{{scan.scan_id}}_module*.data || error_exit "Error listing files: $host:$path."))
+  number_of_files={{"${#data_files[@]}"}}
+  for ((i=0;i<$number_of_files;i++)); do
+    echo "{{settings.ACQUISITION_USER}}@$host:${data_files[$i]}" >> _ncem_files_{{job.id}}_$((i%{{settings.JOB_NUMBER_OF_NODES}})).txt
+  done
+}
+{% for l in scan.locations %}
+list_files {{l.host}} {{l.path}}
+{%- endfor %}
+
+#srun -n {{settings.JOB_NUMBER_OF_NODES}} --cpus-per-task=2 --cpu-bind=cores bbcp -z -f -V -s 4 -I _ncem_files_{{job.id}}_$SLURM_PROCID.txt {{dest_dir}} || error_exit "Error bbcp srun command failed."
+sleep 300
+
+rm _ncem_files_{{job.id}}_*.txt

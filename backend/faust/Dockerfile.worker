@@ -1,0 +1,16 @@
+
+FROM openchemistry/still-faust-base:latest
+
+WORKDIR /app
+
+ARG WORKER
+ENV WORKER $WORKER
+
+COPY requirements.$WORKER.txt /app/requirements.txt
+
+RUN pip install -r /app/requirements.txt
+
+COPY *.py /app/
+COPY *.env /app/
+
+CMD ["/bin/sh", "-c", "faust -A ${WORKER}_worker worker -l info"]

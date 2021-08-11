@@ -3,10 +3,13 @@ import asyncio
 from aiokafka import AIOKafkaProducer
 
 from app.core.config import settings
-from app.core.constants import (TOPIC_HAADF_FILE_EVENTS, TOPIC_LOG_FILE_EVENTS,
+from app.core.constants import (TOPIC_HAADF_FILE_EVENTS, TOPIC_JOB_EVENTS,
+                                TOPIC_LOG_FILE_EVENTS,
                                 TOPIC_LOG_FILE_SYNC_EVENTS, TOPIC_SCAN_EVENTS)
 from app.schemas import (FileSystemEvent, HaadfUploaded, ScanHaadfUpdate,
                          SyncEvent)
+from app.schemas.events import SubmitJobEvent
+from app.schemas.scan import ScanUpdate
 
 
 def serializer(event: FileSystemEvent) -> bytes:
@@ -42,3 +45,11 @@ async def send_haadf_event_to_kafka(event: HaadfUploaded) -> None:
 
 async def send_scan_event_to_kafka(event: ScanHaadfUpdate) -> None:
     await producer.send(TOPIC_SCAN_EVENTS, event)
+
+
+async def send_submit_job_event_to_kafka(event: SubmitJobEvent) -> None:
+    await producer.send(TOPIC_JOB_EVENTS, event)
+
+
+async def send_scan_update_event_to_kafka(event: ScanUpdate) -> None:
+    await producer.send("scan_event", event)

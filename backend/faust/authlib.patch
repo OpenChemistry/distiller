@@ -1,0 +1,12 @@
+diff --git a/authlib/integrations/httpx_client/oauth2_client.py b/authlib/integrations/httpx_client/oauth2_client.py
+index 923a773..8cafd58 100644
+--- a/authlib/integrations/httpx_client/oauth2_client.py
++++ b/authlib/integrations/httpx_client/oauth2_client.py
+@@ -42,6 +42,7 @@ class OAuth2ClientAuth(Auth, ClientAuth):
+     def auth_flow(self, request: Request) -> typing.Generator[Request, Response, None]:
+         url, headers, body = self.prepare(
+             request.method, str(request.url), request.headers, request.content)
++        headers['Content-Length'] = str(len(body))
+         yield Request(method=request.method, url=url, headers=headers, data=body)
+
+

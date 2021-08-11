@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi import Response, Request
-from jose import jwt, JWTError
+from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
+                     status)
+from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -41,9 +41,12 @@ def create_token(data: dict, expires_delta: Optional[timedelta] = None):
     )
     return encoded_jwt
 
+
 @router.post("/token")
-async def login_for_access_token(response: Response,
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+async def login_for_access_token(
+    response: Response,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
 ):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
@@ -70,25 +73,25 @@ async def login_for_access_token(response: Response,
         path="/refresh_token",
         domain=settings.JWT_REFRESH_COOKIE_DOMAIN,
         secure=settings.JWT_REFRESH_COOKIE_SECURE,
-        httponly=True
+        httponly=True,
     )
-
 
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @router.post("/refresh_token")
-async def refresh_token(request: Request, db: Session = Depends(get_db)
-):
+async def refresh_token(request: Request, db: Session = Depends(get_db)):
     refresh_token = request.cookies.get("refresh_token")
 
     if not refresh_token:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing token")
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token"
+        )
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials")
+        detail="Could not validate credentials",
+    )
     try:
         payload = jwt.decode(
             refresh_token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]

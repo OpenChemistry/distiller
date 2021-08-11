@@ -2,12 +2,14 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from jose import jwt
+from fastapi import Response, Request
+from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.api.utils import verify_password
 from app.core.config import settings
+from app.crud import user as crud
 
 router = APIRouter()
 
@@ -27,7 +29,7 @@ def authenticate_user(db: Session, username: str, password: str):
     return user
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -39,9 +41,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     )
     return encoded_jwt
 
-
 @router.post("/token")
-async def login_for_access_token(
+async def login_for_access_token(response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
     user = authenticate_user(db, form_data.username, form_data.password)
@@ -52,9 +53,60 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
+    access_token = create_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
+
+    # Create refresh token
+    refresh_token_expires = timedelta(minutes=settings.JWT_REFRESH_TOKEN_EXPIRE_MINUTES)
+    refresh_token = create_token(
+        data={"sub": user.username}, expires_delta=refresh_token_expires
+    )
+
+    response.set_cookie(
+        "refresh_token",
+        refresh_token,
+        max_age=refresh_token_expires.total_seconds(),
+        path="/",
+        domain=settings.JWT_REFRESH_COOKIE_DOMAIN,
+        secure=settings.JWT_REFRESH_COOKIE_SECURE,
+        httponly=True
+    )
+
+
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/refresh_token")
+async def refresh_token(request: Request, db: Session = Depends(get_db)
+):
+    refresh_token = request.cookies.get("refresh_token")
+
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing token")
+
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials")
+    try:
+        payload = jwt.decode(
+            refresh_token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+        )
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    user = crud.get_user(db, username=username)
+    if user is None:
+        raise credentials_exception
+
+    access_token_expires = timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+
     return {"access_token": access_token, "token_type": "bearer"}
 
 

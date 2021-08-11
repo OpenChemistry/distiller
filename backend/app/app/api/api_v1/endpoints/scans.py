@@ -72,7 +72,7 @@ def update_scan(
 
 
 @router.delete("/{id}")
-def update_scan(
+def delete_scan(
     id: int, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)
 ):
 
@@ -84,7 +84,7 @@ def update_scan(
 
 
 @router.delete("/{id}/locations/{location_id}")
-def update_scan(
+def delete_location(
     id: int,
     location_id: int,
     db: Session = Depends(get_db),

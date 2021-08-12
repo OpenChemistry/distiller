@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -14,6 +14,7 @@ class Scan(BaseModel):
     scan_id: int
     log_files: int
     locations: List[Location]
+    haadf_path: Optional[str] = None
 
 
 class ScanCreate(BaseModel):

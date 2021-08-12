@@ -26,4 +26,6 @@ RUN pip install -r /app/requirements.txt
 COPY *.py /app/
 COPY *.env /app/
 
-CMD ["faust", "-A", "worker", "worker", "-l", "info"]
+ARG WORKER
+
+CMD ["faust", "-A", $WORKER, "worker", "-l", "info"]

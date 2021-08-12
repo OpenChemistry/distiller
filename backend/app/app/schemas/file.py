@@ -35,3 +35,8 @@ class File(BaseModel):
 
 class SyncEvent(BaseModel):
     files: List[File]
+
+
+class HaadfUploaded(BaseModel):
+    scan_id: int
+    path: str

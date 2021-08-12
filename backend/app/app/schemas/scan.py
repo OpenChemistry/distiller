@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -30,6 +30,7 @@ class Scan(BaseModel):
     log_files: int
     created: datetime
     locations: List[Location]
+    haadf_path: Optional[str]
 
     class Config:
         orm_mode = True
@@ -44,3 +45,8 @@ class ScanCreate(BaseModel):
 class ScanUpdate(BaseModel):
     log_files: int
     locations: List[LocationCreate]
+
+
+class ScanHaadfUpdate(BaseModel):
+    id: int
+    haadf_path: str

@@ -1,4 +1,8 @@
+import asyncio
+import os
+import shutil
 from datetime import datetime
+from pathlib import Path
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,18 +12,39 @@ from sqlalchemy.orm import Session
 from app import schemas
 from app.api.deps import (get_api_key, get_current_user, get_db,
                           oauth2_password_bearer_or_api_key)
+from app.core.config import settings
 from app.crud import scan as crud
 
 router = APIRouter()
 
 
 @router.post("", response_model=schemas.Scan)
-def create_scan(
+async def create_scan(
     scan: schemas.ScanCreate,
     db: Session = Depends(get_db),
     api_key: APIKey = Depends(get_api_key),
 ):
-    return crud.create_scan(db=db, scan=scan)
+
+    scan = crud.create_scan(db=db, scan=scan)
+
+    # See if we have HAADF image for this scan
+    upload_path = Path(settings.HAADF_IMAGE_UPLOAD_DIR) / f"scan{scan.scan_id}.png"
+    if upload_path.exists():
+        # Move it to the right location to be served statically
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(
+            None,
+            shutil.move,
+            upload_path,
+            Path(settings.HAADF_IMAGE_STATIC_DIR) / f"{scan.id}.png",
+        )
+
+    # Finally update the haadf path
+    crud.update_scan(
+        db, scan.id, haadf_path=f"{settings.HAADF_IMAGE_URL_PREFIX}/{scan.id}.png"
+    )
+
+    return scan
 
 
 @router.get(
@@ -33,10 +58,17 @@ def read_scans(
     scan_id: int = -1,
     state: schemas.ScanState = None,
     created: datetime = None,
+    has_haadf: bool = None,
     db: Session = Depends(get_db),
 ):
     scans = crud.get_scans(
-        db, skip=skip, limit=limit, scan_id=scan_id, state=state, created=created
+        db,
+        skip=skip,
+        limit=limit,
+        scan_id=scan_id,
+        state=state,
+        created=created,
+        has_haadf=has_haadf,
     )
 
     return scans
@@ -68,11 +100,13 @@ def update_scan(
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
 
-    return crud.update_scan(db, id, payload)
+    return crud.update_scan(
+        db, id, log_files=payload.log_files, locations=payload.locations
+    )
 
 
 @router.delete("/{id}")
-def delete_scan(
+async def delete_scan(
     id: int, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)
 ):
 
@@ -80,7 +114,16 @@ def delete_scan(
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
 
-    return crud.delete_scan(db, id)
+        # See if we have HAADF image for this scan
+    upload_path = Path(settings.HAADF_IMAGE_UPLOAD_DIR) / f"scan{scan.scan_id}.png"
+
+    crud.delete_scan(db, id)
+
+    haadf_path = Path(settings.HAADF_IMAGE_STATIC_DIR) / f"{id}.png"
+    if upload_path.exists():
+        # Remove it
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, os.remove, haadf_path)
 
 
 @router.delete("/{id}/locations/{location_id}")

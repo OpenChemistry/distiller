@@ -4,6 +4,7 @@ import platform
 import sys
 from datetime import datetime
 from typing import List
+import re
 
 import aiohttp
 import coloredlogs
@@ -16,7 +17,7 @@ from constants import LOG_FILE_GLOB
 from schemas import File
 from schemas import FileSystemEvent as FileSystemEventModel
 from schemas import SyncEvent
-from watchdog.events import FileSystemEvent
+from watchdog.events import FileSystemEvent, EVENT_TYPE_CLOSED
 from watchdog.observers import Observer
 
 # Setup logger
@@ -102,16 +103,38 @@ async def post_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -> N
 
         return await r.json()
 
+async def upload_dm4(session: aiohttp.ClientSession, dm4_path: AsyncPath):
+    data = aiohttp.FormData()
+    headers = {
+        settings.API_KEY_NAME: settings.API_KEY
+    }
+    async with dm4_path.open('rb') as fp:
+        data.add_field('file', fp,
+               filename=dm4_path.name,
+               content_type='application/octet-stream')
+
+        await session.post(f"{settings.API_URL}/files/haadf", headers=headers, data=data)
 
 async def monitor(queue: asyncio.Queue) -> None:
-    rate_limit = AsyncLimiter(100, 1)
+    #rate_limit = AsyncLimiter(100, 1)
     host = platform.node()
+
+    log_pattern = re.compile(r"^log_scan([0-9]*)_.*\.data")
+    dm4_pattern = re.compile(r"^scan([0-9]*)\.dm4")
 
     async with aiohttp.ClientSession() as session:
         while True:
             async for event in AIOEventIterator(queue):
                 if isinstance(event, FileSystemEvent):
                     path = AsyncPath(event.src_path)
+
+                    # We are only looking for log files and dm4s (haadf)
+                    if not log_pattern.match(path.name) and not dm4_pattern.match(path.name):
+                        continue
+
+                    if  dm4_pattern.match(path.name) and event.event_type == EVENT_TYPE_CLOSED:
+                        await upload_dm4(session, path)
+                        continue
 
                     model = FileSystemEventModel(
                         event_type=event.event_type,
@@ -126,8 +149,8 @@ async def monitor(queue: asyncio.Queue) -> None:
                 else:
                     model = event
 
-                async with rate_limit:
-                    await post_file_event(session, model)
+     #           async with rate_limit:
+                await post_file_event(session, model)
             await asyncio.sleep(1)
 
 

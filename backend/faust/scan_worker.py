@@ -3,7 +3,7 @@ import re
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import aiohttp
 
@@ -11,14 +11,15 @@ import faust
 from config import settings
 from constants import (FILE_EVENT_TYPE_CLOSED, FILE_EVENT_TYPE_CREATED,
                        FILE_EVENT_TYPE_DELETED, FILE_EVENT_TYPE_MODIFIED,
-                       PRIMARY_LOG_FILE_REGEX, TOPIC_FILE_EVENTS,
-                       TOPIC_SCAN_EVENTS, TOPIC_SYNC_EVENTS)
+                       LOG_PREFIX, PRIMARY_LOG_FILE_REGEX,
+                       TOPIC_LOG_FILE_EVENTS, TOPIC_LOG_FILE_SYNC_EVENTS,
+                       TOPIC_SCAN_EVENTS)
 from schemas import Location as LocationRest
 from schemas import ScanCreate, ScanUpdate
 from utils import create_scan, extract_scan_id, get_scans, update_scan
 
 # Setup logger
-logger = logging.getLogger("worker")
+logger = logging.getLogger("scan_worker")
 logger.setLevel(logging.INFO)
 
 app = faust.App(
@@ -34,7 +35,7 @@ class FileSystemEvent(faust.Record):
     host: str
 
 
-file_events_topic = app.topic(TOPIC_FILE_EVENTS, value_type=FileSystemEvent)
+file_events_topic = app.topic(TOPIC_LOG_FILE_EVENTS, value_type=FileSystemEvent)
 
 
 class ScanEventType(str, Enum):
@@ -64,6 +65,7 @@ class ScanCreatedEvent(ScanEvent):
     scan_id: int
     created: datetime
     event_type = ScanEventType.CREATED
+    haadf_path: Optional[str] = None
 
 
 class ScanUpdateEvent(ScanEvent):
@@ -83,7 +85,7 @@ class SyncEvent(faust.Record):
     files: List[File]
 
 
-sync_events_topic = app.topic(TOPIC_SYNC_EVENTS, value_type=SyncEvent)
+sync_events_topic = app.topic(TOPIC_LOG_FILE_SYNC_EVENTS, value_type=SyncEvent)
 
 
 class LogFileState(faust.Record):
@@ -164,6 +166,7 @@ async def process_log_file(
                 log_files=len(scan_log_files),
                 created=event.created,
                 locations=locations,
+                haadf_path=scan.haadf_path,
             )
             await scan_events_topic.send(value=scan_event)
         else:
@@ -213,6 +216,10 @@ async def watch_for_logs(file_events):
         async for event in file_events:
             path = event.src_path
             event_type = event.event_type
+
+            # Only process log files
+            if not Path(path).name.startswith(LOG_PREFIX):
+                continue
 
             # Skip event we are not interested in
             if (
@@ -276,6 +283,11 @@ async def process_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -
     for f in event.files:
         path = f.path
         state = log_files[f.path]
+
+        # Only process log files
+        if not Path(path).name.startswith(LOG_PREFIX):
+            continue
+
         # Skip over anything that has already been proccessed
         if state.processed and state.created == f.created:
             continue

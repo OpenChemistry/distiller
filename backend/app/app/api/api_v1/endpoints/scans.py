@@ -88,20 +88,20 @@ def read_scan(
 @router.patch(
     "/{id}",
     response_model=schemas.Scan,
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
-def update_scan(
-    id: int,
-    payload: schemas.ScanUpdate,
-    db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_api_key),
-):
+def update_scan(id: int, payload: schemas.ScanUpdate, db: Session = Depends(get_db)):
 
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
 
     return crud.update_scan(
-        db, id, log_files=payload.log_files, locations=payload.locations
+        db,
+        id,
+        log_files=payload.log_files,
+        locations=payload.locations,
+        notes=payload.notes,
     )
 
 

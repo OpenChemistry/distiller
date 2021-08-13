@@ -12,5 +12,6 @@ class Scan(Base):
     haadf_path = Column(String, nullable=True, default=None, index=True)
 
     locations = relationship("Location", cascade="delete")
+    notes = Column(String, nullable=True)
 
     __table_args__ = (UniqueConstraint("scan_id", "created", name="scan_id_created"),)

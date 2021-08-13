@@ -70,6 +70,7 @@ def update_scan(
     log_files: int = None,
     locations: List[schemas.Location] = None,
     haadf_path: str = None,
+    notes: str = None,
 ):
     if log_files is not None:
         statement = (
@@ -98,6 +99,10 @@ def update_scan(
             .where(models.Scan.id == id)
             .values(haadf_path=haadf_path)
         )
+        db.execute(statement)
+
+    if notes is not None:
+        statement = update(models.Scan).where(models.Scan.id == id).values(notes=notes)
         db.execute(statement)
 
     db.commit()

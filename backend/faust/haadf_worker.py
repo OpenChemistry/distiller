@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import sys
 import tempfile
 
 import aiohttp
@@ -35,7 +36,14 @@ async def generate_haadf_image(tmp_dir: str, dm4_path: str, scan_id: int) -> Asy
     # TODO push to scan
     # haadf['pixelSize'] # this contains the real space pixel size (most important meta data)
     path = AsyncPath(tmp_dir) / f"{scan_id}.png"
+
+    # Work around issue with how faust resets sys.stdout to an instance of FileLogProxy
+    # which doesn't have the property buffer, which is check by Pillow when its writing
+    # out the image, so just reset it to the real stdout while calling imsave.
+    stdout = sys.stdout
+    sys.stdout = sys.__stdout__
     plt.imsave(str(path), img)
+    sys.stdout = stdout
 
     return path
 

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api.api_v1.api import api_router
@@ -31,3 +32,8 @@ if settings.BACKEND_CORS_ORIGINS:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+app.mount(
+    settings.HAADF_IMAGE_URL_PREFIX,
+    StaticFiles(directory=settings.HAADF_IMAGE_STATIC_DIR),
+    name="haadf",
+)

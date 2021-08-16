@@ -55,6 +55,12 @@ class Settings(BaseSettings):
 
     KAFKA_BOOTSTRAP_SERVER: str
 
+    HAADF_DM4_UPLOAD_DIR: str
+    HAADF_IMAGE_UPLOAD_DIR: str
+    HAADF_IMAGE_URL_PREFIX: str
+    HAADF_IMAGE_STATIC_DIR: str
+    HAADF_IMAGE_UPLOAD_DIR: str
+
     class Config:
         case_sensitive = True
         env_file = ".env"

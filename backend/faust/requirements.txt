@@ -3,3 +3,6 @@ tenacity
 aiohttp
 python-rocksdb
 pydantic[dotenv]
+ncempy
+aiofile
+matplotlib

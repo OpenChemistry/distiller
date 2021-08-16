@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     API_KEY: str
     KAFKA_URL: str
 
+    HAADF_IMAGE_DIR: str
+
     class Config:
         case_sensitive = True
         env_file = ".env"

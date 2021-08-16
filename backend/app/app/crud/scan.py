@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import List
 
-from sqlalchemy import update, desc
+from sqlalchemy import desc, update
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -22,6 +23,7 @@ def get_scans(
     scan_id: int = -1,
     state: schemas.ScanState = None,
     created: datetime = None,
+    has_haadf: bool = None,
 ):
     query = db.query(models.Scan)
     if scan_id > -1:
@@ -37,13 +39,20 @@ def get_scans(
     if created is not None:
         query = query.filter(models.Scan.created == created)
 
+    if has_haadf is not None:
+        if has_haadf:
+            query = query.filter(models.Scan.haadf_path != None)
+        else:
+            query = query.filter(models.Scan.haadf_path == None)
+
     return query.order_by(desc(models.Scan.created)).offset(skip).limit(limit).all()
 
 
-def create_scan(db: Session, scan: schemas.ScanCreate):
+def create_scan(db: Session, scan: schemas.ScanCreate, haadf_path: str = None):
     locations = scan.locations
     scan.locations = []
-    db_scan = models.Scan(**scan.dict())
+
+    db_scan = models.Scan(**scan.dict(), haadf_path=haadf_path)
     db.add(db_scan)
     for l in locations:
         l = models.Location(**l.dict())
@@ -55,26 +64,42 @@ def create_scan(db: Session, scan: schemas.ScanCreate):
     return db_scan
 
 
-def update_scan(db: Session, id: int, updates: schemas.ScanUpdate):
-    statement = (
-        update(models.Scan)
-        .where(models.Scan.id == id)
-        .where(models.Scan.log_files < updates.log_files)
-        .values(log_files=updates.log_files)
-    )
-    locations = updates.locations
-    for l in locations:
-        exists = (
-            db.query(models.Location.id)
-            .filter_by(scan_id=id, host=l.host, path=l.path)
-            .first()
-            is not None
+def update_scan(
+    db: Session,
+    id: int,
+    log_files: int = None,
+    locations: List[schemas.Location] = None,
+    haadf_path: str = None,
+):
+    if log_files is not None:
+        statement = (
+            update(models.Scan)
+            .where(models.Scan.id == id)
+            .where(models.Scan.log_files < log_files)
+            .values(log_files=log_files)
         )
-        if not exists:
-            l = models.Location(**l.dict(), scan_id=id)
-            db.add(l)
+        db.execute(statement)
 
-    db.execute(statement)
+    if locations is not None:
+        for l in locations:
+            exists = (
+                db.query(models.Location.id)
+                .filter_by(scan_id=id, host=l.host, path=l.path)
+                .first()
+                is not None
+            )
+            if not exists:
+                l = models.Location(**l.dict(), scan_id=id)
+                db.add(l)
+
+    if haadf_path is not None:
+        statement = (
+            update(models.Scan)
+            .where(models.Scan.id == id)
+            .values(haadf_path=haadf_path)
+        )
+        db.execute(statement)
+
     db.commit()
 
     return get_scan(db, id)

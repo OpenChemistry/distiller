@@ -31,6 +31,7 @@ class Scan(BaseModel):
     created: datetime
     locations: List[Location]
     haadf_path: Optional[str]
+    notes: Optional[str]
 
     class Config:
         orm_mode = True
@@ -43,8 +44,9 @@ class ScanCreate(BaseModel):
 
 
 class ScanUpdate(BaseModel):
-    log_files: int
-    locations: List[LocationCreate]
+    log_files: Optional[int] = None
+    locations: Optional[List[LocationCreate]] = None
+    notes: Optional[str]
 
 
 class ScanHaadfUpdate(BaseModel):

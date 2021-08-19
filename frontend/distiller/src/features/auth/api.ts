@@ -4,6 +4,7 @@ import { User } from '../../types';
 type AuthResponse = {
   access_token: string;
   token_type: string;
+  exp: number;
 }
 
 export function authenticate(username: string, password: string): Promise<AuthResponse> {
@@ -15,6 +16,18 @@ export function authenticate(username: string, password: string): Promise<AuthRe
     url: 'token',
     form,
   }).then(res => res.json());
+}
+
+export function refreshToken(): Promise<AuthResponse> {
+  return apiClient.post({
+    url: 'refresh_token',
+  }).then(res => res.json());
+}
+
+export function deleteRefreshToken(): Promise<void> {
+  return apiClient.delete({
+    url: 'refresh_token',
+  }).then(_ => undefined);
 }
 
 export function getUser(): Promise<User> {

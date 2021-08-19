@@ -9,4 +9,5 @@ export type Scan = {
   scan_id: IdType;
   log_files: number;
   created: string;
+  notes?: string;
 }

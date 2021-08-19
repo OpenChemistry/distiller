@@ -1,5 +1,5 @@
 import { apiClient } from '../../client';
-import { Scan } from '../../types';
+import { IdType, Scan } from '../../types';
 
 export function getScans(skip?: number, limit?: number): Promise<Scan[]> {
   const params: any = {};
@@ -13,5 +13,12 @@ export function getScans(skip?: number, limit?: number): Promise<Scan[]> {
   return apiClient.get({
     url: 'scans',
     params,
+  }).then(res => res.json());
+}
+
+export function patchScan(id: IdType, updates: Partial<Scan>): Promise<Scan> {
+  return apiClient.patch({
+    url: `scans/${id}`,
+    json: updates,
   }).then(res => res.json());
 }

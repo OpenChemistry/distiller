@@ -1,7 +1,10 @@
 import { createAsyncThunk, createSlice, createEntityAdapter, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
-import { getScans as getScansAPI } from './api';
-import { Scan } from '../../types';
+import {
+  getScans as getScansAPI,
+  patchScan as patchScanAPI,
+} from './api';
+import { Scan, IdType } from '../../types';
 
 export const scansAdapter = createEntityAdapter<Scan>();
 
@@ -19,6 +22,16 @@ export const getScans = createAsyncThunk<Scan[]>(
     return scans;
   }
 );
+
+export const patchScan = createAsyncThunk<Scan, {id: IdType; updates: Partial<Scan>;}>(
+  'scans/patch',
+  async (payload, _thunkAPI) => {
+    const {id, updates} = payload;
+    const scan = await patchScanAPI(id, updates);
+
+    return scan;
+  }
+)
 
 export const scansSlice = createSlice({
   name: 'scans',
@@ -48,7 +61,10 @@ export const scansSlice = createSlice({
       .addCase(getScans.fulfilled, (state, action) => {
         state.status = 'complete';
         scansAdapter.setAll(state, action.payload);
-      });
+      })
+      .addCase(patchScan.fulfilled, (state, action) => {
+        scansAdapter.setOne(state, action.payload);
+      })
   },
 });
 

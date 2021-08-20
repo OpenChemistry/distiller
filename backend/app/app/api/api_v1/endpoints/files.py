@@ -3,7 +3,7 @@ import re
 import shutil
 from pathlib import Path
 
-from aiofile import async_open
+import aiofiles
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.security.api_key import APIKey
 from sqlalchemy.orm import Session
@@ -48,7 +48,7 @@ async def upload_haadf_dm4(file: UploadFile) -> None:
 
     scan_id = match.group(1)
     upload_path = Path(settings.HAADF_DM4_UPLOAD_DIR) / f"scan{scan_id}.dm4"
-    async with async_open(upload_path, "wb") as fp:
+    async with aiofiles.open(upload_path, "wb") as fp:
         contents = await file.read()
         await fp.write(contents)
 
@@ -67,7 +67,7 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
 
     scan_id = int(match.group(1))
     upload_path = Path(settings.HAADF_IMAGE_UPLOAD_DIR) / f"scan{scan_id}.png"
-    async with async_open(upload_path, "wb") as fp:
+    async with aiofiles.open(upload_path, "wb") as fp:
         contents = await file.read()
         await fp.write(contents)
 

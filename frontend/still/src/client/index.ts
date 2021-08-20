@@ -201,4 +201,4 @@ const apiClient: IApiClient = new ApiClient();
 
 export { apiClient };
 
-export const staticURL = process.env.REACT_APP_STATIC_URL || `${window.location.hostname}`;
+export const staticURL = process.env.REACT_APP_STATIC_URL || '';

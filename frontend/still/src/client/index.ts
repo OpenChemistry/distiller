@@ -200,3 +200,5 @@ export class ThrottledApiClient extends ApiClient implements IApiClient {
 const apiClient: IApiClient = new ApiClient();
 
 export { apiClient };
+
+export const staticURL = process.env.REACT_APP_STATIC_URL || '';

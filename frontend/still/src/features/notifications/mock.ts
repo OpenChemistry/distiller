@@ -8,6 +8,23 @@ function makeCreatedEvent(id: IdType): ScanCreatedEvent {
     scan_id: id,
     created: (new Date()).toISOString(),
     log_files: 0,
+    locations: [
+      {
+        id: '0',
+        host: 'edge',
+        path: '/foo/bar',
+      },
+      {
+        id: '1',
+        host: 'edge',
+        path: '/bar/baz',
+      },
+      {
+        id: '2',
+        host: 'picea',
+        path: '/foo/bar',
+      }
+    ]
   }
 }
 

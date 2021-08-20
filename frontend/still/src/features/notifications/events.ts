@@ -1,4 +1,4 @@
-import { IdType } from '../../types';
+import { IdType, ScanLocation } from '../../types';
 
 export enum ScanEventType {
   Created = 'scan.created',
@@ -14,6 +14,7 @@ export interface ScanEvent<T extends ScanEventType> {
 export interface ScanCreatedEvent extends ScanEvent<ScanEventType.Created> {
   scan_id: IdType;
   created: string;
+  locations: ScanLocation[];
 }
 
 export interface ScanUpdatedEvent extends ScanEvent<ScanEventType.Updated> {

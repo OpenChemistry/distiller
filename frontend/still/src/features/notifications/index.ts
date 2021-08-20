@@ -3,7 +3,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppDispatch, RootState } from "../../app/store";
 import { apiClient } from '../../client';
 import { startMockNotifications } from './mock';
-import { ScanEvent, isCreatedEvent, isUpdatedEvent } from './events';
+import { isCreatedEvent, isUpdatedEvent } from './events';
 import { setScan, updateScan } from '../scans';
 
 class NotificationHub {

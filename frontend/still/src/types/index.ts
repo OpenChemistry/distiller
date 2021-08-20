@@ -10,4 +10,5 @@ export type Scan = {
   log_files: number;
   created: string;
   notes?: string;
+  haadf_path?: string;
 }

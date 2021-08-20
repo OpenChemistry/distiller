@@ -1,19 +1,35 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import { Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, LinearProgress } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import CompleteIcon from '@material-ui/icons/CheckCircle';
+import ImageIcon from '@material-ui/icons/Image';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getScans, patchScan, scansSelector } from '../features/scans';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
-import { IdType } from '../types';
-
+import { IdType, Scan } from '../types';
+import { staticURL } from '../client';
+import ImageDialog from '../components/image-dialog';
 
 const useStyles = makeStyles((theme) => ({
   headCell: {
     fontWeight: 600,
+  },
+  imgCell: {
+    width: '5rem',
+    minWidth: '5rem',
+    height: '5rem',
+    minHeight: '5rem',
+    padding: '0.2rem',
+    textAlign: 'center',
+    color: theme.palette.secondary.light
+  },
+  thumbnail: {
+    width: '100%',
+    objectFit: 'cover',
+    cursor: 'pointer',
   },
   notesCell: {
     width: '100%',
@@ -29,6 +45,9 @@ const ScansPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const scans = useAppSelector(scansSelector.selectAll);
 
+  const [maximizeImg, setMaximizeImg] = useState(false);
+  const [activeImg, setActiveImg] = useState('');
+
   useEffect(() => {
     dispatch(getScans());
   }, [dispatch])
@@ -37,12 +56,22 @@ const ScansPage: React.FC = () => {
     return dispatch(patchScan({id, updates: {notes}}));
   }
 
+  const onImgClick = (scan: Scan) => {
+    setActiveImg(`${staticURL}${scan.haadf_path!}`);
+    setMaximizeImg(true);
+  }
+
+  const onCloseDialog = () => {
+    setMaximizeImg(false);
+  }
+
   return (
     <React.Fragment>
       <TableContainer component={Paper}>
         <Table aria-label='scans table'>
           <TableHead>
             <TableRow>
+              <TableCell className={classes.imgCell}></TableCell>
               <TableCell className={classes.headCell}>ID</TableCell>
               <TableCell className={classes.headCell}>Scan ID</TableCell>
               <TableCell className={classes.headCell}>Notes</TableCell>
@@ -53,6 +82,17 @@ const ScansPage: React.FC = () => {
           <TableBody>
             {scans.map(scan => (
               <TableRow key={scan.id}>
+                <TableCell className={classes.imgCell}>
+                  {scan.haadf_path
+                    ? <img
+                        src={`${staticURL}${scan.haadf_path}`}
+                        alt='scan thumbnail'
+                        className={classes.thumbnail}
+                        onClick={() => onImgClick(scan)}
+                      />
+                    : <ImageIcon/>
+                  }
+                </TableCell>
                 <TableCell>{scan.id}</TableCell>
                 <TableCell>{scan.scan_id}</TableCell>
                 <TableCell className={classes.notesCell}>
@@ -73,6 +113,7 @@ const ScansPage: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <ImageDialog open={maximizeImg} src={activeImg} alt='scan image' handleClose={onCloseDialog}/>
     </React.Fragment>
   )
 }

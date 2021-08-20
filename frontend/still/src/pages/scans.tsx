@@ -12,6 +12,7 @@ import EditableField from '../components/editable-field';
 import { IdType, Scan } from '../types';
 import { staticURL } from '../client';
 import ImageDialog from '../components/image-dialog';
+import LocationComponent from '../components/location';
 
 const useStyles = makeStyles((theme) => ({
   headCell: {
@@ -33,6 +34,8 @@ const useStyles = makeStyles((theme) => ({
   },
   notesCell: {
     width: '100%',
+  },
+  location: {
   },
   progressCell: {
     width: '5rem',
@@ -75,6 +78,7 @@ const ScansPage: React.FC = () => {
               <TableCell className={classes.headCell}>ID</TableCell>
               <TableCell className={classes.headCell}>Scan ID</TableCell>
               <TableCell className={classes.headCell}>Notes</TableCell>
+              <TableCell className={classes.headCell}>Location</TableCell>
               <TableCell className={classes.headCell}>Created</TableCell>
               <TableCell className={classes.headCell} align='right'>Progress</TableCell>
             </TableRow>
@@ -100,6 +104,9 @@ const ScansPage: React.FC = () => {
                     value={scan.notes || ''}
                     onSave={(value) => onSaveNotes(scan.id, value)}
                   />
+                </TableCell>
+                <TableCell className={classes.location}>
+                  <LocationComponent locations={scan.locations}/>
                 </TableCell>
                 <TableCell>{scan.created}</TableCell>
                 <TableCell align='right' className={classes.progressCell}>

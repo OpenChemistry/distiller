@@ -80,8 +80,9 @@ async def update_job(
     (updated, job) = crud.update_job(db, id, payload)
 
     if updated:
+        jobs = crud.get_jobs(db, scan_id=job.scan_id)
         await send_scan_update_event_to_kafka(
-            ScanUpdateEvent(id=job.scan_id, jobs=[job])
+            ScanUpdateEvent(id=job.scan_id, jobs=jobs)
         )
 
     return job

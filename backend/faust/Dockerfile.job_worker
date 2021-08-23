@@ -1,0 +1,46 @@
+
+FROM openchemistry/still-faust-base:latest
+
+RUN ls -la /tmp
+
+RUN apt-get update -y --fix-missing \
+  && apt-get install -y \
+    curl
+
+RUN mkdir -p /app/still-data && \
+  chmod a+xrw /app/still-data
+
+
+
+WORKDIR /tmp
+
+RUN cd /tmp && curl -L https://github.com/lepture/authlib/archive/refs/tags/v0.15.4.tar.gz -o v0.15.4.tar.gz && ls && \
+  tar zxf v0.15.4.tar.gz && ls
+
+COPY authlib.patch /tmp/authlib-0.15.4/
+
+RUN cd /tmp/authlib-0.15.4/ && \
+  patch -p1 < authlib.patch && \
+  pip install .
+
+# We are done these packages so remove.
+RUN apt-get remove -y \
+  build-essential \
+  curl \
+  && rm -rf /tmp/*
+
+WORKDIR /app
+
+COPY requirements.job.txt /app/requirements.txt
+
+RUN pip install -r /app/requirements.txt
+
+COPY *.py /app/
+COPY *.env /app/
+COPY templates/ /app/templates/
+
+ARG WORKER
+ENV WORKER $WORKER
+
+
+CMD ["/bin/sh", "-c", "faust -A job_worker worker -l info"]

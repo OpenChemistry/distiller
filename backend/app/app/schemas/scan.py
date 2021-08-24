@@ -51,11 +51,33 @@ class ScanUpdate(BaseModel):
     notes: Optional[str]
 
 
-class ScanHaadfUpdate(BaseModel):
-    id: int
-    haadf_path: str
+class ScanEventType(str, Enum):
+    CREATED = "scan.created"
+    UPDATED = "scan.updated"
+
+    def __str__(self) -> str:
+        return self.value
+
+    def __repr__(self) -> str:
+        return self.value
 
 
-class ScanUpdateEvent(BaseModel):
+class ScanEvent(BaseModel):
     id: int
-    jobs: List[Job]
+    log_files: Optional[int]
+    locations: Optional[List[Location]]
+    event_type: ScanEventType
+
+
+class ScanCreatedEvent(ScanEvent):
+    scan_id: int
+    created: datetime
+    event_type = ScanEventType.CREATED
+    haadf_path: Optional[str] = None
+
+
+class ScanUpdateEvent(ScanEvent):
+    event_type = ScanEventType.UPDATED
+    jobs: Optional[List[Job]]
+    haadf_path: Optional[str]
+    notes: Optional[str]

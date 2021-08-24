@@ -7,7 +7,7 @@ from app import schemas
 from app.api.deps import get_db, oauth2_password_bearer_or_api_key
 from app.crud import job as crud
 from app.crud import scan as scan_crud
-from app.kafka.producer import (send_scan_update_event_to_kafka,
+from app.kafka.producer import (send_scan_event_to_kafka,
                                 send_submit_job_event_to_kafka)
 from app.schemas import SubmitJobEvent
 from app.schemas.scan import ScanUpdateEvent
@@ -81,8 +81,6 @@ async def update_job(
 
     if updated:
         jobs = crud.get_jobs(db, scan_id=job.scan_id)
-        await send_scan_update_event_to_kafka(
-            ScanUpdateEvent(id=job.scan_id, jobs=jobs)
-        )
+        await send_scan_event_to_kafka(ScanUpdateEvent(id=job.scan_id, jobs=jobs))
 
     return job

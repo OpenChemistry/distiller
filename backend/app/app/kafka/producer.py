@@ -6,14 +6,13 @@ from app.core.config import settings
 from app.core.constants import (TOPIC_HAADF_FILE_EVENTS, TOPIC_JOB_EVENTS,
                                 TOPIC_LOG_FILE_EVENTS,
                                 TOPIC_LOG_FILE_SYNC_EVENTS, TOPIC_SCAN_EVENTS)
-from app.schemas import (FileSystemEvent, HaadfUploaded, ScanHaadfUpdate,
+from app.schemas import (FileSystemEvent, HaadfUploaded, ScanUpdateEvent,
                          SyncEvent)
 from app.schemas.events import SubmitJobEvent
-from app.schemas.scan import ScanUpdate
 
 
 def serializer(event: FileSystemEvent) -> bytes:
-    return event.json().encode()
+    return event.json(exclude_none=True).encode()
 
 
 producer = AIOKafkaProducer(
@@ -43,13 +42,9 @@ async def send_haadf_event_to_kafka(event: HaadfUploaded) -> None:
     await producer.send(TOPIC_HAADF_FILE_EVENTS, event)
 
 
-async def send_scan_event_to_kafka(event: ScanHaadfUpdate) -> None:
+async def send_scan_event_to_kafka(event: ScanUpdateEvent) -> None:
     await producer.send(TOPIC_SCAN_EVENTS, event)
 
 
 async def send_submit_job_event_to_kafka(event: SubmitJobEvent) -> None:
     await producer.send(TOPIC_JOB_EVENTS, event)
-
-
-async def send_scan_update_event_to_kafka(event: ScanUpdate) -> None:
-    await producer.send("scan_event", event)

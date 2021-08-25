@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import desc, update
+from sqlalchemy import desc, or_, update
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -72,6 +72,8 @@ def update_scan(
     haadf_path: str = None,
     notes: str = None,
 ):
+    updated = False
+
     if log_files is not None:
         statement = (
             update(models.Scan)
@@ -79,9 +81,13 @@ def update_scan(
             .where(models.Scan.log_files < log_files)
             .values(log_files=log_files)
         )
-        db.execute(statement)
+
+        resultsproxy = db.execute(statement)
+        log_files_updated = resultsproxy.rowcount == 1
+        updated = updated or log_files_updated
 
     if locations is not None:
+        locations_updated = False
         for l in locations:
             exists = (
                 db.query(models.Location.id)
@@ -92,22 +98,35 @@ def update_scan(
             if not exists:
                 l = models.Location(**l.dict(), scan_id=id)
                 db.add(l)
+                locations_updated = True
+
+        updated = updated or locations_updated
 
     if haadf_path is not None:
         statement = (
             update(models.Scan)
             .where(models.Scan.id == id)
+            .where(models.Scan.haadf_path != haadf_path)
             .values(haadf_path=haadf_path)
         )
-        db.execute(statement)
+        resultsproxy = db.execute(statement)
+        haadf_path_updated = resultsproxy.rowcount == 1
+        updated = updated or haadf_path_updated
 
     if notes is not None:
-        statement = update(models.Scan).where(models.Scan.id == id).values(notes=notes)
-        db.execute(statement)
+        statement = (
+            update(models.Scan)
+            .where(models.Scan.id == id)
+            .where(or_(models.Scan.notes != notes, models.Scan.notes == None))
+            .values(notes=notes)
+        )
+        resultsproxy = db.execute(statement)
+        notes_updated = resultsproxy.rowcount == 1
+        updated = updated or notes_updated
 
     db.commit()
 
-    return get_scan(db, id)
+    return (updated, get_scan(db, id))
 
 
 def delete_scan(db: Session, id: int) -> None:

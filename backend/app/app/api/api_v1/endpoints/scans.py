@@ -14,6 +14,8 @@ from app.api.deps import (get_api_key, get_current_user, get_db,
                           oauth2_password_bearer_or_api_key)
 from app.core.config import settings
 from app.crud import scan as crud
+from app.kafka.producer import send_scan_event_to_kafka
+from app.schemas.scan import ScanCreatedEvent
 
 router = APIRouter()
 
@@ -39,9 +41,13 @@ async def create_scan(
             Path(settings.HAADF_IMAGE_STATIC_DIR) / f"{scan.id}.png",
         )
 
-    # Finally update the haadf path
-    crud.update_scan(
-        db, scan.id, haadf_path=f"{settings.HAADF_IMAGE_URL_PREFIX}/{scan.id}.png"
+        # Finally update the haadf path
+        (_, scan) = crud.update_scan(
+            db, scan.id, haadf_path=f"{settings.HAADF_IMAGE_URL_PREFIX}/{scan.id}.png"
+        )
+
+    await send_scan_event_to_kafka(
+        ScanCreatedEvent(**schemas.Scan.from_orm(scan).dict())
     )
 
     return scan
@@ -90,19 +96,37 @@ def read_scan(
     response_model=schemas.Scan,
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
-def update_scan(id: int, payload: schemas.ScanUpdate, db: Session = Depends(get_db)):
+async def update_scan(
+    id: int, payload: schemas.ScanUpdate, db: Session = Depends(get_db)
+):
 
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
 
-    return crud.update_scan(
+    (updated, scan) = crud.update_scan(
         db,
         id,
         log_files=payload.log_files,
         locations=payload.locations,
         notes=payload.notes,
     )
+
+    if updated:
+        scan_updated_event = schemas.ScanUpdateEvent(id=id)
+        if scan.log_files == payload.log_files:
+            scan_updated_event.log_files = scan.log_files
+
+        scan_updated_event.locations = [
+            schemas.scan.Location.from_orm(l) for l in scan.locations
+        ]
+
+        if scan.notes is not None and scan.notes == payload.notes:
+            scan_updated_event.notes = scan.notes
+
+        await send_scan_event_to_kafka(scan_updated_event)
+
+    return scan
 
 
 @router.delete("/{id}")

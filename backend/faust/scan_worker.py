@@ -3,7 +3,7 @@ import re
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 import aiohttp
 
@@ -12,10 +12,8 @@ from config import settings
 from constants import (FILE_EVENT_TYPE_CLOSED, FILE_EVENT_TYPE_CREATED,
                        FILE_EVENT_TYPE_DELETED, FILE_EVENT_TYPE_MODIFIED,
                        LOG_PREFIX, PRIMARY_LOG_FILE_REGEX,
-                       TOPIC_LOG_FILE_EVENTS, TOPIC_LOG_FILE_SYNC_EVENTS,
-                       TOPIC_SCAN_EVENTS)
-from schemas import Location as LocationRest
-from schemas import ScanCreate, ScanUpdate
+                       TOPIC_LOG_FILE_EVENTS, TOPIC_LOG_FILE_SYNC_EVENTS)
+from schemas import Location, ScanCreate, ScanUpdate
 from utils import create_scan, extract_scan_id, get_scans, update_scan
 
 # Setup logger
@@ -47,32 +45,6 @@ class ScanEventType(str, Enum):
 
     def __repr__(self) -> str:
         return self.value
-
-
-class Location(faust.Record):
-    host: str
-    path: str
-
-
-class ScanEvent(faust.Record):
-    id: int
-    log_files: int
-    locations: List[Location]
-    event_type: ScanEventType
-
-
-class ScanCreatedEvent(ScanEvent):
-    scan_id: int
-    created: datetime
-    event_type = ScanEventType.CREATED
-    haadf_path: Optional[str] = None
-
-
-class ScanUpdateEvent(ScanEvent):
-    event_type = ScanEventType.UPDATED
-
-
-scan_events_topic = app.topic(TOPIC_SCAN_EVENTS, value_type=ScanEvent)
 
 
 class File(faust.Record):
@@ -112,7 +84,8 @@ async def process_delete_event(path: str) -> None:
     scan_id = extract_scan_id(path)
     del log_files[path]
     scan_log_files = scan_id_to_log_files[scan_id]
-    scan_log_files.remove(path)
+    if path in scan_log_files:
+        scan_log_files.remove(path)
 
     # If all the log file are gone then remove the scan
     if not scan_log_files:
@@ -146,7 +119,7 @@ async def process_log_file(
             raise Exception("Multiple scans with the same id and creation time!")
 
         if len(scans) == 0:
-            locations = [LocationRest(host=event.host, path=str(Path(path).parent))]
+            locations = [Location(host=event.host, path=str(Path(path).parent))]
             scan = await create_scan(
                 session,
                 ScanCreate(
@@ -160,21 +133,12 @@ async def process_log_file(
 
             # Faust version
             locations = [Location(host=event.host, path=str(Path(path).parent))]
-            scan_event = ScanCreatedEvent(
-                id=scan.id,
-                scan_id=scan_id,
-                log_files=len(scan_log_files),
-                created=event.created,
-                locations=locations,
-                haadf_path=scan.haadf_path,
-            )
-            await scan_events_topic.send(value=scan_event)
         else:
             scan = scans[0]
             scan_id_to_id[scan_id] = scan.id
 
     if scan_id in scan_id_to_id:
-        locations = [LocationRest(host=event.host, path=str(Path(path).parent))]
+        locations = [Location(host=event.host, path=str(Path(path).parent))]
         await update_scan(
             session,
             ScanUpdate(
@@ -183,15 +147,6 @@ async def process_log_file(
                 locations=locations,
             ),
         )
-
-        # Faust version
-        locations = [Location(host=event.host, path=str(Path(path).parent))]
-        scan_event = ScanUpdateEvent(
-            id=scan_id_to_id[scan_id],
-            log_files=len(scan_log_files),
-            locations=locations,
-        )
-        await scan_events_topic.send(value=scan_event)
 
     if scan_complete(scan_log_files):
         logger.info(f"Transfer complete for scan {scan_id}")

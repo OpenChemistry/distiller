@@ -136,7 +136,6 @@ class SfApiError(Exception):
 
 async def submit_job(batch_submit_file: str) -> int:
     data = {"job": batch_submit_file, "isPath": True}
-    # data = {"job": "/global/u1/c/cjh1/test.sh", "isPath": True}
 
     r = await sfapi_post("compute/jobs/cori", data)
     r.raise_for_status()
@@ -225,7 +224,7 @@ async def update_job(
 def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
     jobs = []
     for job in sfapi_response["output"]:
-        jobs.append(SfapiJob(workdir=job["workdir"], state=job["state"]))
+        jobs.append(SfapiJob(workdir=job["workdir"], state=job["state"], name=job["jobname"], slurm_id=int(job["jobid"])))
 
     return jobs
 
@@ -279,11 +278,8 @@ async def monitor_jobs():
                 # We are done upload the output
                 output = None
                 if job.state not in SLURM_RUNNING_STATES:
-                    # For now we have to fetch the job from the server as the
-                    # output from SFAPI is truncated.
-                    job_with_slurm_id = await get_job(session, id)
                     output = await read_slurm_out(
-                        job_with_slurm_id.slurm_id, job.workdir
+                        job.slurm_id, job.workdir
                     )
 
                 await update_job(session, id, job.state, output=output)

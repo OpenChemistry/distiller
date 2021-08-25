@@ -45,7 +45,7 @@ class Job(BaseModel):
 
 
 class SfapiJob(BaseModel):
-    # slurm_id: int Due to a bug in SFAPI we can currently get these
-    # name: str
+    slurm_id: int
+    name: str
     workdir: str
     state: str

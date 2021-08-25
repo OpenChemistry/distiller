@@ -1,5 +1,5 @@
 
-FROM openchemistry/still-faust-base:latest
+FROM openchemistry/distiller-faust-base:latest
 
 RUN ls -la /tmp
 
@@ -7,8 +7,8 @@ RUN apt-get update -y --fix-missing \
   && apt-get install -y \
     curl
 
-RUN mkdir -p /app/still-data && \
-  chmod a+xrw /app/still-data
+RUN mkdir -p /app/distiller-data && \
+  chmod a+xrw /app/distiller-data
 
 
 

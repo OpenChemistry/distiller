@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker build --build-arg WORKER=base -t openchemistry/still-faust-base -f ../Dockerfile.base ../ $@
+docker build --build-arg WORKER=base -t openchemistry/distiller-faust-base -f ../Dockerfile.base ../ $@

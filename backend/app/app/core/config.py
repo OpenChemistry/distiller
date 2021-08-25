@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     HAADF_IMAGE_UPLOAD_DIR: str
     HAADF_IMAGE_URL_PREFIX: str
     HAADF_IMAGE_STATIC_DIR: str
-    HAADF_IMAGE_UPLOAD_DIR: str
+
 
     class Config:
         case_sensitive = True

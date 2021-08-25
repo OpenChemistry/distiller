@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     JOB_NCEMHUB_COUNT_DATA_PATH: str
     JOB_SCRIPT_DIRECTORY: str
 
+    HAADF_IMAGE_UPLOAD_DIR: str
+    HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS: int
+
     class Config:
         case_sensitive = True
         env_file = ".env"

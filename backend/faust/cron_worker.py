@@ -11,7 +11,7 @@ from config import settings
 logger = logging.getLogger("cron_worker")
 logger.setLevel(logging.INFO)
 
-app = faust.App("still")
+app = faust.App("distiller")
 
 
 @app.crontab("0 0 * * *", timezone=pytz.timezone("US/Pacific"))

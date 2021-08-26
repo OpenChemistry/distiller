@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker build --build-arg WORKER=haadf -t openchemistry/still-faust-haadf -f ../Dockerfile.worker ../
+docker build --build-arg WORKER=haadf -t openchemistry/distiller-faust-haadf -f ../Dockerfile.worker ../

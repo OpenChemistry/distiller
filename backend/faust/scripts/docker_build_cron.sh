@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker build --build-arg WORKER=cron -t openchemistry/still-faust-cron -f ../Dockerfile.worker ../ $@
+docker build --build-arg WORKER=cron -t openchemistry/distiller-faust-cron -f ../Dockerfile.worker ../ $@

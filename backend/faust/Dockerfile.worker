@@ -1,5 +1,5 @@
 
-FROM openchemistry/still-faust-base:latest
+FROM openchemistry/distiller-faust-base:latest
 
 WORKDIR /app
 

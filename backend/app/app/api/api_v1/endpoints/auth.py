@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
@@ -66,17 +66,23 @@ async def login_for_access_token(
         data={"sub": user.username}, expires_delta=refresh_token_expires
     )
 
+    expires = datetime.now(timezone.utc) + refresh_token_expires
     response.set_cookie(
         "refresh_token",
         refresh_token,
         max_age=refresh_token_expires.total_seconds(),
-        path="/refresh_token",
+        expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"),
+        path=f"{settings.API_V1_STR}/refresh_token",
         domain=settings.JWT_REFRESH_COOKIE_DOMAIN,
         secure=settings.JWT_REFRESH_COOKIE_SECURE,
         httponly=True,
     )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "exp": access_token_expires.total_seconds(),
+    }
 
 
 @router.post("/refresh_token")
@@ -110,11 +116,24 @@ async def refresh_token(request: Request, db: Session = Depends(get_db)):
         data={"sub": user.username}, expires_delta=access_token_expires
     )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "exp": access_token_expires.total_seconds(),
+    }
 
 
 @router.get("/users/me")
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return UserResponse(
         username=current_user.username, full_name=current_user.full_name
+    )
+
+
+@router.delete("/refresh_token")
+async def refresh_token(response: Response):
+    response.delete_cookie(
+        "refresh_token",
+        domain=settings.JWT_REFRESH_COOKIE_DOMAIN,
+        path=f"{settings.API_V1_STR}/refresh_token",
     )

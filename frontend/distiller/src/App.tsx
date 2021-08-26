@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import {
   BrowserRouter as Router,
@@ -17,8 +17,16 @@ import {
 import ScansPage from './pages/scans';
 import AuthPage from './pages/auth';
 import HeaderComponent from './components/header';
+import { useAppDispatch } from './app/hooks';
+import {restoreSession} from './features/auth';
 
 function App() {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(restoreSession());
+  }, [dispatch])
+
   return (
     <Router>
       <div className="app">

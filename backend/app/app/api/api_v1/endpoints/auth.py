@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-import time
 from typing import Optional
 
 from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
@@ -11,7 +10,6 @@ from app.api.deps import get_current_user, get_db
 from app.api.utils import verify_password
 from app.core.config import settings
 from app.crud import user as crud
-
 
 router = APIRouter()
 
@@ -73,7 +71,7 @@ async def login_for_access_token(
         "refresh_token",
         refresh_token,
         max_age=refresh_token_expires.total_seconds(),
-        expires=expires.strftime('%a, %d %b %Y %H:%M:%S GMT'),
+        expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"),
         path=f"{settings.API_V1_STR}/refresh_token",
         domain=settings.JWT_REFRESH_COOKIE_DOMAIN,
         secure=settings.JWT_REFRESH_COOKIE_SECURE,
@@ -134,4 +132,8 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
 
 @router.delete("/refresh_token")
 async def refresh_token(response: Response):
-    response.delete_cookie("refresh_token", domain=settings.JWT_REFRESH_COOKIE_DOMAIN)
+    response.delete_cookie(
+        "refresh_token",
+        domain=settings.JWT_REFRESH_COOKIE_DOMAIN,
+        path=f"{settings.API_V1_STR}/refresh_token",
+    )

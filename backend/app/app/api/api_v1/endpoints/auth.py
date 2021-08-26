@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
@@ -66,7 +66,7 @@ async def login_for_access_token(
         data={"sub": user.username}, expires_delta=refresh_token_expires
     )
 
-    expires = datetime.utcnow() + refresh_token_expires
+    expires = datetime.now(timezone.utc) + refresh_token_expires
     response.set_cookie(
         "refresh_token",
         refresh_token,

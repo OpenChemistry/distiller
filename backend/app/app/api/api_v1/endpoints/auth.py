@@ -118,3 +118,13 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
     return UserResponse(
         username=current_user.username, full_name=current_user.full_name
     )
+
+@router.delete("/refresh_token")
+async def refresh_token(response: Response):
+    response.delete_cookie(
+        "refresh_token",
+        domain=settings.JWT_REFRESH_COOKIE_DOMAIN
+    )
+
+
+

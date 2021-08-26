@@ -73,36 +73,28 @@ async function refreshToken(autoRefresh: boolean, dispatch: ThunkDispatch<unknow
 export const restoreSession = createAsyncThunk<User, void>(
   'auth/restore_session',
   async (_payload, thunkAPI) => {
-    try {
-      const { dispatch } = thunkAPI;
+    const { dispatch } = thunkAPI;
 
-      refreshController.abort();
-      const controller = new AbortController();
-      refreshController = controller;
+    refreshController.abort();
+    const controller = new AbortController();
+    refreshController = controller;
 
-      await refreshToken(true, thunkAPI.dispatch, controller.signal);
+    await refreshToken(true, thunkAPI.dispatch, controller.signal);
 
-      dispatch(connectNotifications());
+    dispatch(connectNotifications());
 
-      const user = await getUserAPI();
+    const user = await getUserAPI();
 
-      return user;
-    } catch (e) {
-      throw e;
-    }
+    return user;
   }
 )
 
 export const logout = createAsyncThunk<void, void>(
   'auth/logout',
   async (_payload, _thunkAPI) => {
-    try {
-      refreshController.abort();
-      await deleteRefreshTokenAPI();
-      apiClient.setToken(undefined);
-    } catch (e) {
-      throw e;
-    }
+    refreshController.abort();
+    await deleteRefreshTokenAPI();
+    apiClient.setToken(undefined);
   }
 )
 

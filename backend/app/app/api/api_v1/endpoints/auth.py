@@ -11,6 +11,7 @@ from app.api.utils import verify_password
 from app.core.config import settings
 from app.crud import user as crud
 
+
 router = APIRouter()
 
 
@@ -76,7 +77,11 @@ async def login_for_access_token(
         httponly=True,
     )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "exp": access_token_expires.total_seconds(),
+    }
 
 
 @router.post("/refresh_token")
@@ -110,7 +115,11 @@ async def refresh_token(request: Request, db: Session = Depends(get_db)):
         data={"sub": user.username}, expires_delta=access_token_expires
     )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "exp": access_token_expires.total_seconds(),
+    }
 
 
 @router.get("/users/me")
@@ -119,12 +128,7 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
         username=current_user.username, full_name=current_user.full_name
     )
 
+
 @router.delete("/refresh_token")
 async def refresh_token(response: Response):
-    response.delete_cookie(
-        "refresh_token",
-        domain=settings.JWT_REFRESH_COOKIE_DOMAIN
-    )
-
-
-
+    response.delete_cookie("refresh_token", domain=settings.JWT_REFRESH_COOKIE_DOMAIN)

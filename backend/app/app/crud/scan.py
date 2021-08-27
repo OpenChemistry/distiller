@@ -106,7 +106,11 @@ def update_scan(
         statement = (
             update(models.Scan)
             .where(models.Scan.id == id)
-            .where(models.Scan.haadf_path != haadf_path)
+            .where(
+                or_(
+                    models.Scan.haadf_path != haadf_path, models.Scan.haadf_path == None
+                )
+            )
             .values(haadf_path=haadf_path)
         )
         resultsproxy = db.execute(statement)

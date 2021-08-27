@@ -9,7 +9,6 @@ import re
 import aiohttp
 import coloredlogs
 import tenacity
-from aiolimiter import AsyncLimiter
 from aiopath import AsyncPath
 from aiowatchdog import AIOEventHandler, AIOEventIterator
 from config import settings
@@ -124,7 +123,6 @@ async def upload_dm4(session: aiohttp.ClientSession, dm4_path: AsyncPath):
 
 
 async def monitor(queue: asyncio.Queue) -> None:
-    #rate_limit = AsyncLimiter(100, 1)
     host = platform.node()
 
     log_pattern = re.compile(r"^log_scan([0-9]*)_.*\.data")
@@ -157,10 +155,7 @@ async def monitor(queue: asyncio.Queue) -> None:
                 else:
                     model = event
 
-     #           async with rate_limit:
                 await post_file_event(session, model)
-            await asyncio.sleep(1)
-
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()

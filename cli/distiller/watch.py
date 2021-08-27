@@ -103,6 +103,13 @@ async def post_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -> N
 
         return await r.json()
 
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    ),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
 async def upload_dm4(session: aiohttp.ClientSession, dm4_path: AsyncPath):
     data = aiohttp.FormData()
     headers = {
@@ -112,8 +119,9 @@ async def upload_dm4(session: aiohttp.ClientSession, dm4_path: AsyncPath):
         data.add_field('file', fp,
                filename=dm4_path.name,
                content_type='application/octet-stream')
+        async with session.post(f"{settings.API_URL}/files/haadf", headers=headers, data=data) as r:
+            r.raise_for_status()
 
-        await session.post(f"{settings.API_URL}/files/haadf", headers=headers, data=data)
 
 async def monitor(queue: asyncio.Queue) -> None:
     #rate_limit = AsyncLimiter(100, 1)

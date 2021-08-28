@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     API_KEY_NAME: str
     API_KEY: str
     WATCH_DIRECTORIES: List[str]
+    HOST: str = None
 
     class Config:
         case_sensitive = True

@@ -5,6 +5,7 @@ import re
 import signal
 import sys
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 from typing import List
 
 import aiohttp
@@ -32,6 +33,12 @@ formatter = coloredlogs.ColoredFormatter(
 )
 handler.setFormatter(formatter)
 logger.addHandler(handler)
+if settings.LOG_FILE_PATH is not None:
+    file_handler = RotatingFileHandler(
+        settings.LOG_FILE_PATH, maxBytes=102400, backupCount=5
+    )
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
 
 async def create_sync_snapshot(watch_dirs: List[str]) -> List[File]:

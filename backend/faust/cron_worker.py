@@ -11,7 +11,7 @@ from config import settings
 logger = logging.getLogger("cron_worker")
 logger.setLevel(logging.INFO)
 
-app = faust.App("distiller")
+app = faust.App("distiller", broker=settings.KAFKA_URL)
 
 
 @app.crontab("0 0 * * *", timezone=pytz.timezone("US/Pacific"))

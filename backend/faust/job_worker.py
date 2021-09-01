@@ -253,7 +253,7 @@ async def monitor_jobs():
         try:
             params = {"kwargs": [f"user={settings.SFAPI_USER}"], "sacct": True}
 
-            logger.info("monitor jobs")
+            logger.info("Fetching jobs")
             r = await sfapi_get("compute/jobs/cori", params)
             r.raise_for_status()
 

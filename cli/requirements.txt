@@ -1,3 +1,6 @@
 aiopath
+aiohttp
 watchdog
 coloredlogs
+cachetools
+pydantic[dotenv]

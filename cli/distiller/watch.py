@@ -9,7 +9,6 @@ import re
 import aiohttp
 import coloredlogs
 import tenacity
-from aiolimiter import AsyncLimiter
 from aiopath import AsyncPath
 from aiowatchdog import AIOEventHandler, AIOEventIterator
 from config import settings
@@ -103,6 +102,13 @@ async def post_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -> N
 
         return await r.json()
 
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    ),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
 async def upload_dm4(session: aiohttp.ClientSession, dm4_path: AsyncPath):
     data = aiohttp.FormData()
     headers = {
@@ -112,11 +118,11 @@ async def upload_dm4(session: aiohttp.ClientSession, dm4_path: AsyncPath):
         data.add_field('file', fp,
                filename=dm4_path.name,
                content_type='application/octet-stream')
+        async with session.post(f"{settings.API_URL}/files/haadf", headers=headers, data=data) as r:
+            r.raise_for_status()
 
-        await session.post(f"{settings.API_URL}/files/haadf", headers=headers, data=data)
 
 async def monitor(queue: asyncio.Queue) -> None:
-    #rate_limit = AsyncLimiter(100, 1)
     host = platform.node()
 
     log_pattern = re.compile(r"^log_scan([0-9]*)_.*\.data")
@@ -149,10 +155,7 @@ async def monitor(queue: asyncio.Queue) -> None:
                 else:
                     model = event
 
-     #           async with rate_limit:
                 await post_file_event(session, model)
-            await asyncio.sleep(1)
-
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()

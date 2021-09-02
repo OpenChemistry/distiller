@@ -8,6 +8,7 @@ import {
 import EditIcon from '@material-ui/icons/Edit';
 import SaveIcon from '@material-ui/icons/Save';
 import { makeStyles } from '@material-ui/core/styles';
+import { stopPropagation } from '../utils';
 
 type Props = {
   value: string;
@@ -57,15 +58,16 @@ const EditableField: React.FC<Props> = ({value, onSave}) => {
           <TextField
             className={classes.field}
             value={draftValue}
+            onClick={stopPropagation(() => {})}
             onChange={(ev) => setDraftValue(ev.target.value)}
             disabled={saving}
             error={error}
           />
-          <IconButton onClick={onSaveClick} disabled={saving}><SaveIcon/></IconButton>
+          <IconButton onClick={stopPropagation(onSaveClick)} disabled={saving}><SaveIcon/></IconButton>
         </React.Fragment>
         : <React.Fragment>
           <Typography className={classes.field}>{value}</Typography>
-          <IconButton onClick={onEditClick}><EditIcon/></IconButton>
+          <IconButton onClick={stopPropagation(onEditClick)}><EditIcon/></IconButton>
         </React.Fragment>
       }
     </div>

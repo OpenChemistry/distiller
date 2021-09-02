@@ -16,6 +16,12 @@ export function getScans(skip?: number, limit?: number): Promise<Scan[]> {
   }).then(res => res.json());
 }
 
+export function getScan(id: IdType): Promise<Scan> {
+  return apiClient.get({
+    url: `scans/${id}`
+  }).then(res => res.json());
+}
+
 export function patchScan(id: IdType, updates: Partial<Scan>): Promise<Scan> {
   return apiClient.patch({
     url: `scans/${id}`,

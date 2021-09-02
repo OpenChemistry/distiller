@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, createEntityAdapter, PayloadAction } fro
 import { RootState } from '../../app/store';
 import {
   getScans as getScansAPI,
+  getScan as getScanAPI,
   patchScan as patchScanAPI,
 } from './api';
 import { Scan, IdType } from '../../types';
@@ -20,6 +21,16 @@ export const getScans = createAsyncThunk<Scan[]>(
     const scans = await getScansAPI();
 
     return scans;
+  }
+);
+
+export const getScan = createAsyncThunk<Scan, {id: IdType}>(
+  'scan/fetch',
+  async (payload, _thunkAPI) => {
+    const { id } = payload;
+    const scan = await getScanAPI(id);
+
+    return scan;
   }
 );
 
@@ -61,6 +72,9 @@ export const scansSlice = createSlice({
       .addCase(getScans.fulfilled, (state, action) => {
         state.status = 'complete';
         scansAdapter.setAll(state, action.payload);
+      })
+      .addCase(getScan.fulfilled, (state, action) => {
+        scansAdapter.setOne(state, action.payload);
       })
       .addCase(patchScan.fulfilled, (state, action) => {
         scansAdapter.setOne(state, action.payload);

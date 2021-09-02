@@ -1,13 +1,12 @@
-import { IdType, ScanLocation } from '../../types';
+import { IdType, Scan, ScanJob, ScanLocation } from '../../types';
 
 export enum ScanEventType {
   Created = 'scan.created',
   Updated = 'scan.updated',
 }
 
-export interface ScanEvent<T extends ScanEventType> {
+export interface ScanEvent<T extends ScanEventType> extends Partial<Scan> {
   id: IdType;
-  log_files: number;
   event_type: T;
 }
 
@@ -15,6 +14,8 @@ export interface ScanCreatedEvent extends ScanEvent<ScanEventType.Created> {
   scan_id: IdType;
   created: string;
   locations: ScanLocation[];
+  log_files: number;
+  jobs: ScanJob[];
 }
 
 export interface ScanUpdatedEvent extends ScanEvent<ScanEventType.Updated> {

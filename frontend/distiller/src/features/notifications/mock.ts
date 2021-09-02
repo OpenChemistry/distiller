@@ -1,4 +1,4 @@
-import { IdType } from '../../types';
+import { IdType, JobState, JobType, Scan, ScanJob } from '../../types';
 import { ScanCreatedEvent, ScanUpdatedEvent, ScanEventType } from './events';
 
 function makeCreatedEvent(id: IdType): ScanCreatedEvent {
@@ -24,15 +24,16 @@ function makeCreatedEvent(id: IdType): ScanCreatedEvent {
         host: 'picea',
         path: '/foo/bar',
       }
-    ]
+    ],
+    jobs: []
   }
 }
 
-function makeUpdatedEvent(id: IdType, log_files: number): ScanUpdatedEvent {
+function makeUpdatedEvent(id: IdType, updates: Partial<Scan>): ScanUpdatedEvent {
   return {
     event_type: ScanEventType.Updated,
     id,
-    log_files,
+    ...updates,
   }
 }
 
@@ -53,16 +54,33 @@ async function mockScanUpdates(ws: WebSocket, id: IdType) {
   for (let log_files of [10, 20, 30, 40, 50, 60, 72]) {
     await sleep(500);
     const ev: any = new Event('message');
-    ev.data = JSON.stringify(makeUpdatedEvent(id, log_files));
+    ev.data = JSON.stringify(makeUpdatedEvent(id, {log_files}));
+    ws.dispatchEvent(ev);
+  }
+
+  const job: ScanJob = {
+    id: '0',
+    scan_id: id,
+    job_type: JobType.Counting,
+    slurm_id: '123',
+    state: JobState.PENDING,
+    params: {},
+  };
+
+  for (let state of [JobState.PENDING, JobState.RUNNING, JobState.FAILED, JobState.COMPLETED]) {
+    job.state = state;
+    await sleep(2000);
+    const ev: any = new Event('message');
+    ev.data = JSON.stringify(makeUpdatedEvent(id, {jobs: [job]}));
     ws.dispatchEvent(ev);
   }
 }
 
 export async function startMockNotifications(ws: WebSocket) {
   const scans = [
-    {id: '20', wait: 1000},
-    {id: '30', wait: 3000},
-    {id: '40', wait: 5000},
+    {id: '-20', wait: 1000},
+    {id: '-30', wait: 3000},
+    {id: '-40', wait: 5000},
   ];
 
   for (let {id, wait} of scans) {

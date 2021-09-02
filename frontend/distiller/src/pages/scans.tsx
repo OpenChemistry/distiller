@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from 'react';
 
+import { useHistory } from 'react-router-dom';
+
 import { Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, LinearProgress } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import CompleteIcon from '@material-ui/icons/CheckCircle';
@@ -13,10 +15,15 @@ import { IdType, Scan } from '../types';
 import { staticURL } from '../client';
 import ImageDialog from '../components/image-dialog';
 import LocationComponent from '../components/location';
+import { SCANS_PATH } from '../routes';
+import { stopPropagation } from '../utils';
 
 const useStyles = makeStyles((theme) => ({
   headCell: {
     fontWeight: 600,
+  },
+  scanRow: {
+    cursor: 'pointer',
   },
   imgCell: {
     width: '5rem',
@@ -29,8 +36,14 @@ const useStyles = makeStyles((theme) => ({
   },
   thumbnail: {
     width: '100%',
+    height: '100%',
     objectFit: 'cover',
     cursor: 'pointer',
+  },
+  noThumbnail: {
+    width: '60%',
+    height: '60%',
+    objectFit: 'cover',
   },
   notesCell: {
     width: '100%',
@@ -46,6 +59,7 @@ const ScansPage: React.FC = () => {
   const classes = useStyles();
 
   const dispatch = useAppDispatch();
+  const history = useHistory();
   const scans = useAppSelector(scansSelector.selectAll);
 
   const [maximizeImg, setMaximizeImg] = useState(false);
@@ -68,6 +82,10 @@ const ScansPage: React.FC = () => {
     setMaximizeImg(false);
   }
 
+  const onScanClick = (scan: Scan) => {
+    history.push(`${SCANS_PATH}/${scan.id}`);
+  }
+
   return (
     <React.Fragment>
       <TableContainer component={Paper}>
@@ -85,16 +103,16 @@ const ScansPage: React.FC = () => {
           </TableHead>
           <TableBody>
             {scans.map(scan => (
-              <TableRow key={scan.id}>
+              <TableRow key={scan.id} className={classes.scanRow} hover onClick={() => onScanClick(scan)}>
                 <TableCell className={classes.imgCell}>
                   {scan.haadf_path
                     ? <img
                         src={`${staticURL}${scan.haadf_path}`}
                         alt='scan thumbnail'
                         className={classes.thumbnail}
-                        onClick={() => onImgClick(scan)}
+                        onClick={stopPropagation(() => onImgClick(scan))}
                       />
-                    : <ImageIcon/>
+                    : <ImageIcon color='secondary' className={classes.noThumbnail}/>
                   }
                 </TableCell>
                 <TableCell>{scan.id}</TableCell>

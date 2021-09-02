@@ -13,9 +13,11 @@ import PrivateRoute from './routes/private';
 import {
   HOME_PATH,
   AUTH_PATH,
+  SCANS_PATH,
 } from './routes';
 import ScansPage from './pages/scans';
 import AuthPage from './pages/auth';
+import ScanPage from './pages/scan';
 import HeaderComponent from './components/header';
 import { useAppDispatch } from './app/hooks';
 import {restoreSession} from './features/auth';
@@ -40,6 +42,9 @@ function App() {
               <Route path={AUTH_PATH}>
                 <AuthPage/>
               </Route>
+              <PrivateRoute path={`${SCANS_PATH}/:scanId`} redirect={AUTH_PATH}>
+                <ScanPage/>
+              </PrivateRoute>
               <PrivateRoute path={HOME_PATH} redirect={AUTH_PATH}>
                 <ScansPage/>
               </PrivateRoute>

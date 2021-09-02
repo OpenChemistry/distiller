@@ -5,10 +5,6 @@ import App from './App';
 import { store } from './app/store';
 import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
-import { apiClient } from './client';
-
-const apiURL = process.env.REACT_APP_API_URL || '/api/v1';
-apiClient.setBaseURL(apiURL);
 
 ReactDOM.render(
   <React.StrictMode>

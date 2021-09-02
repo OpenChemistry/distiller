@@ -34,6 +34,7 @@ class Scan(BaseModel):
     locations: List[Location]
     haadf_path: Optional[str]
     notes: Optional[str]
+    jobs: List[Job]
 
     class Config:
         orm_mode = True

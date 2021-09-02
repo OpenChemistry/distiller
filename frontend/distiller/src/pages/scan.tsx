@@ -4,7 +4,6 @@ import { useParams as useUrlParams } from 'react-router-dom';
 
 import {
   Card,
-  Typography,
   Grid,
   Table,
   TableRow,
@@ -12,6 +11,8 @@ import {
   TableCell,
   LinearProgress,
   CardContent,
+  TableHead,
+  CardHeader,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import CompleteIcon from '@material-ui/icons/CheckCircle';
@@ -24,13 +25,18 @@ import LocationComponent from '../components/location';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
 import { IdType } from '../types';
+import JobStateComponent from '../components/job-state';
 
 const useStyles = makeStyles((theme) => ({
+  card: {
+    marginBottom: '2rem',
+  },
   headCell: {
     fontWeight: 600,
   },
   image: {
     width: '100%',
+    height: '100%',
     objectFit: 'cover',
   },
 }));
@@ -62,29 +68,26 @@ const ScanPage: React.FC<Props> = () => {
   }
 
   return <React.Fragment>
-    <Typography component='h1' variant='h3'>
-      Scan
-    </Typography>
-    <Card>
+    <Card className={classes.card}>
       <CardContent>
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={12} sm={4} md={3}>
             {scan.haadf_path
               ? <img
                   src={`${staticURL}${scan.haadf_path}`}
                   alt='scan thumbnail'
                   className={classes.image}
                 />
-              : <ImageIcon/>
+              : <ImageIcon className={classes.image} color='secondary'/>
             }
           </Grid>
-          <Grid item xs={12} sm={9}>
+          <Grid item xs={12} sm={8} md={9}>
             <Table>
               <TableBody>
-                <TableRow>
+                {/* <TableRow>
                   <TableCell className={classes.headCell}>ID</TableCell>
                   <TableCell align='right'>{scan.id}</TableCell>
-                </TableRow>
+                </TableRow> */}
                 <TableRow>
                   <TableCell className={classes.headCell}>Scan ID</TableCell>
                   <TableCell align='right'>{scan.scan_id}</TableCell>
@@ -126,6 +129,36 @@ const ScanPage: React.FC<Props> = () => {
           </TableBody>
         </Table>
       </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader title="Jobs">
+      </CardHeader>
+      <CardContent>
+      <Table>
+      <TableHead>
+        <TableRow>
+          <TableCell className={classes.headCell}>ID</TableCell>
+          <TableCell className={classes.headCell}>Type</TableCell>
+          <TableCell className={classes.headCell}>Slurm ID</TableCell>
+          <TableCell className={classes.headCell} align='right'>State</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {scan.jobs.map((job) => {
+          return (
+            <TableRow key={job.id}>
+              <TableCell>{job.id}</TableCell>
+              <TableCell>{job.job_type}</TableCell>
+              <TableCell>{job.slurm_id}</TableCell>
+              <TableCell align='right'><JobStateComponent state={job.state}/></TableCell>
+            </TableRow>
+          )
+        })}
+      </TableBody>
+    </Table>
+      </CardContent>
+
     </Card>
   </React.Fragment>
 }

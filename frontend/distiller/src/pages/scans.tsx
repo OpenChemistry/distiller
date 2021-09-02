@@ -36,8 +36,14 @@ const useStyles = makeStyles((theme) => ({
   },
   thumbnail: {
     width: '100%',
+    height: '100%',
     objectFit: 'cover',
     cursor: 'pointer',
+  },
+  noThumbnail: {
+    width: '60%',
+    height: '60%',
+    objectFit: 'cover',
   },
   notesCell: {
     width: '100%',
@@ -106,7 +112,7 @@ const ScansPage: React.FC = () => {
                         className={classes.thumbnail}
                         onClick={stopPropagation(() => onImgClick(scan))}
                       />
-                    : <ImageIcon/>
+                    : <ImageIcon color='secondary' className={classes.noThumbnail}/>
                   }
                 </TableCell>
                 <TableCell>{scan.id}</TableCell>

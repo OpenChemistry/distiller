@@ -240,7 +240,7 @@ def extract_job_id(workdir: str) -> Union[int, None]:
 async def read_slurm_out(slurm_id: int, workdir: str) -> str:
     out_file_path = AsyncPath(workdir) / f"slurm-{slurm_id}.out"
     if await out_file_path.exists():
-        logger.info("Output exists", str(out_file_path))
+        logger.info("Output exists: %s", str(out_file_path))
         async with out_file_path.open("r") as fp:
             return await fp.read()
 
@@ -281,6 +281,12 @@ async def monitor_jobs():
                     output = await read_slurm_out(
                         job.slurm_id, job.workdir
                     )
+
+                # sacct return a state of the form "CANCELLED by XXXX" for the
+                # cancelled state, reset set it so it will be converted to the
+                # right slurm state.
+                if job.state.startswith("CANCELLED by"):
+                    job.state = "CANCELLED"
 
                 await update_job(session, id, job.state, output=output)
         except httpx.ReadTimeout as ex:

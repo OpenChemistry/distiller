@@ -240,7 +240,7 @@ def extract_job_id(workdir: str) -> Union[int, None]:
 async def read_slurm_out(slurm_id: int, workdir: str) -> str:
     out_file_path = AsyncPath(workdir) / f"slurm-{slurm_id}.out"
     if await out_file_path.exists():
-        logger.info("Output exists", str(out_file_path))
+        logger.info("Output exists: %s", str(out_file_path))
         async with out_file_path.open("r") as fp:
             return await fp.read()
 

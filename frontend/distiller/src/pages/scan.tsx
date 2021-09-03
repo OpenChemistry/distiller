@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useParams as useUrlParams } from 'react-router-dom';
 
@@ -13,6 +13,8 @@ import {
   CardContent,
   TableHead,
   CardHeader,
+  CardActions,
+  Button,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import CompleteIcon from '@material-ui/icons/CheckCircle';
@@ -24,8 +26,11 @@ import { getScan, scansSelector, patchScan } from '../features/scans';
 import LocationComponent from '../components/location';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
-import { IdType } from '../types';
+import { IdType, JobType } from '../types';
 import JobStateComponent from '../components/job-state';
+import TransferDialog from '../components/transfer-dialog';
+import CountingDialog from '../components/counting-dialog';
+import { createJob } from '../features/jobs/api';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -53,12 +58,30 @@ const ScanPage: React.FC<Props> = () => {
 
   const dispatch = useAppDispatch();
 
+  const [jobDialog, setJobDialog] = useState<JobType | undefined>()
+
   useEffect(() => {
     dispatch(getScan({id: scanId}));
   }, [dispatch, scanId]);
 
   const onSaveNotes = (id: IdType, notes: string) => {
     return dispatch(patchScan({id, updates: {notes}}));
+  }
+
+  const onTransferClick = () => {
+    setJobDialog(JobType.Transfer);
+  }
+
+  const onCountClick = () => {
+    setJobDialog(JobType.Counting);
+  }
+
+  const onJobClose = () => {
+    setJobDialog(undefined);
+  }
+
+  const onJobSubmit = (type: JobType, params: any) => {
+    return createJob(type, scanId, params);
   }
 
   const scan = useAppSelector((state) => scansSelector.selectById(state, scanId));
@@ -84,10 +107,6 @@ const ScanPage: React.FC<Props> = () => {
           <Grid item xs={12} sm={8} md={9}>
             <Table>
               <TableBody>
-                {/* <TableRow>
-                  <TableCell className={classes.headCell}>ID</TableCell>
-                  <TableCell align='right'>{scan.id}</TableCell>
-                </TableRow> */}
                 <TableRow>
                   <TableCell className={classes.headCell}>Scan ID</TableCell>
                   <TableCell align='right'>{scan.scan_id}</TableCell>
@@ -129,37 +148,52 @@ const ScanPage: React.FC<Props> = () => {
           </TableBody>
         </Table>
       </CardContent>
+      <CardActions>
+        <Button onClick={onTransferClick} size='small' color='primary'>Transfer</Button>
+        <Button onClick={onCountClick} size='small' color='primary'>Count</Button>
+      </CardActions>
     </Card>
 
     <Card>
       <CardHeader title="Jobs">
       </CardHeader>
       <CardContent>
-      <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell className={classes.headCell}>ID</TableCell>
-          <TableCell className={classes.headCell}>Type</TableCell>
-          <TableCell className={classes.headCell}>Slurm ID</TableCell>
-          <TableCell className={classes.headCell} align='right'>State</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {scan.jobs.map((job) => {
-          return (
-            <TableRow key={job.id}>
-              <TableCell>{job.id}</TableCell>
-              <TableCell>{job.job_type}</TableCell>
-              <TableCell>{job.slurm_id}</TableCell>
-              <TableCell align='right'><JobStateComponent state={job.state}/></TableCell>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell className={classes.headCell}>ID</TableCell>
+              <TableCell className={classes.headCell}>Type</TableCell>
+              <TableCell className={classes.headCell}>Slurm ID</TableCell>
+              <TableCell className={classes.headCell} align='right'>State</TableCell>
             </TableRow>
-          )
-        })}
-      </TableBody>
-    </Table>
+          </TableHead>
+          <TableBody>
+            {scan.jobs.map((job) => {
+              return (
+                <TableRow key={job.id}>
+                  <TableCell>{job.id}</TableCell>
+                  <TableCell>{job.job_type}</TableCell>
+                  <TableCell>{job.slurm_id}</TableCell>
+                  <TableCell align='right'><JobStateComponent state={job.state}/></TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
       </CardContent>
-
     </Card>
+
+    <TransferDialog
+      open={jobDialog === JobType.Transfer}
+      onClose={onJobClose}
+      onSubmit={(params) => onJobSubmit(JobType.Transfer, params)}
+    />
+
+    <CountingDialog
+      open={jobDialog === JobType.Counting}
+      onClose={onJobClose}
+      onSubmit={(params) => onJobSubmit(JobType.Counting, params)}
+    />
   </React.Fragment>
 }
 

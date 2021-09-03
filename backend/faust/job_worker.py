@@ -282,6 +282,12 @@ async def monitor_jobs():
                         job.slurm_id, job.workdir
                     )
 
+                # sacct return a state of the form "CANCELLED by XXXX" for the
+                # cancelled state, reset set it so it will be converted to the
+                # right slurm state.
+                if job.state.startswith("CANCELLED by"):
+                    job.state = "CANCELLED"
+
                 await update_job(session, id, job.state, output=output)
         except httpx.ReadTimeout as ex:
             logger.warning("Job monitoring request timed out", ex)

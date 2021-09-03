@@ -50,7 +50,10 @@ class WebsocketConsumer(WebSocketEndpoint):
         try:
             async for msg in self.consumer:
                 event = msg.value
-                del event["__faust"]
+                try:
+                    del event["__faust"]
+                except KeyError:
+                    pass
                 await self.websocket.send_json(event)
         finally:
             await self.consumer.stop()

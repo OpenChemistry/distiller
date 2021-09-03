@@ -32,6 +32,9 @@ async def create_job(job: schemas.JobCreate, db: Session = Depends(get_db)):
 
     await send_submit_job_event_to_kafka(SubmitJobEvent(scan=scan, job=job))
 
+    jobs = crud.get_jobs(db, scan_id=job.scan_id)
+    await send_scan_event_to_kafka(ScanUpdateEvent(id=job.scan_id, jobs=jobs))
+
     return job
 
 

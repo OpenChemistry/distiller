@@ -25,4 +25,4 @@ async def haadf_reaper():
 
         if now - created > expiration:
             logger.info(f"Removing: {f}")
-            await f.remove()
+            await f.unlink()

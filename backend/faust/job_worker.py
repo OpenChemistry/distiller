@@ -247,6 +247,8 @@ async def read_slurm_out(slurm_id: int, workdir: str) -> str:
     return None
 
 
+completed_jobs = set()
+
 @app.timer(interval=60)
 async def monitor_jobs():
     async with aiohttp.ClientSession() as session:
@@ -275,12 +277,20 @@ async def monitor_jobs():
                     )
                     continue
 
+                # if the is finished and we have already processed it just continue
+                if id in completed_jobs:
+                    continue
+
                 # We are done upload the output
                 output = None
                 if job.state not in SLURM_RUNNING_STATES:
                     output = await read_slurm_out(
                         job.slurm_id, job.workdir
                     )
+
+                    # Add to completed set so we can skip over it
+                    completed_jobs.add(id)
+
 
                 # sacct return a state of the form "CANCELLED by XXXX" for the
                 # cancelled state, reset set it so it will be converted to the

@@ -5,6 +5,7 @@ from enum import Enum
 from pathlib import Path
 from typing import List
 
+from typing import Optional
 import aiohttp
 
 import faust
@@ -29,7 +30,7 @@ class FileSystemEvent(faust.Record):
     event_type: str
     src_path: str
     is_directory: bool
-    created: datetime
+    created: Optional[datetime]
     host: str
 
 

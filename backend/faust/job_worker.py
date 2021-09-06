@@ -16,10 +16,10 @@ import faust
 from config import settings
 from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DW_JOB_STRIPED_VAR,
                        SFAPI_BASE_URL, SFAPI_TOKEN_URL, SLURM_RUNNING_STATES,
-                       TOPIC_JOB_SUBMIT_EVENTS, TRANSFER_JOB_SCRIPT_TEMPLATE)
-from schemas import JobUpdate, Location, Scan, SfapiJob
+                       TOPIC_JOB_SUBMIT_EVENTS, TRANSFER_JOB_SCRIPT_TEMPLATE, JobState)
+from schemas import JobUpdate, Location, Scan, SfapiJob, ScanUpdate
 from utils import get_job
-from utils import update_job as update_job_request
+from utils import update_job as update_job_request, update_scan
 
 # Setup logger
 logger = logging.getLogger("job_worker")
@@ -289,5 +289,15 @@ async def monitor_jobs():
                     job.state = "CANCELLED"
 
                 await update_job(session, id, job.state, output=output)
+
+                # If the job is completed and we are dealing with a transfer job
+                # then update the location.
+                if job.state == JobState.COMPLETED and JobType.TRANSFER in job.name:
+                    update = ScanUpdate(
+                        id=id,
+                        locations=[Location(host="cori", path=settings.JOB_NCEMHUB_RAW_DATA_PATH)]
+                    )
+                    await update_scan(session, update)
+
         except httpx.ReadTimeout as ex:
             logger.warning("Job monitoring request timed out", ex)

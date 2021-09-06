@@ -25,8 +25,8 @@ class ScanCreate(BaseModel):
 
 class ScanUpdate(BaseModel):
     id: int
-    log_files: int
-    locations: List[Location]
+    log_files: Optional[int]
+    locations: Optional[List[Location]]
 
 
 class JobUpdate(BaseModel):

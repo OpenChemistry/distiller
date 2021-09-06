@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from sqlalchemy import or_, update
+from sqlalchemy import or_, update, desc
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -28,7 +28,7 @@ def get_jobs(
     if slurm_id is not None:
         query = query.filter(models.Job.slurm_id == slurm_id)
 
-    return query.offset(skip).limit(limit).all()
+    return query.order_by(desc(models.Job.id)).offset(skip).limit(limit).all()
 
 
 def create_job(db: Session, job: schemas.JobCreate):

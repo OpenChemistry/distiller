@@ -21,6 +21,7 @@ TRANSFER_JOB_SCRIPT_TEMPLATE = "transfer.sh.j2"
 COUNT_JOB_SCRIPT_TEMPLATE = "count.sh.j2"
 DW_JOB_STRIPED_VAR = "${DW_JOB_STRIPED}"
 
+
 class JobState(str, Enum):
     INITIALIZING = (
         "INITIALIZING"  # This is not a slurm state. This is the default start state
@@ -68,6 +69,7 @@ SLURM_RUNNING_STATES = [
     JobState.STAGE_OUT,
     JobState.SUSPENDED,
 ]
+
 
 class JobType(str, Enum):
     TRANSFER = "transfer"

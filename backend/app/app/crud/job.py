@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from sqlalchemy import or_, update, desc
+from sqlalchemy import desc, or_, update
 from sqlalchemy.orm import Session
 
 from app import models, schemas

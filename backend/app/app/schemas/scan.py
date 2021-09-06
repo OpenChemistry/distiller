@@ -50,6 +50,7 @@ class ScanUpdate(BaseModel):
     log_files: Optional[int] = None
     locations: Optional[List[LocationCreate]] = None
     notes: Optional[str]
+    haadf_path: Optional[str]
 
 
 class ScanEventType(str, Enum):

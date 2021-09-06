@@ -92,7 +92,7 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
 
         if updated:
             await send_scan_event_to_kafka(
-                schemas.ScanUpdatedEvent(haadf_path=str(upload_path), id=scan.id)
+                schemas.ScanUpdate(haadf_path=str(upload_path), id=scan.id)
             )
 
 

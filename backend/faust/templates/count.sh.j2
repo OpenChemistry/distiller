@@ -2,6 +2,6 @@
 {% include "bb_allocation_header.j2"  %}
 {% include "transfer_body.j2" %}
 
-#shifter python3 {{settings.JOB_COUNT_SCRIPT_PATH}} --pad -l ${DW_JOB_STRIPED} -t {{threshold}} -s {{scan.scan_id}} || error_exit "Error shifter execution failed."
+shifter python3 {{settings.JOB_COUNT_SCRIPT_PATH}} --pad -l ${DW_JOB_STRIPED} -t {{threshold}} -s {{scan.scan_id}} || error_exit "Error shifter execution failed."
 
-#cp ${DW_JOB_STRIPED}/data_scan*.h5 {{settings.JOB_NCEMHUB_COUNT_DATA_PATH}} || error_exit "Failed to copy counted data to ncemhub."
+cp ${DW_JOB_STRIPED}/data_scan*.h5 {{settings.JOB_NCEMHUB_COUNT_DATA_PATH}} || error_exit "Failed to copy counted data to ncemhub."

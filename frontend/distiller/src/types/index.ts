@@ -12,7 +12,7 @@ export type ScanLocation = {
 
 export enum JobType {
   Transfer = 'transfer',
-  Counting = 'counting',
+  Counting = 'count',
 }
 
 export enum JobState {

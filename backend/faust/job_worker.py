@@ -97,6 +97,25 @@ async def render_job_script(scan: Scan, job: Job) -> str:
 
     return output
 
+async def render_bbcp_script(job: Job) -> str:
+    if job.job_type == JobType.COUNT:
+        dest_dir = DW_JOB_STRIPED_VAR
+    else:
+        dest_dir = settings.JOB_NCEMHUB_RAW_DATA_PATH
+
+    template_loader = jinja2.FileSystemLoader(
+        searchpath=Path(__file__).parent / "templates"
+    )
+    template_env = jinja2.Environment(loader=template_loader, enable_async=True)
+    template = template_env.get_template("bbcp.sh.j2")
+    output = await template.render_async(
+        settings=settings, dest_dir=dest_dir, job=job
+    )
+
+    logger.info(output)
+
+    return output
+
 
 async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
     await client.ensure_active_token()
@@ -185,18 +204,33 @@ async def update_slurm_job_id(
 async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
-    # Render the script
-    output = await render_job_script(scan=event.scan, job=event.job)
+    # Render the scripts
+    job_script_output = await render_job_script(scan=event.scan, job=event.job)
+    bbcp_script_output = await render_bbcp_script(job=event.job)
+
     submission_script_path = (
         AsyncPath(settings.JOB_SCRIPT_DIRECTORY)
         / str(event.job.id)
         / f"{event.job.job_type}-{event.job.id}.sh"
     )
 
+    bbcp_script_path = (
+        AsyncPath(settings.JOB_SCRIPT_DIRECTORY)
+        / str(event.job.id)
+        / "bbcp.sh"
+
+    )
+
     await submission_script_path.parent.mkdir(parents=True, exist_ok=False)
 
     async with submission_script_path.open("w") as fp:
-        await fp.write(output)
+        await fp.write(job_script_output)
+
+    async with bbcp_script_path.open("w") as fp:
+        await fp.write(bbcp_script_output)
+
+    # Make bbcp script executable
+    await bbcp_script_path.chmod(0o740)
 
     # Submit the job
     slurm_id = await submit_job(str(submission_script_path))

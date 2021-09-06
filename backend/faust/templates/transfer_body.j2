@@ -21,6 +21,6 @@ list_files() {
 list_files {{l.host}} {{l.path}}
 {%- endfor %}
 
-srun -n {{settings.JOB_NUMBER_OF_NODES}} --cpus-per-task=2 --cpu-bind=cores bbcp -z -f -V -s 4 -I _ncem_files_{{job.id}}_$SLURM_PROCID.txt {{dest_dir}} || error_exit "Error bbcp srun command failed."
+srun -n {{settings.JOB_NUMBER_OF_NODES}} --cpus-per-task=2 --cpu-bind=cores bbcp.sh  || error_exit "Error bbcp srun command failed."
 
 rm _ncem_files_{{job.id}}_*.txt

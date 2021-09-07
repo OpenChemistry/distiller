@@ -3,6 +3,9 @@
 {% include "count_header.j2" %}
 {% include "transfer_body.j2" %}
 
-shifter python3 {{settings.JOB_COUNT_SCRIPT_PATH}} --pad -l ${DW_JOB_STRIPED} -t {{threshold}} -s {{scan.scan_id}} || error_exit "Error shifter execution failed."
+# Wait for transfer job to finish!
+sleep 5
+
+srun -n {{settings.JOB_NUMBER_OF_NODES}} shifter python3 {{settings.JOB_COUNT_SCRIPT_PATH}} --pad -l ${DW_JOB_STRIPED} -t {{threshold}} -s {{scan.scan_id}} --multi-pass || error_exit "Error shifter execution failed."
 
 cp ${DW_JOB_STRIPED}/data_scan*.h5 {{settings.JOB_NCEMHUB_COUNT_DATA_PATH}}/ || error_exit "Failed to copy counted data to ncemhub."

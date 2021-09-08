@@ -10,8 +10,7 @@ from fastapi.security.api_key import APIKey
 from sqlalchemy.orm import Session
 
 from app import schemas
-from app.api.deps import (get_api_key, get_current_user, get_db,
-                          oauth2_password_bearer_or_api_key)
+from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
 from app.core.config import settings
 from app.crud import scan as crud
 from app.kafka.producer import send_scan_event_to_kafka
@@ -80,10 +79,12 @@ def read_scans(
     return scans
 
 
-@router.get("/{id}", response_model=schemas.Scan)
-def read_scan(
-    id: int, db: Session = Depends(get_db), _: schemas.User = Depends(get_current_user)
-):
+@router.get(
+    "/{id}",
+    response_model=schemas.Scan,
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
+)
+def read_scan(id: int, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")

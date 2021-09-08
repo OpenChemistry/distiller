@@ -96,7 +96,7 @@ async def render_job_script(scan: Scan, job: Job, dest_dir: str) -> str:
 
     # Make a copy and filter out cori from locations
     scan = copy.deepcopy(scan)
-    scan.locations = [x for x in scan.locations if x.host != 'cori']
+    scan.locations = [x for x in scan.locations if x.host != "cori"]
 
     output = await template.render_async(
         settings=settings, scan=scan, dest_dir=dest_dir, job=job, **job.params

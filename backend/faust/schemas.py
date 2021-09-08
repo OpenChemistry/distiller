@@ -14,6 +14,7 @@ class Scan(BaseModel):
     scan_id: int
     log_files: int
     locations: List[Location]
+    created: datetime
     haadf_path: Optional[str] = None
 
 

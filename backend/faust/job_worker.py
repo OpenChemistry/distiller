@@ -1,10 +1,11 @@
 import asyncio
+import copy
 import json
 import logging
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Union
-import copy
 
 import aiohttp
 import httpx
@@ -22,7 +23,7 @@ from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DW_JOB_STRIPED_VAR,
 from schemas import JobUpdate
 from schemas import Location as LocationRest
 from schemas import Scan, ScanUpdate, SfapiJob
-from utils import get_job
+from utils import get_job, get_scan
 from utils import update_job as update_job_request
 from utils import update_scan
 
@@ -65,6 +66,7 @@ class Scan(faust.Record):
     id: int
     log_files: int
     locations: List[Location]
+    created: datetime
 
 
 class Job(faust.Record):
@@ -80,12 +82,10 @@ class SubmitJobEvent(faust.Record):
 submit_job_events_topic = app.topic(TOPIC_JOB_SUBMIT_EVENTS, value_type=SubmitJobEvent)
 
 
-async def render_job_script(scan: Scan, job: Job) -> str:
+async def render_job_script(scan: Scan, job: Job, dest_dir: str) -> str:
     if job.job_type == JobType.COUNT:
-        dest_dir = DW_JOB_STRIPED_VAR
         template_name = COUNT_JOB_SCRIPT_TEMPLATE
     else:
-        dest_dir = settings.JOB_NCEMHUB_RAW_DATA_PATH
         template_name = TRANSFER_JOB_SCRIPT_TEMPLATE
 
     template_loader = jinja2.FileSystemLoader(
@@ -107,12 +107,7 @@ async def render_job_script(scan: Scan, job: Job) -> str:
     return output
 
 
-async def render_bbcp_script(job: Job) -> str:
-    if job.job_type == JobType.COUNT:
-        dest_dir = DW_JOB_STRIPED_VAR
-    else:
-        dest_dir = settings.JOB_NCEMHUB_RAW_DATA_PATH
-
+async def render_bbcp_script(job: Job, dest_dir: str) -> str:
     template_loader = jinja2.FileSystemLoader(
         searchpath=Path(__file__).parent / "templates"
     )
@@ -212,9 +207,24 @@ async def update_slurm_job_id(
 async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
+
+    dest_dir = DW_JOB_STRIPED_VAR
+
+    # If we are submitting a transfer job ensure we have the directory created
+    if event.job.job_type == JobType.TRANSFER:
+        # Not sure why by created comes in as a str, so convert to datatime
+        created_datetime = datetime.fromisoformat(event.scan.created)
+        date_dir = created_datetime.strftime("%Y.%m.%d")
+        transfer_path = AsyncPath(settings.JOB_NCEMHUB_RAW_DATA_PATH) / date_dir
+
+        await transfer_path.mkdir(parents=True, exist_ok=True)
+        dest_dir = str(transfer_path)
+
     # Render the scripts
-    job_script_output = await render_job_script(scan=event.scan, job=event.job)
-    bbcp_script_output = await render_bbcp_script(job=event.job)
+    job_script_output = await render_job_script(
+        scan=event.scan, job=event.job, dest_dir=dest_dir
+    )
+    bbcp_script_output = await render_bbcp_script(job=event.job, dest_dir=dest_dir)
 
     submission_script_path = (
         AsyncPath(settings.JOB_SCRIPT_DIRECTORY)
@@ -349,12 +359,18 @@ async def monitor_jobs():
                 # then update the location.
                 if job.state == JobState.COMPLETED and JobType.TRANSFER in job.name:
                     job = await get_job(session, id)
+                    scan = await get_scan(session, job.scan_id)
+                    date_dir = scan.created.strftime("%Y.%m.%d")
 
                     update = ScanUpdate(
                         id=job.scan_id,
                         locations=[
                             LocationRest(
-                                host="cori", path=settings.JOB_NCEMHUB_RAW_DATA_PATH
+                                host="cori",
+                                path=str(
+                                    AsyncPath(settings.JOB_NCEMHUB_RAW_DATA_PATH)
+                                    / date_dir
+                                ),
                             )
                         ],
                     )

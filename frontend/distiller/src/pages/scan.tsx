@@ -19,6 +19,8 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import CompleteIcon from '@material-ui/icons/CheckCircle';
 import ImageIcon from '@material-ui/icons/Image';
+import TransferIcon from '@material-ui/icons/CompareArrows';
+import CountIcon from '@material-ui/icons/BlurOn';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
@@ -29,7 +31,7 @@ import EditableField from '../components/editable-field';
 import { IdType, JobType } from '../types';
 import JobStateComponent from '../components/job-state';
 import TransferDialog from '../components/transfer-dialog';
-import CountingDialog from '../components/counting-dialog';
+import CountDialog from '../components/count-dialog';
 import { createJob } from '../features/jobs/api';
 
 const useStyles = makeStyles((theme) => ({
@@ -51,10 +53,21 @@ type UrlProps = {
     scanId: string;
 }
 
+function jobTypeToIcon(type: JobType) {
+  if (type === JobType.Count) {
+    return CountIcon;
+  } else if (type === JobType.Transfer) {
+    return TransferIcon;
+  } else {
+    throw new Error("Unknown job type");
+  }
+}
+
 const ScanPage: React.FC<Props> = () => {
   const classes = useStyles();
 
-  const { scanId } = useUrlParams<UrlProps>();
+  const { scanId: _scanId } = useUrlParams<UrlProps>();
+  const scanId = parseInt(_scanId);
 
   const dispatch = useAppDispatch();
 
@@ -73,7 +86,7 @@ const ScanPage: React.FC<Props> = () => {
   }
 
   const onCountClick = () => {
-    setJobDialog(JobType.Counting);
+    setJobDialog(JobType.Count);
   }
 
   const onJobClose = () => {
@@ -149,8 +162,8 @@ const ScanPage: React.FC<Props> = () => {
         </Table>
       </CardContent>
       <CardActions>
-        <Button onClick={onTransferClick} size='small' color='primary'>Transfer</Button>
-        <Button onClick={onCountClick} size='small' color='primary'>Count</Button>
+        <Button onClick={onTransferClick} size='small' color='primary' variant='outlined'><TransferIcon/>Transfer</Button>
+        <Button onClick={onCountClick} size='small' color='primary' variant='outlined'><CountIcon/>Count</Button>
       </CardActions>
     </Card>
 
@@ -168,11 +181,12 @@ const ScanPage: React.FC<Props> = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {scan.jobs.map((job) => {
+            {[...scan.jobs].sort((a, b) => b.id - a.id).map((job) => {
+              const Icon = jobTypeToIcon(job.job_type);
               return (
                 <TableRow key={job.id}>
                   <TableCell>{job.id}</TableCell>
-                  <TableCell>{job.job_type}</TableCell>
+                  <TableCell title={job.job_type}><Icon/></TableCell>
                   <TableCell>{job.slurm_id}</TableCell>
                   <TableCell align='right'><JobStateComponent state={job.state}/></TableCell>
                 </TableRow>
@@ -189,10 +203,10 @@ const ScanPage: React.FC<Props> = () => {
       onSubmit={(params) => onJobSubmit(JobType.Transfer, params)}
     />
 
-    <CountingDialog
-      open={jobDialog === JobType.Counting}
+    <CountDialog
+      open={jobDialog === JobType.Count}
       onClose={onJobClose}
-      onSubmit={(params) => onJobSubmit(JobType.Counting, params)}
+      onSubmit={(params: any) => onJobSubmit(JobType.Count, params)}
     />
   </React.Fragment>
 }

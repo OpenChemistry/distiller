@@ -10,17 +10,17 @@ function makeCreatedEvent(id: IdType): ScanCreatedEvent {
     log_files: 0,
     locations: [
       {
-        id: '0',
+        id: 0,
         host: 'edge',
         path: '/foo/bar',
       },
       {
-        id: '1',
+        id: 1,
         host: 'edge',
         path: '/bar/baz',
       },
       {
-        id: '2',
+        id: 2,
         host: 'picea',
         path: '/foo/bar',
       }
@@ -59,10 +59,10 @@ async function mockScanUpdates(ws: WebSocket, id: IdType) {
   }
 
   const job: ScanJob = {
-    id: '0',
+    id: 0,
     scan_id: id,
-    job_type: JobType.Counting,
-    slurm_id: '123',
+    job_type: JobType.Count,
+    slurm_id: 123,
     state: JobState.PENDING,
     params: {},
   };
@@ -78,9 +78,9 @@ async function mockScanUpdates(ws: WebSocket, id: IdType) {
 
 export async function startMockNotifications(ws: WebSocket) {
   const scans = [
-    {id: '-20', wait: 1000},
-    {id: '-30', wait: 3000},
-    {id: '-40', wait: 5000},
+    {id: -20, wait: 1000},
+    {id: -30, wait: 3000},
+    {id: -40, wait: 5000},
   ];
 
   for (let {id, wait} of scans) {

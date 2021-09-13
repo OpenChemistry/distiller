@@ -10,22 +10,25 @@ import blue from '@material-ui/core/colors/blue';
 import grey from '@material-ui/core/colors/grey';
 import lightGreen from '@material-ui/core/colors/lightGreen';
 import red from '@material-ui/core/colors/red';
+import orange from '@material-ui/core/colors/orange';
 
 const blue500 = blue['500'];
 const red500 = red['500'];
 const lightGreenA700 = lightGreen['A700'];
 const grey300 = grey['300'];
+const yellow300 = orange['300'];
 
-const stateToStyle = (state: JobState): {Icon: any; color: string;} => {
+const stateToStyle = (state: JobState): {Icon: any; color: string; className?: string} => {
     if (PendingJobStates.has(state)) {
       return {
         Icon: Help,
-        color: grey300
+        color: yellow300
       }
     } else if (RunningJobStates.has(state)) {
       return {
         Icon: AutoRenew,
-        color: lightGreenA700
+        color: lightGreenA700,
+        className: 'spinner',
       }
     } else if (CompleteJobStates.has(state)) {
       return {
@@ -50,11 +53,11 @@ type Props = {
 }
 
 const JobStateComponent: React.FC<Props> = ({state}) => {
-  const {Icon, color} = stateToStyle(state);
+  const {Icon, color, className} = stateToStyle(state);
 
   return (
     <div title={state}>
-      <Icon style={{color: color}}/>
+      <Icon className={className} style={{color: color}}/>
     </div>
   )
 }

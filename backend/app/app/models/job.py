@@ -1,4 +1,5 @@
-from sqlalchemy import JSON, Column, Enum, ForeignKey, Integer, String
+from sqlalchemy import (JSON, Column, Enum, ForeignKey, Integer, Interval,
+                        String)
 
 from app.db.base_class import Base
 from app.schemas.job import JobState
@@ -11,4 +12,5 @@ class Job(Base):
     state = Column(Enum(JobState), default=JobState.INITIALIZING, nullable=True)
     params = Column(JSON)
     output = Column(String, nullable=True)
+    elapsed = Column(Interval, nullable=True)
     scan_id = Column(Integer, ForeignKey("scans.id"))

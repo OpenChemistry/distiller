@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -35,6 +35,7 @@ class JobUpdate(BaseModel):
     slurm_id: Optional[int]
     state: Optional[str]
     output: Optional[str]
+    elapsed: Optional[timedelta]
 
 
 class Job(BaseModel):
@@ -50,3 +51,4 @@ class SfapiJob(BaseModel):
     name: str
     workdir: str
     state: str
+    elapsed: timedelta

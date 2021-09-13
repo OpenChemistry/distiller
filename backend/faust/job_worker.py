@@ -2,7 +2,7 @@ import asyncio
 import copy
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Union
@@ -278,21 +278,27 @@ async def watch_for_submit_job_events(submit_jobs_events):
 
 
 async def update_job(
-    session: aiohttp.ClientSession, job_id: int, state: str, output: str = None
+    session: aiohttp.ClientSession, job_id: int, state: str, elapsed: timedelta, output: str = None
 ) -> None:
-    update = JobUpdate(id=job_id, state=state, output=output)
+    update = JobUpdate(id=job_id, state=state, output=output, elapsed=elapsed)
     await update_job_request(session, update)
 
 
 def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
     jobs = []
     for job in sfapi_response["output"]:
+        elapsed = job['elapsed']
+        elapsed = datetime.strptime(elapsed,"%H:%M:%S")
+        # Convert to timedelta
+        elapsed = timedelta(hours=elapsed.hour, minutes=elapsed.minute, seconds=elapsed.second)
+
         jobs.append(
             SfapiJob(
                 workdir=job["workdir"],
                 state=job["state"],
                 name=job["jobname"],
                 slurm_id=int(job["jobid"]),
+                elapsed=elapsed
             )
         )
 
@@ -366,7 +372,7 @@ async def monitor_jobs():
                 if job.state.startswith("CANCELLED by"):
                     job.state = "CANCELLED"
 
-                await update_job(session, id, job.state, output=output)
+                await update_job(session, id, job.state, elapsed=job.elapsed, output=output)
 
                 # If the job is completed and we are dealing with a transfer job
                 # then update the location.

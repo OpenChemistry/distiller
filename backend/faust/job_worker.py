@@ -10,10 +10,10 @@ from typing import Any, Dict, List, Union
 import aiohttp
 import httpx
 import jinja2
+import tenacity
 from aiopath import AsyncPath
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
 from authlib.oauth2.rfc7523 import PrivateKeyJWT
-import tenacity
 
 import faust
 from config import settings
@@ -120,10 +120,9 @@ async def render_bbcp_script(job: Job, dest_dir: str) -> str:
 
     return output
 
+
 @tenacity.retry(
-    retry=tenacity.retry_if_exception_type(
-        httpx.TimeoutException
-    ),
+    retry=tenacity.retry_if_exception_type(httpx.TimeoutException),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
@@ -142,10 +141,9 @@ async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
 
     return r
 
+
 @tenacity.retry(
-    retry=tenacity.retry_if_exception_type(
-        httpx.TimeoutException
-    ),
+    retry=tenacity.retry_if_exception_type(httpx.TimeoutException),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
@@ -278,7 +276,11 @@ async def watch_for_submit_job_events(submit_jobs_events):
 
 
 async def update_job(
-    session: aiohttp.ClientSession, job_id: int, state: str, elapsed: timedelta, output: str = None
+    session: aiohttp.ClientSession,
+    job_id: int,
+    state: str,
+    elapsed: timedelta,
+    output: str = None,
 ) -> None:
     update = JobUpdate(id=job_id, state=state, output=output, elapsed=elapsed)
     await update_job_request(session, update)
@@ -287,10 +289,12 @@ async def update_job(
 def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
     jobs = []
     for job in sfapi_response["output"]:
-        elapsed = job['elapsed']
-        elapsed = datetime.strptime(elapsed,"%H:%M:%S")
+        elapsed = job["elapsed"]
+        elapsed = datetime.strptime(elapsed, "%H:%M:%S")
         # Convert to timedelta
-        elapsed = timedelta(hours=elapsed.hour, minutes=elapsed.minute, seconds=elapsed.second)
+        elapsed = timedelta(
+            hours=elapsed.hour, minutes=elapsed.minute, seconds=elapsed.second
+        )
 
         jobs.append(
             SfapiJob(
@@ -298,7 +302,7 @@ def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
                 state=job["state"],
                 name=job["jobname"],
                 slurm_id=int(job["jobid"]),
-                elapsed=elapsed
+                elapsed=elapsed,
             )
         )
 
@@ -372,7 +376,9 @@ async def monitor_jobs():
                 if job.state.startswith("CANCELLED by"):
                     job.state = "CANCELLED"
 
-                await update_job(session, id, job.state, elapsed=job.elapsed, output=output)
+                await update_job(
+                    session, id, job.state, elapsed=job.elapsed, output=output
+                )
 
                 # If the job is completed and we are dealing with a transfer job
                 # then update the location.

@@ -1,4 +1,5 @@
-from sqlalchemy import JSON, Column, Enum, ForeignKey, Integer, String, Interval
+from sqlalchemy import (JSON, Column, Enum, ForeignKey, Integer, Interval,
+                        String)
 
 from app.db.base_class import Base
 from app.schemas.job import JobState

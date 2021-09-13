@@ -1,6 +1,6 @@
+from datetime import timedelta
 from enum import Enum
 from typing import Dict, Optional, Union
-from datetime import timedelta
 
 from pydantic import BaseModel
 

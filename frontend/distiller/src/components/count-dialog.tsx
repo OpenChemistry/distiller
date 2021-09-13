@@ -17,7 +17,7 @@ type Props = {
     onSubmit: (params: any) => Promise<any>;
 }
 
-const CountingDialog: React.FC<Props> = (props) => {
+const CountDialog: React.FC<Props> = (props) => {
   const { open, onClose, onSubmit } = props;
   const [threshold, setThreshold] = useState(4);
   const [error, setError] = useState('');
@@ -40,11 +40,11 @@ const CountingDialog: React.FC<Props> = (props) => {
     <Dialog
       open={open}
       onClose={onClose}
-      aria-labelledby="counting-job-title"
+      aria-labelledby="count-job-title"
     >
-      <DialogTitle id="counting-job-title">Counting Job</DialogTitle>
+      <DialogTitle id="count-job-title">Count Job</DialogTitle>
       <DialogContent>
-        <DialogContentText>Create a new counting job</DialogContentText>
+        <DialogContentText>Create a new count job</DialogContentText>
         <TextField label='threshold' fullWidth value={threshold} onChange={(ev) => setThreshold(parseFloat(ev.target.value))} type='number'/>
         <Typography color='error' variant='caption'>{error}</Typography>
       </DialogContent>
@@ -60,4 +60,4 @@ const CountingDialog: React.FC<Props> = (props) => {
   )
 }
 
-export default CountingDialog;
+export default CountDialog;

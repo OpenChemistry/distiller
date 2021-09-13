@@ -1,4 +1,4 @@
-export type IdType = string;
+export type IdType = number;
 
 export type User = {
   username: string;
@@ -12,7 +12,7 @@ export type ScanLocation = {
 
 export enum JobType {
   Transfer = 'transfer',
-  Counting = 'count',
+  Count = 'count',
 }
 
 export enum JobState {
@@ -76,6 +76,7 @@ export const FailedJobStates = new Set<JobState>([
   JobState.REVOKED,
   JobState.STOPPED,
   JobState.TIMEOUT,
+  JobState.CANCELLED,
 ]);
 
 export type ScanJob = {

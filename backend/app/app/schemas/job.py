@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Dict, Optional, Union
+from datetime import timedelta
 
 from pydantic import BaseModel
 
@@ -53,6 +54,7 @@ class Job(BaseModel):
     state: JobState = JobState.INITIALIZING
     params: Dict[str, Union[str, int, float]]
     output: Optional[str]
+    elapsed: Optional[timedelta]
 
     class Config:
         orm_mode = True
@@ -68,3 +70,4 @@ class JobUpdate(BaseModel):
     slurm_id: Optional[int]
     state: Optional[JobState]
     output: Optional[str]
+    elapsed: Optional[timedelta]

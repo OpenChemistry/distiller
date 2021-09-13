@@ -61,6 +61,11 @@ def update_job(
         or_comparisons.append(models.Job.output != updates.output)
         or_comparisons.append(models.Job.output == None)
 
+    if updates.elapsed is not None:
+        statement = statement.values(elapsed=updates.elapsed)
+        or_comparisons.append(models.Job.elapsed != updates.elapsed)
+        or_comparisons.append(models.Job.elapsed == None)
+
     statement = statement.where(or_(*or_comparisons))
 
     resultproxy = db.execute(statement)

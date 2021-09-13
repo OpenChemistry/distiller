@@ -108,6 +108,26 @@ async def get_scans(
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
+async def get_scan(session: aiohttp.ClientSession, id: int) -> Scan:
+    headers = {
+        settings.API_KEY_NAME: settings.API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    async with session.get(f"{settings.API_URL}/scans/{id}", headers=headers) as r:
+        r.raise_for_status()
+        json = await r.json()
+
+        return Scan(**json)
+
+
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    ),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
 async def update_job(session: aiohttp.ClientSession, event: JobUpdate) -> dict:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,

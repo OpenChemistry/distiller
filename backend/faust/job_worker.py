@@ -1,6 +1,8 @@
 import asyncio
+import copy
 import json
 import logging
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Union
@@ -11,15 +13,20 @@ import jinja2
 from aiopath import AsyncPath
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
 from authlib.oauth2.rfc7523 import PrivateKeyJWT
+import tenacity
 
 import faust
 from config import settings
 from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DW_JOB_STRIPED_VAR,
                        SFAPI_BASE_URL, SFAPI_TOKEN_URL, SLURM_RUNNING_STATES,
-                       TOPIC_JOB_SUBMIT_EVENTS, TRANSFER_JOB_SCRIPT_TEMPLATE)
-from schemas import JobUpdate, Location, Scan, SfapiJob
-from utils import get_job
+                       TOPIC_JOB_SUBMIT_EVENTS, TRANSFER_JOB_SCRIPT_TEMPLATE,
+                       JobState)
+from schemas import JobUpdate
+from schemas import Location as LocationRest
+from schemas import Scan, ScanUpdate, SfapiJob
+from utils import get_job, get_scan
 from utils import update_job as update_job_request
+from utils import update_scan
 
 # Setup logger
 logger = logging.getLogger("job_worker")
@@ -60,6 +67,7 @@ class Scan(faust.Record):
     id: int
     log_files: int
     locations: List[Location]
+    created: datetime
 
 
 class Job(faust.Record):
@@ -75,12 +83,10 @@ class SubmitJobEvent(faust.Record):
 submit_job_events_topic = app.topic(TOPIC_JOB_SUBMIT_EVENTS, value_type=SubmitJobEvent)
 
 
-async def render_job_script(scan: Scan, job: Job) -> str:
+async def render_job_script(scan: Scan, job: Job, dest_dir: str) -> str:
     if job.job_type == JobType.COUNT:
-        dest_dir = DW_JOB_STRIPED_VAR
         template_name = COUNT_JOB_SCRIPT_TEMPLATE
     else:
-        dest_dir = settings.JOB_NCEMHUB_RAW_DATA_PATH
         template_name = TRANSFER_JOB_SCRIPT_TEMPLATE
 
     template_loader = jinja2.FileSystemLoader(
@@ -88,6 +94,11 @@ async def render_job_script(scan: Scan, job: Job) -> str:
     )
     template_env = jinja2.Environment(loader=template_loader, enable_async=True)
     template = template_env.get_template(template_name)
+
+    # Make a copy and filter out cori from locations
+    scan = copy.deepcopy(scan)
+    scan.locations = [x for x in scan.locations if x.host != "cori"]
+
     output = await template.render_async(
         settings=settings, scan=scan, dest_dir=dest_dir, job=job, **job.params
     )
@@ -97,6 +108,25 @@ async def render_job_script(scan: Scan, job: Job) -> str:
     return output
 
 
+async def render_bbcp_script(job: Job, dest_dir: str) -> str:
+    template_loader = jinja2.FileSystemLoader(
+        searchpath=Path(__file__).parent / "templates"
+    )
+    template_env = jinja2.Environment(loader=template_loader, enable_async=True)
+    template = template_env.get_template("bbcp.sh.j2")
+    output = await template.render_async(settings=settings, dest_dir=dest_dir, job=job)
+
+    logger.info(output)
+
+    return output
+
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        httpx.TimeoutException
+    ),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
 async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
     await client.ensure_active_token()
 
@@ -112,7 +142,13 @@ async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
 
     return r
 
-
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        httpx.TimeoutException
+    ),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
 async def sfapi_post(url: str, data: Dict[str, Any]) -> httpx.Response:
     await client.ensure_active_token()
 
@@ -184,18 +220,45 @@ async def update_slurm_job_id(
 async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
-    # Render the script
-    output = await render_job_script(scan=event.scan, job=event.job)
+
+    dest_dir = DW_JOB_STRIPED_VAR
+
+    # If we are submitting a transfer job ensure we have the directory created
+    if event.job.job_type == JobType.TRANSFER:
+        # Not sure why by created comes in as a str, so convert to datatime
+        created_datetime = datetime.fromisoformat(event.scan.created)
+        date_dir = created_datetime.strftime("%Y.%m.%d")
+        transfer_path = AsyncPath(settings.JOB_NCEMHUB_RAW_DATA_PATH) / date_dir
+
+        await transfer_path.mkdir(parents=True, exist_ok=True)
+        dest_dir = str(transfer_path)
+
+    # Render the scripts
+    job_script_output = await render_job_script(
+        scan=event.scan, job=event.job, dest_dir=dest_dir
+    )
+    bbcp_script_output = await render_bbcp_script(job=event.job, dest_dir=dest_dir)
+
     submission_script_path = (
         AsyncPath(settings.JOB_SCRIPT_DIRECTORY)
         / str(event.job.id)
         / f"{event.job.job_type}-{event.job.id}.sh"
     )
 
+    bbcp_script_path = (
+        AsyncPath(settings.JOB_SCRIPT_DIRECTORY) / str(event.job.id) / "bbcp.sh"
+    )
+
     await submission_script_path.parent.mkdir(parents=True, exist_ok=False)
 
     async with submission_script_path.open("w") as fp:
-        await fp.write(output)
+        await fp.write(job_script_output)
+
+    async with bbcp_script_path.open("w") as fp:
+        await fp.write(bbcp_script_output)
+
+    # Make bbcp script executable
+    await bbcp_script_path.chmod(0o740)
 
     # Submit the job
     slurm_id = await submit_job(str(submission_script_path))
@@ -224,7 +287,14 @@ async def update_job(
 def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
     jobs = []
     for job in sfapi_response["output"]:
-        jobs.append(SfapiJob(workdir=job["workdir"], state=job["state"], name=job["jobname"], slurm_id=int(job["jobid"])))
+        jobs.append(
+            SfapiJob(
+                workdir=job["workdir"],
+                state=job["state"],
+                name=job["jobname"],
+                slurm_id=int(job["jobid"]),
+            )
+        )
 
     return jobs
 
@@ -245,6 +315,9 @@ async def read_slurm_out(slurm_id: int, workdir: str) -> str:
             return await fp.read()
 
     return None
+
+
+completed_jobs = set()
 
 
 @app.timer(interval=60)
@@ -275,12 +348,17 @@ async def monitor_jobs():
                     )
                     continue
 
+                # if the is finished and we have already processed it just continue
+                if id in completed_jobs:
+                    continue
+
                 # We are done upload the output
                 output = None
                 if job.state not in SLURM_RUNNING_STATES:
-                    output = await read_slurm_out(
-                        job.slurm_id, job.workdir
-                    )
+                    output = await read_slurm_out(job.slurm_id, job.workdir)
+
+                    # Add to completed set so we can skip over it
+                    completed_jobs.add(id)
 
                 # sacct return a state of the form "CANCELLED by XXXX" for the
                 # cancelled state, reset set it so it will be converted to the
@@ -289,5 +367,27 @@ async def monitor_jobs():
                     job.state = "CANCELLED"
 
                 await update_job(session, id, job.state, output=output)
+
+                # If the job is completed and we are dealing with a transfer job
+                # then update the location.
+                if job.state == JobState.COMPLETED and JobType.TRANSFER in job.name:
+                    job = await get_job(session, id)
+                    scan = await get_scan(session, job.scan_id)
+                    date_dir = scan.created.strftime("%Y.%m.%d")
+
+                    update = ScanUpdate(
+                        id=job.scan_id,
+                        locations=[
+                            LocationRest(
+                                host="cori",
+                                path=str(
+                                    AsyncPath(settings.JOB_NCEMHUB_RAW_DATA_PATH)
+                                    / date_dir
+                                ),
+                            )
+                        ],
+                    )
+                    await update_scan(session, update)
+
         except httpx.ReadTimeout as ex:
             logger.warning("Job monitoring request timed out", ex)

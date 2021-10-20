@@ -119,7 +119,12 @@ async def process_log_file(
             raise Exception("Multiple scans with the same id and creation time!")
 
         if len(scans) == 0:
-            locations = [Location(host=event.host, path=str(Path(path).parent))]
+            # We need get all paths
+            paths = set()
+            for log_file in scan_log_files:
+                paths.add(str(Path(log_file).parent))
+
+            locations = [Location(host=event.host, path=p) for p in paths]
             scan = await create_scan(
                 session,
                 ScanCreate(

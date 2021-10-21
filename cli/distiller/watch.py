@@ -191,6 +191,8 @@ async def monitor(queue: asyncio.Queue) -> None:
                     asyncio.create_task(post_file_event(session, model))
     except asyncio.CancelledError:
         logger.info("Monitor loop canceled.")
+    except Exception:
+        logger.exception("Exception in monitoring loop.")
 
 
 async def shutdown(signal, loop, monitor_task):

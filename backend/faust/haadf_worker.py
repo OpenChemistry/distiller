@@ -8,6 +8,7 @@ import aiohttp
 import matplotlib.pyplot as plt
 import ncempy.io as nio
 from aiopath import AsyncPath
+import tenacity
 
 import faust
 from config import settings
@@ -47,7 +48,18 @@ async def generate_haadf_image(tmp_dir: str, dm4_path: str, scan_id: int) -> Asy
 
     return path
 
-
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    ) | tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ClientResponseError
+    ) | tenacity.retry_if_exception_type(
+        asyncio.exceptions.TimeoutError
+    )
+    ,
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
 async def upload_haadf_image(session: aiohttp.ClientSession, path: AsyncPath):
     # Now upload
     async with path.open("rb") as fp:

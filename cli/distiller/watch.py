@@ -114,6 +114,8 @@ async def post_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -> N
 @tenacity.retry(
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
+    ) | tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ClientResponseError
     ),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),

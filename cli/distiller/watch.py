@@ -72,6 +72,8 @@ async def watch(
 @tenacity.retry(
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
+    ) | tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ClientResponseError
     ),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
@@ -93,6 +95,8 @@ async def post_file_event(
 @tenacity.retry(
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
+    ) | tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ClientResponseError
     ),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),

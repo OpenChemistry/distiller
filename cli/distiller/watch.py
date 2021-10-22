@@ -41,9 +41,18 @@ if settings.LOG_FILE_PATH is not None:
     logger.addHandler(file_handler)
 
 
+def get_host():
+    if settings.HOST is None:
+        host = platform.node()
+    else:
+        host = settings.HOST
+
+    return host
+
+
 async def create_sync_snapshot(watch_dirs: List[str]) -> List[File]:
     files = []
-    host = platform.node()
+    host = get_host()
     for watch_dir in watch_dirs:
         async for f in AsyncPath(watch_dir).glob(LOG_FILE_GLOB):
             path = AsyncPath(f)
@@ -138,10 +147,7 @@ async def upload_dm4(session: aiohttp.ClientSession, dm4_path: AsyncPath):
 
 
 async def monitor(queue: asyncio.Queue) -> None:
-    if settings.HOST is None:
-        host = platform.node()
-    else:
-        host = settings.HOST
+    host = get_host()
 
     log_pattern = re.compile(r"^log_scan([0-9]*)_.*\.data")
     dm4_pattern = re.compile(r"^scan([0-9]*)\.dm4")

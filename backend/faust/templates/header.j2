@@ -11,7 +11,7 @@
 #SBATCH --qos=debug
 #SBATCH --constraint=haswell
 #SBATCH --nodes={{settings.JOB_NUMBER_OF_NODES}}
-#SBATCH --time=00:15:00
+#SBATCH --time=00:30:00
 #SBATCH --job-name=distiller-{{job.job_type}}-{{job.id}}
 #SBATCH --exclusive
 #SBATCH --account=ncemhub

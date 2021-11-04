@@ -182,7 +182,7 @@ async def monitor(queue: asyncio.Queue) -> None:
                                 continue
                             else:
                                 cache[key] = True
-                        elif event.event_type == EVENT_TYPE_CLOSED:
+                        elif event.event_type == EVENT_TYPE_CLOSED and key in cache:
                             del cache[key]
 
                         model = FileSystemEventModel(

@@ -73,9 +73,11 @@ async def watch(
         observer.schedule(handler, str(d))
     observer.start()
 
-    files = await create_sync_snapshot(dirs)
-    async with aiohttp.ClientSession() as session:
-        await post_sync_event(session, SyncEvent(files=files))
+    if settings.SYNC:
+        logger.info("Sending sync message.")
+        files = await create_sync_snapshot(dirs)
+        async with aiohttp.ClientSession() as session:
+            await post_sync_event(session, SyncEvent(files=files))
 
 
 @tenacity.retry(

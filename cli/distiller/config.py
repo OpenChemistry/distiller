@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     WATCH_DIRECTORIES: List[str]
     HOST: str = None
     LOG_FILE_PATH: str = None
+    SYNC: bool = True
 
     class Config:
         case_sensitive = True

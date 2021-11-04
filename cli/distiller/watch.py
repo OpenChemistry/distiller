@@ -23,6 +23,7 @@ from watchdog.events import (EVENT_TYPE_CLOSED, EVENT_TYPE_MODIFIED,
                              FileSystemEvent)
 from watchdog.observers import Observer
 
+
 # Setup logger
 logger = logging.getLogger("watch")
 logger.setLevel(logging.INFO)
@@ -39,6 +40,11 @@ if settings.LOG_FILE_PATH is not None:
     )
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
+
+if settings.POLLING:
+    logger.info("Using polling observer.")
+    from watchdog.observers.polling import PollingObserver as Observer
+
 
 
 def get_host():

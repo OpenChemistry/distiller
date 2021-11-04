@@ -164,6 +164,11 @@ async def monitor(queue: asyncio.Queue) -> None:
 
     cache = TTLCache(maxsize=100000, ttl=60)
 
+    dm4_file_event_trigger = EVENT_TYPE_CLOSED
+    # If we are using the polling observer we just get a created event.
+    if settings.POLLING:
+        dm4_file_event_trigger = EVENT_TYPE_CREATED
+
     try:
         async with aiohttp.ClientSession() as session:
             while True:
@@ -179,7 +184,7 @@ async def monitor(queue: asyncio.Queue) -> None:
 
                         if (
                             dm4_pattern.match(path.name)
-                            and event.event_type == EVENT_TYPE_CLOSED
+                            and event.event_type == dm4_file_event_trigger
                         ):
                             await upload_dm4(session, path)
                             continue

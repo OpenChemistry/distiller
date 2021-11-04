@@ -19,7 +19,7 @@ from constants import LOG_FILE_GLOB
 from schemas import File
 from schemas import FileSystemEvent as FileSystemEventModel
 from schemas import SyncEvent
-from watchdog.events import (EVENT_TYPE_CLOSED, EVENT_TYPE_MODIFIED,
+from watchdog.events import (EVENT_TYPE_CLOSED, EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED,
                              FileSystemEvent)
 from watchdog.observers import Observer
 
@@ -143,6 +143,7 @@ async def post_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -> N
     stop=tenacity.stop_after_attempt(10),
 )
 async def upload_dm4(session: aiohttp.ClientSession, dm4_path: AsyncPath):
+    logger.info(f"Uploading {dm4_path}")
     data = aiohttp.FormData()
     headers = {settings.API_KEY_NAME: settings.API_KEY}
     async with dm4_path.open("rb") as fp:

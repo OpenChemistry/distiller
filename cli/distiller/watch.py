@@ -20,7 +20,7 @@ from schemas import File
 from schemas import FileSystemEvent as FileSystemEventModel
 from schemas import SyncEvent
 from watchdog.events import (EVENT_TYPE_CLOSED, EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED,
-                             FileSystemEvent)
+                             EVENT_TYPE_MOVED, FileSystemEvent)
 from watchdog.observers import Observer
 
 
@@ -164,10 +164,10 @@ async def monitor(queue: asyncio.Queue) -> None:
 
     cache = TTLCache(maxsize=100000, ttl=60)
 
-    dm4_file_event_trigger = EVENT_TYPE_CLOSED
-    # If we are using the polling observer we just get a created event.
+    dm4_file_events = [EVENT_TYPE_CLOSED]
+    # If we are using the polling observer we a created or moved event.
     if settings.POLLING:
-        dm4_file_event_trigger = EVENT_TYPE_CREATED
+        dm4_file_events = [EVENT_TYPE_CREATED, EVENT_TYPE_MOVED]
 
     try:
         async with aiohttp.ClientSession() as session:
@@ -182,12 +182,17 @@ async def monitor(queue: asyncio.Queue) -> None:
                         ):
                             continue
 
-                        if (
-                            dm4_pattern.match(path.name)
-                            and event.event_type == dm4_file_event_trigger
-                        ):
-                            await upload_dm4(session, path)
-                            continue
+                        # DM4 file case
+                        if event.event_type in dm4_file_events:
+                            # Could be a move event ( the microscopy software creates
+                            # a temp file and then moves it )
+                            if event.event_type == EVENT_TYPE_MOVED:
+                                path = event.dest_path
+
+                            # Check we are dealing with a DM4
+                            if dm4_pattern.match(path.name):
+                                await upload_dm4(session, path)
+                                continue
 
                         # Don't send all modified events
                         key = f"{host}:{event.src_path}"

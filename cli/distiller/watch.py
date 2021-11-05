@@ -176,12 +176,6 @@ async def monitor(queue: asyncio.Queue) -> None:
                     if isinstance(event, FileSystemEvent):
                         path = AsyncPath(event.src_path)
 
-                        # We are only looking for log files and dm4s (haadf)
-                        if not log_pattern.match(path.name) and not dm4_pattern.match(
-                            path.name
-                        ):
-                            continue
-
                         # DM4 file case
                         if event.event_type in dm4_file_events:
                             # Could be a move event ( the microscopy software creates
@@ -193,6 +187,10 @@ async def monitor(queue: asyncio.Queue) -> None:
                             if dm4_pattern.match(path.name):
                                 await upload_dm4(session, path)
                                 continue
+
+                        # We are only looking for log files
+                        if not log_pattern.match(path.name):
+                            continue
 
                         # Don't send all modified events
                         key = f"{host}:{event.src_path}"

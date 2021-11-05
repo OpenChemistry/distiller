@@ -181,7 +181,7 @@ async def monitor(queue: asyncio.Queue) -> None:
                             # Could be a move event ( the microscopy software creates
                             # a temp file and then moves it )
                             if event.event_type == EVENT_TYPE_MOVED:
-                                path = event.dest_path
+                                path = AsyncPath(event.dest_path)
 
                             # Check we are dealing with a DM4
                             if dm4_pattern.match(path.name):

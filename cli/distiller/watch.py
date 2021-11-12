@@ -19,8 +19,8 @@ from constants import LOG_FILE_GLOB
 from schemas import File
 from schemas import FileSystemEvent as FileSystemEventModel
 from schemas import SyncEvent
-from watchdog.events import (EVENT_TYPE_CLOSED, EVENT_TYPE_MODIFIED,
-                             FileSystemEvent)
+from watchdog.events import (EVENT_TYPE_CLOSED, EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED,
+                             EVENT_TYPE_MOVED, FileSystemEvent)
 from watchdog.observers import Observer
 
 
@@ -143,6 +143,7 @@ async def post_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -> N
     stop=tenacity.stop_after_attempt(10),
 )
 async def upload_dm4(session: aiohttp.ClientSession, dm4_path: AsyncPath):
+    logger.info(f"Uploading {dm4_path}")
     data = aiohttp.FormData()
     headers = {settings.API_KEY_NAME: settings.API_KEY}
     async with dm4_path.open("rb") as fp:
@@ -163,6 +164,11 @@ async def monitor(queue: asyncio.Queue) -> None:
 
     cache = TTLCache(maxsize=100000, ttl=60)
 
+    dm4_file_events = [EVENT_TYPE_CLOSED]
+    # If we are using the polling observer we a created or moved event.
+    if settings.POLLING:
+        dm4_file_events = [EVENT_TYPE_CREATED, EVENT_TYPE_MOVED]
+
     try:
         async with aiohttp.ClientSession() as session:
             while True:
@@ -170,17 +176,20 @@ async def monitor(queue: asyncio.Queue) -> None:
                     if isinstance(event, FileSystemEvent):
                         path = AsyncPath(event.src_path)
 
-                        # We are only looking for log files and dm4s (haadf)
-                        if not log_pattern.match(path.name) and not dm4_pattern.match(
-                            path.name
-                        ):
-                            continue
+                        # DM4 file case
+                        if event.event_type in dm4_file_events:
+                            # Could be a move event ( the microscopy software creates
+                            # a temp file and then moves it )
+                            if event.event_type == EVENT_TYPE_MOVED:
+                                path = AsyncPath(event.dest_path)
 
-                        if (
-                            dm4_pattern.match(path.name)
-                            and event.event_type == EVENT_TYPE_CLOSED
-                        ):
-                            await upload_dm4(session, path)
+                            # Check we are dealing with a DM4
+                            if dm4_pattern.match(path.name):
+                                await upload_dm4(session, path)
+                                continue
+
+                        # We are only looking for log files
+                        if not log_pattern.match(path.name):
                             continue
 
                         # Don't send all modified events

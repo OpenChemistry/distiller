@@ -73,9 +73,7 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
 
     scans = scan_crud.get_scans(db, scan_id=scan_id, has_haadf=False)
 
-    if len(scans) > 1:
-        raise Exception("More than one scan exists without HAADF!")
-    elif len(scans) == 1:
+    if len(scans) > 0:
         scan = scans[0]
         # Move the file to the right location
         loop = asyncio.get_event_loop()

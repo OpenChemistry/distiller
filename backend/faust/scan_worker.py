@@ -121,7 +121,7 @@ async def process_log_file(
         if len(scans) == 0:
             # We need get all paths
             paths = set()
-            for log_file in scan_log_files:
+            for log_file in scan_id_to_log_files[scan_id]:
                 paths.add(str(Path(log_file).parent))
 
             locations = [Location(host=event.host, path=p) for p in paths]
@@ -130,7 +130,7 @@ async def process_log_file(
                 ScanCreate(
                     scan_id=scan_id,
                     created=event.created,
-                    logs_files=len(scan_log_files),
+                    logs_files=len(scan_id_to_log_files[scan_id]),
                     locations=locations,
                 ),
             )
@@ -148,12 +148,12 @@ async def process_log_file(
             session,
             ScanUpdate(
                 id=scan_id_to_id[scan_id],
-                log_files=len(scan_log_files),
+                log_files=len(scan_id_to_log_files[scan_id]),
                 locations=locations,
             ),
         )
 
-    if scan_complete(scan_log_files):
+    if scan_complete(scan_id_to_log_files[scan_id]):
         logger.info(f"Transfer complete for scan {scan_id}")
 
 

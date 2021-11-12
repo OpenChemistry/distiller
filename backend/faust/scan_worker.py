@@ -210,9 +210,9 @@ async def watch_for_logs(file_events):
 
             state.created = event.created
             state.host = event.host
-            if event_type in [FILE_EVENT_TYPE_CREATED, FILE_EVENT_TYPE_MODIFIED]:
+            if event_type == FILE_EVENT_TYPE_CREATED:
                 state.received_created_event = True
-            elif event_type == FILE_EVENT_TYPE_CLOSED:
+            elif event_type == FILE_EVENT_TYPE_MODIFIED:
                 state.received_closed_event = True
 
             # We have seen the right events process the logfile

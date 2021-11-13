@@ -1,16 +1,16 @@
 import React from 'react';
 import { CompleteJobStates, FailedJobStates, JobState, PendingJobStates, RunningJobStates } from '../types';
 
-import AutoRenew from '@material-ui/icons/Autorenew';
-import Done from '@material-ui/icons/CheckCircle';
-import Help from '@material-ui/icons/Help';
-import ReportProblem from '@material-ui/icons/ReportProblem';
+import AutoRenew from '@mui/icons-material/Autorenew';
+import Done from '@mui/icons-material/CheckCircle';
+import Help from '@mui/icons-material/Help';
+import ReportProblem from '@mui/icons-material/ReportProblem';
 
-import blue from '@material-ui/core/colors/blue';
-import grey from '@material-ui/core/colors/grey';
-import lightGreen from '@material-ui/core/colors/lightGreen';
-import red from '@material-ui/core/colors/red';
-import orange from '@material-ui/core/colors/orange';
+import { blue } from '@mui/material/colors';
+import { grey } from '@mui/material/colors';
+import { lightGreen } from '@mui/material/colors';
+import { red } from '@mui/material/colors';
+import {orange } from '@mui/material/colors';
 
 const blue500 = blue['500'];
 const red500 = red['500'];

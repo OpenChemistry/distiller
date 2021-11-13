@@ -9,7 +9,7 @@ import {
   DialogTitle,
   TextField,
   Typography,
-} from '@material-ui/core';
+} from '@mui/material';
 
 type Props = {
     open: boolean;

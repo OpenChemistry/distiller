@@ -15,12 +15,12 @@ import {
   CardHeader,
   CardActions,
   Button,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import CompleteIcon from '@material-ui/icons/CheckCircle';
-import ImageIcon from '@material-ui/icons/Image';
-import TransferIcon from '@material-ui/icons/CompareArrows';
-import CountIcon from '@material-ui/icons/BlurOn';
+} from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
+import CompleteIcon from '@mui/icons-material/CheckCircle';
+import ImageIcon from '@mui/icons-material/Image';
+import TransferIcon from '@mui/icons-material/CompareArrows';
+import CountIcon from '@mui/icons-material/BlurOn';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';

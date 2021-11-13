@@ -2,10 +2,10 @@ import React, {useEffect, useState} from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
-import { Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, LinearProgress } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import CompleteIcon from '@material-ui/icons/CheckCircle';
-import ImageIcon from '@material-ui/icons/Image';
+import { Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, LinearProgress } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
+import CompleteIcon from '@mui/icons-material/CheckCircle';
+import ImageIcon from '@mui/icons-material/Image';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getScans, patchScan, scansSelector } from '../features/scans';

@@ -3,11 +3,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
 
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import { Button, IconButton } from '@material-ui/core';
-import UserIcon from '@material-ui/icons/AccountCircle';
-import { makeStyles } from '@material-ui/core/styles';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import { Button, IconButton } from '@mui/material';
+import UserIcon from '@mui/icons-material/AccountCircle';
+import makeStyles from '@mui/styles/makeStyles';
 
 import { isAuthenticated } from '../features/auth';
 import { HOME_PATH, AUTH_PATH } from '../routes';
@@ -47,7 +47,7 @@ const HeaderComponent: React.FC = () => {
         <div className={classes.title}/>
         {
           authenticated
-          ? <IconButton onClick={onUserClick}>
+          ? <IconButton onClick={onUserClick} size="large">
               <UserIcon/>
             </IconButton>
           : <Button onClick={onUserClick}>
@@ -56,7 +56,7 @@ const HeaderComponent: React.FC = () => {
         }
       </Toolbar>
     </AppBar>
-  )
+  );
 }
 
 export default HeaderComponent;

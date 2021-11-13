@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 
 import {
   BrowserRouter as Router,
-  Switch,
+  Routes,
   Route,
 } from "react-router-dom";
 
@@ -22,6 +22,10 @@ import HeaderComponent from './components/header';
 import { useAppDispatch } from './app/hooks';
 import {restoreSession} from './features/auth';
 
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
+
+const theme = createTheme();
+
 function App() {
   const dispatch = useAppDispatch();
 
@@ -30,31 +34,41 @@ function App() {
   }, [dispatch])
 
   return (
-    <Router>
-      <div className="app">
-        <CssBaseline/>
-        <div className="header">
-          <HeaderComponent/>
-        </div>
-        <div className="content">
-          <div className="inner-content">
-            <Switch>
-              <Route path={AUTH_PATH}>
-                <AuthPage/>
-              </Route>
-              <PrivateRoute path={`${SCANS_PATH}/:scanId`} redirect={AUTH_PATH}>
-                <ScanPage/>
-              </PrivateRoute>
-              <PrivateRoute path={HOME_PATH} redirect={AUTH_PATH}>
-                <ScansPage/>
-              </PrivateRoute>
-            </Switch>
+    <ThemeProvider theme={theme}>
+      <Router>
+        <div className="app">
+          <CssBaseline/>
+          <div className="header">
+            <HeaderComponent/>
+          </div>
+          <div className="content">
+            <div className="inner-content">
+              <Routes>
+                <Route path={AUTH_PATH} element={<AuthPage/>}/>
+                <Route
+                  path={`${SCANS_PATH}/:scanId`}
+                  element={
+                    <PrivateRoute>
+                      <ScanPage/>
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path={HOME_PATH}
+                  element={
+                    <PrivateRoute>
+                      <ScansPage/>
+                    </PrivateRoute>
+                  }
+                />
+              </Routes>
+            </div>
+          </div>
+          <div className="navigation">
           </div>
         </div>
-        <div className="navigation">
-        </div>
-      </div>
-    </Router>
+      </Router>
+    </ThemeProvider>
   );
 }
 

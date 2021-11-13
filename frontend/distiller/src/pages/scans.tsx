@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, LinearProgress } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
@@ -59,7 +59,7 @@ const ScansPage: React.FC = () => {
   const classes = useStyles();
 
   const dispatch = useAppDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
   const scans = useAppSelector(scansSelector.selectAll);
 
   const [maximizeImg, setMaximizeImg] = useState(false);
@@ -83,7 +83,7 @@ const ScansPage: React.FC = () => {
   }
 
   const onScanClick = (scan: Scan) => {
-    history.push(`${SCANS_PATH}/${scan.id}`);
+    navigate(`${SCANS_PATH}/${scan.id}`);
   }
 
   return (

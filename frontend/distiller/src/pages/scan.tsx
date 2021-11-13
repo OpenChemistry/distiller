@@ -49,9 +49,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 type Props = {}
-type UrlProps = {
-    scanId: string;
-}
 
 function jobTypeToIcon(type: JobType) {
   if (type === JobType.Count) {
@@ -66,8 +63,9 @@ function jobTypeToIcon(type: JobType) {
 const ScanPage: React.FC<Props> = () => {
   const classes = useStyles();
 
-  const { scanId: _scanId } = useUrlParams<UrlProps>();
-  const scanId = parseInt(_scanId);
+  const scanIdParam = useUrlParams().scanId;
+
+  const scanId = parseInt(scanIdParam as string);
 
   const dispatch = useAppDispatch();
 

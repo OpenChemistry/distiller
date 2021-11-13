@@ -1,5 +1,5 @@
 import React, { FormEvent, MouseEvent } from 'react';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
@@ -45,7 +45,7 @@ const AuthPage: React.FC = () => {
 
   const [error, setError] = React.useState('');
 
-  const history = useHistory();
+  const navigate = useNavigate();
   const location: any = useLocation();
 
   const { from } = location.state || { from: { pathname: "/" } };
@@ -56,7 +56,7 @@ const AuthPage: React.FC = () => {
 
     dispatch(login({username, password})).then(res => {
       if (res.type === login.fulfilled.toString()) {
-        history.replace(from)
+        navigate(from, { replace: true })
       } else {
         setError('Unable to login with the provided credentials.');
       }
@@ -68,6 +68,7 @@ const AuthPage: React.FC = () => {
   }
 
   return (
+    <React.Fragment>
     <div className={classes.paper}>
       <Avatar className={classes.avatar}>
         <LockOutlinedIcon />
@@ -139,6 +140,7 @@ const AuthPage: React.FC = () => {
         </React.Fragment>
       }
     </div>
+    </React.Fragment>
   )
 }
 

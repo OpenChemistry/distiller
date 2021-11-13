@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -28,14 +28,14 @@ const HeaderComponent: React.FC = () => {
 
   const authenticated = useAppSelector(isAuthenticated);
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const onLogoClick = () => {
-    history.push(HOME_PATH);
+    navigate(HOME_PATH);
   }
 
   const onUserClick = () => {
-    history.push(AUTH_PATH);
+    navigate(AUTH_PATH);
   }
 
   return (

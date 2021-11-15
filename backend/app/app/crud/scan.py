@@ -15,6 +15,7 @@ def get_scan(db: Session, id: int):
 def get_scan_by_scan_id(db: Session, scan_id: int):
     return db.query(models.Scan).filter(models.Scan.scan_id == scan_id).first()
 
+
 def _get_scans_query(
     db: Session,
     skip: int = 0,
@@ -46,6 +47,7 @@ def _get_scans_query(
 
     return query
 
+
 def get_scans(
     db: Session,
     skip: int = 0,
@@ -59,6 +61,7 @@ def get_scans(
 
     return query.order_by(desc(models.Scan.created)).offset(skip).limit(limit).all()
 
+
 def get_scans_count(
     db: Session,
     skip: int = 0,
@@ -71,7 +74,6 @@ def get_scans_count(
     query = _get_scans_query(db, skip, limit, scan_id, state, created, has_haadf)
 
     return query.count()
-
 
 
 def create_scan(db: Session, scan: schemas.ScanCreate, haadf_path: str = None):
@@ -175,4 +177,3 @@ def get_location(db: Session, id: int):
 def delete_location(db: Session, id: int) -> None:
     db.query(models.Location).filter(models.Location.id == id).delete()
     db.commit()
-

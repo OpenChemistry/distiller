@@ -2,14 +2,16 @@ import React, {useEffect, useState} from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
-import { Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, LinearProgress } from '@mui/material';
+import { Table, TableHead, TableBody, TableRow, TableCell,
+         TableContainer, TablePagination, Paper,
+         LinearProgress } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import CompleteIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
 import {pink } from '@mui/material/colors';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { getScans, patchScan, scansSelector } from '../features/scans';
+import { getScans, patchScan, scansSelector, totalCount } from '../features/scans';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
 import { IdType, Scan } from '../types';
@@ -18,6 +20,7 @@ import ImageDialog from '../components/image-dialog';
 import LocationComponent from '../components/location';
 import { SCANS_PATH } from '../routes';
 import { stopPropagation } from '../utils';
+
 
 const useStyles = makeStyles((theme) => ({
   headCell: {
@@ -57,19 +60,25 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+
+
+
 const ScansPage: React.FC = () => {
   const classes = useStyles();
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const scans = useAppSelector(scansSelector.selectAll);
+  const totalScans = useAppSelector(totalCount);
 
   const [maximizeImg, setMaximizeImg] = useState(false);
   const [activeImg, setActiveImg] = useState('');
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(20);
 
   useEffect(() => {
-    dispatch(getScans());
-  }, [dispatch])
+    dispatch(getScans({skip: page*rowsPerPage, limit: rowsPerPage}));
+  }, [dispatch, page, rowsPerPage])
 
   const onSaveNotes = (id: IdType, notes: string) => {
     return dispatch(patchScan({id, updates: {notes}}));
@@ -87,6 +96,17 @@ const ScansPage: React.FC = () => {
   const onScanClick = (scan: Scan) => {
     navigate(`${SCANS_PATH}/${scan.id}`);
   }
+  const onChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, page: number) => {
+    setPage(page);
+    dispatch(getScans({skip: page*rowsPerPage, limit: rowsPerPage}));
+  };
+
+  const onChangeRowsPerPage = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    const scansPerPage = +event.target.value
+    setRowsPerPage(scansPerPage);
+    setPage(0);
+    dispatch(getScans({skip: 0, limit: scansPerPage}));
+  };
 
   return (
     <React.Fragment>
@@ -140,6 +160,16 @@ const ScansPage: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[10, 25, 100]}
+        component="div"
+        count={totalScans}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={onChangePage}
+        onRowsPerPageChange={onChangeRowsPerPage}
+        labelRowsPerPage="Scans per page"
+      />
       <ImageDialog open={maximizeImg} src={activeImg} alt='scan image' handleClose={onCloseDialog}/>
     </React.Fragment>
   )

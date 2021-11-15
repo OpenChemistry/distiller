@@ -1,7 +1,7 @@
 import { apiClient } from '../../client';
-import { IdType, Scan } from '../../types';
+import { IdType, Scan, ScansRequestResult } from '../../types';
 
-export function getScans(skip?: number, limit?: number): Promise<Scan[]> {
+export function getScans(skip?: number, limit?: number): Promise<ScansRequestResult> {
   const params: any = {};
   if (skip !== undefined) {
     params['skip'] = skip;
@@ -13,7 +13,29 @@ export function getScans(skip?: number, limit?: number): Promise<Scan[]> {
   return apiClient.get({
     url: 'scans',
     params,
-  }).then(res => res.json());
+  }).then(res => {
+    return res.json().then((scans) => {
+      let totalCount = -1;
+
+      res.headers.forEach((h) => {
+        console.log(h)
+      })
+
+      const totalScanCountHeader = res.headers.get("x-total-count");
+      if (totalScanCountHeader != null) {
+        totalCount = Number.parseInt(totalScanCountHeader);
+      }
+
+      const scansRequestResult = {
+        scans,
+        totalCount,
+      };
+
+      return new Promise<ScansRequestResult>((resolve) => {
+        resolve(scansRequestResult);
+      });
+    });
+  });
 }
 
 export function getScan(id: IdType): Promise<Scan> {

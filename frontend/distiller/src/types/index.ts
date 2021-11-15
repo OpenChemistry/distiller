@@ -99,3 +99,9 @@ export type Scan = {
   haadf_path?: string;
   jobs: ScanJob[];
 }
+
+export type ScansRequestResult = {
+  scans: Scan[];
+  // The unfiltered number of scans, needed for pagination
+  totalCount: number;
+}

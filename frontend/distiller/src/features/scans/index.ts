@@ -5,22 +5,24 @@ import {
   getScan as getScanAPI,
   patchScan as patchScanAPI,
 } from './api';
-import { Scan, IdType } from '../../types';
+import { Scan, IdType, ScansRequestResult } from '../../types';
 
 export const scansAdapter = createEntityAdapter<Scan>();
 
 export interface ScansState extends ReturnType<typeof scansAdapter['getInitialState']> {
   status: 'idle' | 'loading' | 'complete';
+  totalCount: number;
 }
 
-const initialState: ScansState = scansAdapter.getInitialState({status: 'idle'});
+const initialState: ScansState = scansAdapter.getInitialState({status: 'idle', totalCount: -1});
 
-export const getScans = createAsyncThunk<Scan[]>(
+export const getScans = createAsyncThunk<ScansRequestResult, {skip: number, limit: number}>(
   'scans/fetch',
   async (_payload, _thunkAPI) => {
-    const scans = await getScansAPI();
+    const {skip, limit} = _payload;
+    const result = await getScansAPI(skip, limit);
 
-    return scans;
+    return result;
   }
 );
 
@@ -70,8 +72,11 @@ export const scansSlice = createSlice({
         state.status = 'idle';
       })
       .addCase(getScans.fulfilled, (state, action) => {
+        const {totalCount, scans} = action.payload;
+
         state.status = 'complete';
-        scansAdapter.setAll(state, action.payload);
+        state.totalCount = totalCount;
+        scansAdapter.setAll(state, scans);
       })
       .addCase(getScan.fulfilled, (state, action) => {
         scansAdapter.setOne(state, action.payload);
@@ -83,6 +88,10 @@ export const scansSlice = createSlice({
 });
 
 export const scansSelector = scansAdapter.getSelectors<RootState>(state => state.scans);
+
+
+export const totalCount = (state: RootState) => state.scans.totalCount;
+
 
 export const { setScan, updateScan } = scansSlice.actions;
 

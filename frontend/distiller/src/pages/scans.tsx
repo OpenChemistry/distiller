@@ -161,7 +161,7 @@ const ScansPage: React.FC = () => {
         </Table>
       </TableContainer>
       <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
+        rowsPerPageOptions={[10, 20, 100]}
         component="div"
         count={totalScans}
         rowsPerPage={rowsPerPage}

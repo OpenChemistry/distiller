@@ -21,6 +21,7 @@ import CompleteIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
 import TransferIcon from '@mui/icons-material/CompareArrows';
 import CountIcon from '@mui/icons-material/BlurOn';
+import { pink } from '@mui/material/colors';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
@@ -45,6 +46,9 @@ const useStyles = makeStyles((theme) => ({
     width: '100%',
     height: '100%',
     objectFit: 'cover',
+  },
+  noImage: {
+    color: pink.A400,
   },
 }));
 
@@ -112,7 +116,7 @@ const ScanPage: React.FC<Props> = () => {
                   alt='scan thumbnail'
                   className={classes.image}
                 />
-              : <ImageIcon className={classes.image} color='secondary'/>
+              : <ImageIcon className={`${classes.image} ${classes.noImage}`} color='secondary'/>
             }
           </Grid>
           <Grid item xs={12} sm={8} md={9}>

@@ -6,6 +6,7 @@ import { Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper
 import makeStyles from '@mui/styles/makeStyles';
 import CompleteIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
+import {pink } from '@mui/material/colors';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getScans, patchScan, scansSelector } from '../features/scans';
@@ -44,6 +45,7 @@ const useStyles = makeStyles((theme) => ({
     width: '60%',
     height: '60%',
     objectFit: 'cover',
+    color: pink.A400,
   },
   notesCell: {
     width: '100%',
@@ -112,7 +114,7 @@ const ScansPage: React.FC = () => {
                         className={classes.thumbnail}
                         onClick={stopPropagation(() => onImgClick(scan))}
                       />
-                    : <ImageIcon color='secondary' className={classes.noThumbnail}/>
+                    : <ImageIcon className={classes.noThumbnail}/>
                   }
                 </TableCell>
                 <TableCell>{scan.id}</TableCell>

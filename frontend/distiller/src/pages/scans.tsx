@@ -124,7 +124,7 @@ const ScansPage: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {[...scans].sort((a, b) => b.created.localeCompare(a.created)).map(scan => (
+            {[...scans].sort((a, b) => b.created.localeCompare(a.created)).slice(0, rowsPerPage).map(scan => (
               <TableRow key={scan.id} className={classes.scanRow} hover onClick={() => onScanClick(scan)}>
                 <TableCell className={classes.imgCell}>
                   {scan.haadf_path

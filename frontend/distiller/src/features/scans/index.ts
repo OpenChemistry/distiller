@@ -51,7 +51,8 @@ export const scansSlice = createSlice({
   initialState,
   reducers: {
     setScan(state, action: PayloadAction<Scan>) {
-      scansAdapter.setOne(state, action.payload)
+      state.totalCount = state.totalCount + 1;
+      scansAdapter.setOne(state, action.payload);
     },
     updateScan(state, action: PayloadAction<Partial<Scan>>) {
       // const currentScan = scansSelector.selectById

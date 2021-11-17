@@ -98,14 +98,12 @@ const ScansPage: React.FC = () => {
   }
   const onChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, page: number) => {
     setPage(page);
-    dispatch(getScans({skip: page*rowsPerPage, limit: rowsPerPage}));
   };
 
   const onChangeRowsPerPage = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     const scansPerPage = +event.target.value
     setRowsPerPage(scansPerPage);
     setPage(0);
-    dispatch(getScans({skip: 0, limit: scansPerPage}));
   };
 
   return (

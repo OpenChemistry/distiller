@@ -44,8 +44,8 @@ const CountDialog: React.FC<Props> = (props) => {
     >
       <DialogTitle id="count-job-title">Count Job</DialogTitle>
       <DialogContent>
-        <DialogContentText>Create a new count job</DialogContentText>
-        <TextField label='threshold' fullWidth value={threshold} onChange={(ev) => setThreshold(parseFloat(ev.target.value))} type='number'/>
+        <DialogContentText mt={1} mb={1}>Create a new count job</DialogContentText>
+        <TextField label='threshold' fullWidth value={threshold} onChange={(ev) => setThreshold(parseFloat(ev.target.value))} type='number' variant="standard"/>
         <Typography color='error' variant='caption'>{error}</Typography>
       </DialogContent>
       <DialogActions>

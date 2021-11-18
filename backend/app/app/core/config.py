@@ -60,6 +60,10 @@ class Settings(BaseSettings):
     HAADF_IMAGE_UPLOAD_DIR: str
     HAADF_IMAGE_URL_PREFIX: str
     HAADF_IMAGE_STATIC_DIR: str
+    # Max age a scan can be to still have a HAADF image associated with it (hours)
+    # This is need to avoid associate a HAADF with a old scan if the scan ids
+    # have been reset in in the detector software.
+    HAADF_SCAN_AGE_LIMIT: int = 1
 
     class Config:
         case_sensitive = True

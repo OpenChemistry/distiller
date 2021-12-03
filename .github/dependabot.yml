@@ -1,6 +1,10 @@
 version: 2
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/frontend/distiller" # Location of package manifests
+  - package-ecosystem: "npm"
+    directory: "/frontend/distiller"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "/backend/app"
     schedule:
       interval: "daily"

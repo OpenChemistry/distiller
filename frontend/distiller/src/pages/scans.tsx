@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from 'react';
 
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-import { Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, LinearProgress } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import CompleteIcon from '@material-ui/icons/CheckCircle';
-import ImageIcon from '@material-ui/icons/Image';
+import { Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, LinearProgress } from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
+import CompleteIcon from '@mui/icons-material/CheckCircle';
+import ImageIcon from '@mui/icons-material/Image';
+import {pink } from '@mui/material/colors';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getScans, patchScan, scansSelector } from '../features/scans';
@@ -44,6 +45,7 @@ const useStyles = makeStyles((theme) => ({
     width: '60%',
     height: '60%',
     objectFit: 'cover',
+    color: pink.A400,
   },
   notesCell: {
     width: '100%',
@@ -59,7 +61,7 @@ const ScansPage: React.FC = () => {
   const classes = useStyles();
 
   const dispatch = useAppDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
   const scans = useAppSelector(scansSelector.selectAll);
 
   const [maximizeImg, setMaximizeImg] = useState(false);
@@ -83,7 +85,7 @@ const ScansPage: React.FC = () => {
   }
 
   const onScanClick = (scan: Scan) => {
-    history.push(`${SCANS_PATH}/${scan.id}`);
+    navigate(`${SCANS_PATH}/${scan.id}`);
   }
 
   return (
@@ -112,7 +114,7 @@ const ScansPage: React.FC = () => {
                         className={classes.thumbnail}
                         onClick={stopPropagation(() => onImgClick(scan))}
                       />
-                    : <ImageIcon color='secondary' className={classes.noThumbnail}/>
+                    : <ImageIcon className={classes.noThumbnail}/>
                   }
                 </TableCell>
                 <TableCell>{scan.id}</TableCell>

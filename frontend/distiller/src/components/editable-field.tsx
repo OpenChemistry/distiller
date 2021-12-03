@@ -4,10 +4,10 @@ import {
   Typography,
   TextField,
   IconButton,
-} from '@material-ui/core';
-import EditIcon from '@material-ui/icons/Edit';
-import SaveIcon from '@material-ui/icons/Save';
-import { makeStyles } from '@material-ui/core/styles';
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import makeStyles from '@mui/styles/makeStyles';
 import { stopPropagation } from '../utils';
 
 type Props = {
@@ -63,11 +63,11 @@ const EditableField: React.FC<Props> = ({value, onSave}) => {
             disabled={saving}
             error={error}
           />
-          <IconButton onClick={stopPropagation(onSaveClick)} disabled={saving}><SaveIcon/></IconButton>
+          <IconButton onClick={stopPropagation(onSaveClick)} disabled={saving} size="large"><SaveIcon/></IconButton>
         </React.Fragment>
         : <React.Fragment>
           <Typography className={classes.field}>{value}</Typography>
-          <IconButton onClick={stopPropagation(onEditClick)}><EditIcon/></IconButton>
+          <IconButton onClick={stopPropagation(onEditClick)} size="large"><EditIcon/></IconButton>
         </React.Fragment>
       }
     </div>

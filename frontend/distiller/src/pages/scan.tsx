@@ -15,12 +15,13 @@ import {
   CardHeader,
   CardActions,
   Button,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import CompleteIcon from '@material-ui/icons/CheckCircle';
-import ImageIcon from '@material-ui/icons/Image';
-import TransferIcon from '@material-ui/icons/CompareArrows';
-import CountIcon from '@material-ui/icons/BlurOn';
+} from '@mui/material';
+import makeStyles from '@mui/styles/makeStyles';
+import CompleteIcon from '@mui/icons-material/CheckCircle';
+import ImageIcon from '@mui/icons-material/Image';
+import TransferIcon from '@mui/icons-material/CompareArrows';
+import CountIcon from '@mui/icons-material/BlurOn';
+import { pink } from '@mui/material/colors';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
@@ -46,12 +47,12 @@ const useStyles = makeStyles((theme) => ({
     height: '100%',
     objectFit: 'cover',
   },
+  noImage: {
+    color: pink.A400,
+  },
 }));
 
 type Props = {}
-type UrlProps = {
-    scanId: string;
-}
 
 function jobTypeToIcon(type: JobType) {
   if (type === JobType.Count) {
@@ -66,8 +67,9 @@ function jobTypeToIcon(type: JobType) {
 const ScanPage: React.FC<Props> = () => {
   const classes = useStyles();
 
-  const { scanId: _scanId } = useUrlParams<UrlProps>();
-  const scanId = parseInt(_scanId);
+  const scanIdParam = useUrlParams().scanId;
+
+  const scanId = parseInt(scanIdParam as string);
 
   const dispatch = useAppDispatch();
 
@@ -114,7 +116,7 @@ const ScanPage: React.FC<Props> = () => {
                   alt='scan thumbnail'
                   className={classes.image}
                 />
-              : <ImageIcon className={classes.image} color='secondary'/>
+              : <ImageIcon className={`${classes.image} ${classes.noImage}`} color='secondary'/>
             }
           </Grid>
           <Grid item xs={12} sm={8} md={9}>

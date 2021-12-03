@@ -1,12 +1,12 @@
 import React, { FormEvent, MouseEvent } from 'react';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
-import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
+import Avatar from '@mui/material/Avatar';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Typography from '@mui/material/Typography';
+import makeStyles from '@mui/styles/makeStyles';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { login, logout, getUser, isAuthenticated } from '../features/auth';
@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
   },
   avatar: {
     margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main,
+    backgroundColor: theme.palette.secondary.light,
   },
   form: {
     width: '100%', // Fix IE 11 issue.
@@ -45,7 +45,7 @@ const AuthPage: React.FC = () => {
 
   const [error, setError] = React.useState('');
 
-  const history = useHistory();
+  const navigate = useNavigate();
   const location: any = useLocation();
 
   const { from } = location.state || { from: { pathname: "/" } };
@@ -56,7 +56,7 @@ const AuthPage: React.FC = () => {
 
     dispatch(login({username, password})).then(res => {
       if (res.type === login.fulfilled.toString()) {
-        history.replace(from)
+        navigate(from, { replace: true })
       } else {
         setError('Unable to login with the provided credentials.');
       }
@@ -68,6 +68,7 @@ const AuthPage: React.FC = () => {
   }
 
   return (
+    <React.Fragment>
     <div className={classes.paper}>
       <Avatar className={classes.avatar}>
         <LockOutlinedIcon />
@@ -139,6 +140,7 @@ const AuthPage: React.FC = () => {
         </React.Fragment>
       }
     </div>
+    </React.Fragment>
   )
 }
 

@@ -2,11 +2,11 @@ import React, {useEffect} from 'react';
 
 import {
   BrowserRouter as Router,
-  Switch,
+  Routes,
   Route,
 } from "react-router-dom";
 
-import { CssBaseline } from '@material-ui/core';
+import { CssBaseline } from '@mui/material';
 
 import './App.css';
 import PrivateRoute from './routes/private';
@@ -22,6 +22,17 @@ import HeaderComponent from './components/header';
 import { useAppDispatch } from './app/hooks';
 import {restoreSession} from './features/auth';
 
+import { ThemeProvider, Theme, StyledEngineProvider, createTheme } from '@mui/material/styles';
+
+
+declare module '@mui/styles/defaultTheme' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface DefaultTheme extends Theme {}
+}
+
+
+const theme = createTheme();
+
 function App() {
   const dispatch = useAppDispatch();
 
@@ -30,31 +41,43 @@ function App() {
   }, [dispatch])
 
   return (
-    <Router>
-      <div className="app">
-        <CssBaseline/>
-        <div className="header">
-          <HeaderComponent/>
-        </div>
-        <div className="content">
-          <div className="inner-content">
-            <Switch>
-              <Route path={AUTH_PATH}>
-                <AuthPage/>
-              </Route>
-              <PrivateRoute path={`${SCANS_PATH}/:scanId`} redirect={AUTH_PATH}>
-                <ScanPage/>
-              </PrivateRoute>
-              <PrivateRoute path={HOME_PATH} redirect={AUTH_PATH}>
-                <ScansPage/>
-              </PrivateRoute>
-            </Switch>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={theme}>
+        <Router>
+          <div className="app">
+            <CssBaseline/>
+            <div className="header">
+              <HeaderComponent/>
+            </div>
+            <div className="content">
+              <div className="inner-content">
+                <Routes>
+                  <Route path={AUTH_PATH} element={<AuthPage/>}/>
+                  <Route
+                    path={`${SCANS_PATH}/:scanId`}
+                    element={
+                      <PrivateRoute>
+                        <ScanPage/>
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path={HOME_PATH}
+                    element={
+                      <PrivateRoute>
+                        <ScansPage/>
+                      </PrivateRoute>
+                    }
+                  />
+                </Routes>
+              </div>
+            </div>
+            <div className="navigation">
+            </div>
           </div>
-        </div>
-        <div className="navigation">
-        </div>
-      </div>
-    </Router>
+        </Router>
+      </ThemeProvider>
+    </StyledEngineProvider>
   );
 }
 

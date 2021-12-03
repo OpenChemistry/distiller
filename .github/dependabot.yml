@@ -8,3 +8,11 @@ updates:
     directory: "/backend/app"
     schedule:
       interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "/backend/faust"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "/cli"
+    schedule:
+      interval: "daily"

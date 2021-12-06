@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.security.api_key import APIKey
 from sqlalchemy.orm import Session
 
@@ -58,6 +58,7 @@ async def create_scan(
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
 def read_scans(
+    response: Response,
     skip: int = 0,
     limit: int = 100,
     scan_id: int = -1,
@@ -75,6 +76,18 @@ def read_scans(
         created=created,
         has_haadf=has_haadf,
     )
+
+    count = crud.get_scans_count(
+        db,
+        skip=skip,
+        limit=limit,
+        scan_id=scan_id,
+        state=state,
+        created=created,
+        has_haadf=has_haadf,
+    )
+
+    response.headers["X-Total-Count"] = str(count)
 
     return scans
 

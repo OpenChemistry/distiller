@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import useLocalStorageState from 'use-local-storage-state'
 
 import {
   Button,
@@ -19,7 +20,7 @@ type Props = {
 
 const CountDialog: React.FC<Props> = (props) => {
   const { open, onClose, onSubmit } = props;
-  const [threshold, setThreshold] = useState(4);
+  const [threshold, setThreshold]  = useLocalStorageState('threshold', 4);
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
 

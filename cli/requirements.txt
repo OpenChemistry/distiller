@@ -4,3 +4,4 @@ watchdog
 coloredlogs
 cachetools
 pydantic[dotenv]
+tenacity

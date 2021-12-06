@@ -84,13 +84,14 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
             Path(settings.HAADF_IMAGE_STATIC_DIR) / f"{scan.id}.png",
         )
 
+        haaf_path = f"{settings.HAADF_IMAGE_URL_PREFIX}/{scan.id}.png"
         (updated, _) = scan_crud.update_scan(
-            db, scan.id, haadf_path=f"{settings.HAADF_IMAGE_URL_PREFIX}/{scan.id}.png"
+            db, scan.id, haadf_path=haaf_path
         )
 
         if updated:
             await send_scan_event_to_kafka(
-                schemas.ScanUpdate(haadf_path=str(upload_path), id=scan.id)
+                schemas.ScanUpdateEvent(haadf_path=haaf_path, id=scan.id)
             )
 
 

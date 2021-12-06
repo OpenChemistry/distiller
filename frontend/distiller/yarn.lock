@@ -1422,12 +1422,12 @@
     react-is "^17.0.2"
     react-transition-group "^4.4.2"
 
-"@mui/private-theming@^5.2.2":
-  version "5.2.2"
-  resolved "https://registry.npmjs.org/@mui/private-theming/-/private-theming-5.2.2.tgz"
+"@mui/private-theming@^5.2.2", "@mui/private-theming@^5.2.3":
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/@mui/private-theming/-/private-theming-5.2.3.tgz#6d4e7d8309adc932b444fdd091caec339c430be4"
   dependencies:
     "@babel/runtime" "^7.16.3"
-    "@mui/utils" "^5.2.2"
+    "@mui/utils" "^5.2.3"
     prop-types "^15.7.2"
 
 "@mui/styled-engine@^5.2.0":
@@ -1438,15 +1438,15 @@
     "@emotion/cache" "^11.6.0"
     prop-types "^15.7.2"
 
-"@mui/styles@^5.2.2":
-  version "5.2.2"
-  resolved "https://registry.npmjs.org/@mui/styles/-/styles-5.2.2.tgz"
+"@mui/styles@^5.2.3":
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/@mui/styles/-/styles-5.2.3.tgz#fece4be72efe63368c3b2476db68074d2a4bc8d6"
   dependencies:
     "@babel/runtime" "^7.16.3"
     "@emotion/hash" "^0.8.0"
-    "@mui/private-theming" "^5.2.2"
+    "@mui/private-theming" "^5.2.3"
     "@mui/types" "^7.1.0"
-    "@mui/utils" "^5.2.2"
+    "@mui/utils" "^5.2.3"
     clsx "^1.1.1"
     csstype "^3.0.10"
     hoist-non-react-statics "^3.3.2"
@@ -1477,9 +1477,9 @@
   version "7.1.0"
   resolved "https://registry.npmjs.org/@mui/types/-/types-7.1.0.tgz"
 
-"@mui/utils@^5.2.2":
-  version "5.2.2"
-  resolved "https://registry.npmjs.org/@mui/utils/-/utils-5.2.2.tgz"
+"@mui/utils@^5.2.2", "@mui/utils@^5.2.3":
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/@mui/utils/-/utils-5.2.3.tgz#994f3a500679804483732596fcfa531e59c56445"
   dependencies:
     "@babel/runtime" "^7.16.3"
     "@types/prop-types" "^15.7.4"
@@ -3811,13 +3811,9 @@ csstype@^2.5.2:
   version "2.6.17"
   resolved "https://registry.npmjs.org/csstype/-/csstype-2.6.17.tgz"
 
-csstype@^3.0.10:
+csstype@^3.0.10, csstype@^3.0.2:
   version "3.0.10"
   resolved "https://registry.npmjs.org/csstype/-/csstype-3.0.10.tgz"
-
-csstype@^3.0.2:
-  version "3.0.9"
-  resolved "https://registry.npmjs.org/csstype/-/csstype-3.0.9.tgz"
 
 cyclist@^1.0.1:
   version "1.0.1"

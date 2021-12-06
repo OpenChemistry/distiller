@@ -334,7 +334,7 @@ completed_jobs = set()
 async def monitor_jobs():
     async with aiohttp.ClientSession() as session:
         try:
-            params = {"kwargs": [f"user={settings.SFAPI_USER}", f"queue={settings.JOB_QUEUE}"], "sacct": True}
+            params = {"kwargs": [f"user={settings.SFAPI_USER}", f"qos={settings.JOB_QOS_FILTER}"], "sacct": True}
 
             logger.info("Fetching jobs")
             r = await sfapi_get("compute/jobs/cori", params)

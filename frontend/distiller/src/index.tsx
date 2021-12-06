@@ -6,6 +6,16 @@ import { store } from './app/store';
 import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
 
+import * as Sentry from "@sentry/react";
+import { Integrations } from "@sentry/tracing";
+
+if (process.env.REACT_APP_SENTRY_DSN_URL !== undefined) {
+  Sentry.init({
+    dsn: process.env.REACT_APP_SENTRY_DSN_URL,
+    integrations: [new Integrations.BrowserTracing()],
+  });
+}
+
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>

@@ -62,6 +62,7 @@ const EditableField: React.FC<Props> = ({value, onSave}) => {
             onChange={(ev) => setDraftValue(ev.target.value)}
             disabled={saving}
             error={error}
+            autoFocus={true}
           />
           <IconButton onClick={stopPropagation(onSaveClick)} disabled={saving} size="large"><SaveIcon/></IconButton>
         </React.Fragment>

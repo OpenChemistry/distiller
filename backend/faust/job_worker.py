@@ -17,10 +17,10 @@ from authlib.oauth2.rfc7523 import PrivateKeyJWT
 
 import faust
 from config import settings
-from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DW_JOB_STRIPED_VAR,
-                       SFAPI_BASE_URL, SFAPI_TOKEN_URL, SLURM_RUNNING_STATES,
-                       TOPIC_JOB_SUBMIT_EVENTS, TRANSFER_JOB_SCRIPT_TEMPLATE,
-                       JobState)
+from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
+                       DW_JOB_STRIPED_VAR, SFAPI_BASE_URL, SFAPI_TOKEN_URL,
+                       SLURM_RUNNING_STATES, TOPIC_JOB_SUBMIT_EVENTS,
+                       TRANSFER_JOB_SCRIPT_TEMPLATE, JobState)
 from schemas import JobUpdate
 from schemas import Location as LocationRest
 from schemas import Scan, ScanUpdate, SfapiJob
@@ -219,23 +219,34 @@ async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
 
-    dest_dir = DW_JOB_STRIPED_VAR
+    bbcp_dest_dir = DW_JOB_STRIPED_VAR
+    # Not sure why by created comes in as a str, so convert to datatime
+    created_datetime = datetime.fromisoformat(event.scan.created)
+    date_dir = created_datetime.strftime(DATE_DIR_FORMAT)
 
-    # If we are submitting a transfer job ensure we have the directory created
+    base_dir = None
     if event.job.job_type == JobType.TRANSFER:
-        # Not sure why by created comes in as a str, so convert to datatime
-        created_datetime = datetime.fromisoformat(event.scan.created)
-        date_dir = created_datetime.strftime("%Y.%m.%d")
-        transfer_path = AsyncPath(settings.JOB_NCEMHUB_RAW_DATA_PATH) / date_dir
+        base_dir = settings.JOB_NCEMHUB_RAW_DATA_PATH
+    elif event.job.job_type == JobType.COUNT:
+        base_dir = settings.JOB_NCEMHUB_COUNT_DATA_PATH
+    else:
+        raise Exception("Invalid job type.")
 
-        await transfer_path.mkdir(parents=True, exist_ok=True)
-        dest_dir = str(transfer_path)
+    # Ensure we have the output directory created
+    dest_path = AsyncPath(base_dir) / date_dir
+    await dest_path.mkdir(parents=True, exist_ok=True)
+    dest_dir = str(dest_path)
+
+    # If this is a transfer job, then reset the bbcp dir to the destination dir
+    # rather than burst buffers
+    if event.job.job_type == JobType.TRANSFER:
+        bbcp_dest_dir = dest_dir
 
     # Render the scripts
     job_script_output = await render_job_script(
         scan=event.scan, job=event.job, dest_dir=dest_dir
     )
-    bbcp_script_output = await render_bbcp_script(job=event.job, dest_dir=dest_dir)
+    bbcp_script_output = await render_bbcp_script(job=event.job, dest_dir=bbcp_dest_dir)
 
     submission_script_path = (
         AsyncPath(settings.JOB_SCRIPT_DIRECTORY)
@@ -385,7 +396,7 @@ async def monitor_jobs():
                 if job.state == JobState.COMPLETED and JobType.TRANSFER in job.name:
                     job = await get_job(session, id)
                     scan = await get_scan(session, job.scan_id)
-                    date_dir = scan.created.strftime("%Y.%m.%d")
+                    date_dir = scan.created.strftime(DATE_DIR_FORMAT)
 
                     update = ScanUpdate(
                         id=job.scan_id,

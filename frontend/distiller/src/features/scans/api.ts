@@ -17,10 +17,6 @@ export function getScans(skip?: number, limit?: number): Promise<ScansRequestRes
     return res.json().then((scans) => {
       let totalCount = -1;
 
-      res.headers.forEach((h) => {
-        console.log(h)
-      })
-
       const totalScanCountHeader = res.headers.get("x-total-count");
       if (totalScanCountHeader != null) {
         totalCount = Number.parseInt(totalScanCountHeader);

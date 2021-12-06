@@ -9,3 +9,4 @@ psycopg2
 aiokafka
 alembic
 aiofiles
+sentry-sdk

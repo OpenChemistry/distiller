@@ -1,5 +1,7 @@
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api.api_v1.api import api_router
@@ -9,6 +11,11 @@ from app.kafka import producer
 app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
+if settings.SENTRY_DSN_URL is not None:
+    sentry_sdk.init(settings.SENTRY_DSN_URL)
+
+    app.add_middleware(SentryAsgiMiddleware)
 
 
 @app.on_event("startup")

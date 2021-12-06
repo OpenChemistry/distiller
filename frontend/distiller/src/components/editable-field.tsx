@@ -51,6 +51,14 @@ const EditableField: React.FC<Props> = ({value, onSave}) => {
         setError(true);
       });
   }
+
+  const onKeyPress = (ev:  React.KeyboardEvent<Element>) => {
+    if (ev.key === 'Enter') {
+      onSaveClick();
+    }
+  };
+
+
   return (
     <div className={classes.container}>
       {editing
@@ -62,6 +70,8 @@ const EditableField: React.FC<Props> = ({value, onSave}) => {
             onChange={(ev) => setDraftValue(ev.target.value)}
             disabled={saving}
             error={error}
+            autoFocus={true}
+            onKeyPress={onKeyPress}
           />
           <IconButton onClick={stopPropagation(onSaveClick)} disabled={saving} size="large"><SaveIcon/></IconButton>
         </React.Fragment>

@@ -22,6 +22,10 @@ import ImageIcon from '@mui/icons-material/Image';
 import TransferIcon from '@mui/icons-material/CompareArrows';
 import CountIcon from '@mui/icons-material/BlurOn';
 import { pink } from '@mui/material/colors';
+import Tooltip from '@mui/material/Tooltip';
+import humanizeDuration from 'humanize-duration';
+import { DateTime } from 'luxon'
+
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
@@ -134,7 +138,11 @@ const ScanPage: React.FC<Props> = () => {
                 </TableRow>
                 <TableRow>
                   <TableCell className={classes.headCell}>Created</TableCell>
-                  <TableCell align='right'>{scan.created}</TableCell>
+                  <TableCell align='right'>
+                    <Tooltip title={scan.created} followCursor>
+                      <div>{DateTime.fromISO(scan.created).toLocaleString(DateTime.DATETIME_FULL)}</div>
+                    </Tooltip>
+                  </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className={classes.headCell}>Progress</TableCell>
@@ -179,6 +187,7 @@ const ScanPage: React.FC<Props> = () => {
               <TableCell className={classes.headCell}>ID</TableCell>
               <TableCell className={classes.headCell}>Type</TableCell>
               <TableCell className={classes.headCell}>Slurm ID</TableCell>
+              <TableCell className={classes.headCell}>Elapsed</TableCell>
               <TableCell className={classes.headCell} align='right'>State</TableCell>
             </TableRow>
           </TableHead>
@@ -190,6 +199,7 @@ const ScanPage: React.FC<Props> = () => {
                   <TableCell>{job.id}</TableCell>
                   <TableCell title={job.job_type}><Icon/></TableCell>
                   <TableCell>{job.slurm_id}</TableCell>
+                  <TableCell>{humanizeDuration(job.elapsed*1000)}</TableCell>
                   <TableCell align='right'><JobStateComponent state={job.state}/></TableCell>
                 </TableRow>
               )

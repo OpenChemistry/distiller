@@ -9,6 +9,8 @@ import makeStyles from '@mui/styles/makeStyles';
 import CompleteIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
 import {pink } from '@mui/material/colors';
+import Tooltip from '@mui/material/Tooltip';
+import { DateTime } from 'luxon'
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getScans, patchScan, scansSelector, totalCount } from '../features/scans';
@@ -146,7 +148,11 @@ const ScansPage: React.FC = () => {
                 <TableCell className={classes.location}>
                   <LocationComponent locations={scan.locations}/>
                 </TableCell>
-                <TableCell>{scan.created}</TableCell>
+                <TableCell>
+                  <Tooltip title={scan.created} followCursor>
+                    <div>{DateTime.fromISO(scan.created).toLocaleString() }</div>
+                  </Tooltip>
+                </TableCell>
                 <TableCell align='right' className={classes.progressCell}>
                   {scan.log_files < MAX_LOG_FILES
                     ? <LinearProgress variant='determinate' value={100 * scan.log_files / MAX_LOG_FILES}/>

@@ -84,6 +84,7 @@ export type ScanJob = {
   job_type: JobType;
   scan_id: IdType;
   slurm_id: IdType;
+  elapsed: number;
   state: JobState;
   params: any;
   output?: string;

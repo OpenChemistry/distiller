@@ -23,6 +23,7 @@ def _get_scans_query(
     scan_id: int = -1,
     state: schemas.ScanState = None,
     created: datetime = None,
+    created_since: datetime = None,
     has_haadf: bool = None,
 ):
     query = db.query(models.Scan)
@@ -38,6 +39,9 @@ def _get_scans_query(
 
     if created is not None:
         query = query.filter(models.Scan.created == created)
+
+    if created_since is not None:
+        query = query.filter(models.Scan.created > created_since)
 
     if has_haadf is not None:
         if has_haadf:
@@ -55,9 +59,10 @@ def get_scans(
     scan_id: int = -1,
     state: schemas.ScanState = None,
     created: datetime = None,
+    created_since: datetime = None,
     has_haadf: bool = None,
 ):
-    query = _get_scans_query(db, skip, limit, scan_id, state, created, has_haadf)
+    query = _get_scans_query(db, skip, limit, scan_id, state, created, created_since, has_haadf)
 
     return query.order_by(desc(models.Scan.created)).offset(skip).limit(limit).all()
 

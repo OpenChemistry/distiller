@@ -7,8 +7,8 @@ import tempfile
 import aiohttp
 import matplotlib.pyplot as plt
 import ncempy.io as nio
-from aiopath import AsyncPath
 import tenacity
+from aiopath import AsyncPath
 
 import faust
 from config import settings

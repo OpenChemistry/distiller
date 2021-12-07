@@ -20,7 +20,8 @@ class Settings(BaseSettings):
     JOB_NCEMHUB_COUNT_DATA_PATH: str
     JOB_SCRIPT_DIRECTORY: str
     JOB_BBCP_NUMBER_OF_STREAMS: int
-    JOB_QUEUE: str
+    JOB_QOS: str
+    JOB_QOS_FILTER: str
 
     HAADF_IMAGE_UPLOAD_DIR: str
     HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS: int

@@ -376,9 +376,16 @@ async def monitor_jobs():
                 if job.state.startswith("CANCELLED by"):
                     job.state = "CANCELLED"
 
-                await update_job(
-                    session, id, job.state, elapsed=job.elapsed, output=output
-                )
+                try:
+                    await update_job(
+                        session, id, job.state, elapsed=job.elapsed, output=output
+                    )
+                except aiohttp.client_exceptions.ClientResponseError as ex:
+                    # Ignore 404, this is not a job we created.
+                    if ex.status != 404:
+                        logger.exception("Exception updating job")
+
+                    continue
 
                 # If the job is completed and we are dealing with a transfer job
                 # then update the location.

@@ -63,6 +63,7 @@ async function mockScanUpdates(ws: WebSocket, id: IdType) {
     scan_id: id,
     job_type: JobType.Count,
     slurm_id: 123,
+    elapsed: 213,
     state: JobState.PENDING,
     params: {},
   };

@@ -1,3 +1,5 @@
 #!/bin/sh
 
-docker build --build-arg WORKER=haadf -t openchemistry/distiller-faust-haadf -f ../Dockerfile.worker ../
+TAG=`git log -1 --pretty=%h`
+
+docker build --build-arg WORKER=haadf -t openchemistry/distiller-faust-haadf:$TAG -f ../Dockerfile.worker ../

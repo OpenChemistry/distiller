@@ -5,4 +5,4 @@
 
 srun --exclusive -c 64 -n {{settings.JOB_NUMBER_OF_NODES}} shifter python3 {{settings.JOB_COUNT_SCRIPT_PATH}} --pad -l ${DW_JOB_STRIPED} -t {{threshold}} -s {{scan.scan_id}} --multi-pass || error_exit "Error shifter execution failed."
 
-cp ${DW_JOB_STRIPED}/data_scan*.h5  {{dest_dir}}/data_scan{{scan.scan_id}}_id{{scan.id}}_th{{threshold}}_electrons.h5 || error_exit "Failed to copy counted data to ncemhub."
+cp ${DW_JOB_STRIPED}/data_scan*.h5  {{dest_dir}}/data_scan{{scan.scan_id}}_id{{scan.id}}_th{{threshold|float}}_electrons.h5 || error_exit "Failed to copy counted data to ncemhub."

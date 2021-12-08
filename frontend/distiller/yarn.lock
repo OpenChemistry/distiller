@@ -1599,31 +1599,23 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@sentry/browser@6.15.0":
-  version "6.15.0"
-  resolved "https://registry.npmjs.org/@sentry/browser/-/browser-6.15.0.tgz"
+"@sentry/browser@6.16.0":
+  version "6.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-6.16.0.tgz#aa2207ea4d8e30a10bce0255798323c3b8e9c282"
   dependencies:
-    "@sentry/core" "6.15.0"
-    "@sentry/types" "6.15.0"
-    "@sentry/utils" "6.15.0"
+    "@sentry/core" "6.16.0"
+    "@sentry/types" "6.16.0"
+    "@sentry/utils" "6.16.0"
     tslib "^1.9.3"
 
-"@sentry/core@6.15.0":
-  version "6.15.0"
-  resolved "https://registry.npmjs.org/@sentry/core/-/core-6.15.0.tgz"
+"@sentry/core@6.16.0":
+  version "6.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-6.16.0.tgz#3312e38c6ab66c9d9c4704db696194676c25d001"
   dependencies:
-    "@sentry/hub" "6.15.0"
-    "@sentry/minimal" "6.15.0"
-    "@sentry/types" "6.15.0"
-    "@sentry/utils" "6.15.0"
-    tslib "^1.9.3"
-
-"@sentry/hub@6.15.0":
-  version "6.15.0"
-  resolved "https://registry.npmjs.org/@sentry/hub/-/hub-6.15.0.tgz"
-  dependencies:
-    "@sentry/types" "6.15.0"
-    "@sentry/utils" "6.15.0"
+    "@sentry/hub" "6.16.0"
+    "@sentry/minimal" "6.16.0"
+    "@sentry/types" "6.16.0"
+    "@sentry/utils" "6.16.0"
     tslib "^1.9.3"
 
 "@sentry/hub@6.16.0":
@@ -1634,14 +1626,6 @@
     "@sentry/utils" "6.16.0"
     tslib "^1.9.3"
 
-"@sentry/minimal@6.15.0":
-  version "6.15.0"
-  resolved "https://registry.npmjs.org/@sentry/minimal/-/minimal-6.15.0.tgz"
-  dependencies:
-    "@sentry/hub" "6.15.0"
-    "@sentry/types" "6.15.0"
-    tslib "^1.9.3"
-
 "@sentry/minimal@6.16.0":
   version "6.16.0"
   resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-6.16.0.tgz#0f41337be90470fbdccc390aaac6a22cb250ed7f"
@@ -1650,14 +1634,14 @@
     "@sentry/types" "6.16.0"
     tslib "^1.9.3"
 
-"@sentry/react@^6.15.0":
-  version "6.15.0"
-  resolved "https://registry.npmjs.org/@sentry/react/-/react-6.15.0.tgz"
+"@sentry/react@^6.16.0":
+  version "6.16.0"
+  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-6.16.0.tgz#a2f535ae64423e8de17e5517936e806b4957fb27"
   dependencies:
-    "@sentry/browser" "6.15.0"
-    "@sentry/minimal" "6.15.0"
-    "@sentry/types" "6.15.0"
-    "@sentry/utils" "6.15.0"
+    "@sentry/browser" "6.16.0"
+    "@sentry/minimal" "6.16.0"
+    "@sentry/types" "6.16.0"
+    "@sentry/utils" "6.16.0"
     hoist-non-react-statics "^3.3.2"
     tslib "^1.9.3"
 
@@ -1671,20 +1655,9 @@
     "@sentry/utils" "6.16.0"
     tslib "^1.9.3"
 
-"@sentry/types@6.15.0":
-  version "6.15.0"
-  resolved "https://registry.npmjs.org/@sentry/types/-/types-6.15.0.tgz"
-
 "@sentry/types@6.16.0":
   version "6.16.0"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.16.0.tgz#05a8daea73ac9faac8036ae5f84b89f27ffb0ec8"
-
-"@sentry/utils@6.15.0":
-  version "6.15.0"
-  resolved "https://registry.npmjs.org/@sentry/utils/-/utils-6.15.0.tgz"
-  dependencies:
-    "@sentry/types" "6.15.0"
-    tslib "^1.9.3"
 
 "@sentry/utils@6.16.0":
   version "6.16.0"

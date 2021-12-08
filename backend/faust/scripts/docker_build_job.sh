@@ -1,3 +1,5 @@
 #!/bin/sh
 
-docker build -t openchemistry/distiller-faust-job -f ../Dockerfile.job_worker ../ $@
+TAG=`git log -1 --pretty=%h`
+
+docker build -t openchemistry/distiller-faust-job:$TAG -f ../Dockerfile.job_worker ../ $@

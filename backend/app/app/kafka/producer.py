@@ -15,16 +15,15 @@ def serializer(event: FileSystemEvent) -> bytes:
     return event.json(exclude_none=True).encode()
 
 
-producer = AIOKafkaProducer(
-    loop=asyncio.get_event_loop(),
-    bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVER,
-    value_serializer=serializer,
-)
-
+producer = None
 
 async def start():
+    global producer
+    producer = AIOKafkaProducer(
+        bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVER,
+        value_serializer=serializer,
+    )
     await producer.start()
-
 
 async def stop():
     await producer.stop()

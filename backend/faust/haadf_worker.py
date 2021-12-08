@@ -3,6 +3,8 @@ import logging
 import os
 import sys
 import tempfile
+from datetime import datetime
+import shutil
 
 import aiohttp
 import matplotlib.pyplot as plt
@@ -12,7 +14,7 @@ from aiopath import AsyncPath
 
 import faust
 from config import settings
-from constants import TOPIC_HAADF_FILE_EVENTS
+from constants import TOPIC_HAADF_FILE_EVENTS, DATE_DIR_FORMAT
 
 # Setup logger
 logger = logging.getLogger("haadf_worker")
@@ -48,6 +50,17 @@ async def generate_haadf_image(tmp_dir: str, dm4_path: str, scan_id: int) -> Asy
 
     return path
 
+async def copy_to_ncemhub(path: AsyncPath):
+
+    stat_info = await path.stat()
+    created_datetime = datetime.fromtimestamp(stat_info.st_ctime)
+
+    date_dir = created_datetime.strftime(DATE_DIR_FORMAT)
+    dest_path = AsyncPath(settings.HAADF_NCEMHUB_DM4_DATA_PATH) / date_dir / path.name
+    await dest_path.parent.mkdir(parents=True, exist_ok=True)
+    loop = asyncio.get_event_loop()
+    loop.run_in_executor(None, shutil.copy, path, dest_path)
+
 @tenacity.retry(
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
@@ -80,6 +93,7 @@ async def watch_for_haadf_events(haadf_events):
             path = event.path
             scan_id = event.scan_id
             with tempfile.TemporaryDirectory() as tmp:
+                await copy_to_ncemhub(AsyncPath(path))
                 image_path = await generate_haadf_image(tmp, path, scan_id)
                 r = await upload_haadf_image(session, image_path)
                 r.raise_for_status()

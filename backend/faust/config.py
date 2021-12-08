@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
     HAADF_IMAGE_UPLOAD_DIR: str
     HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS: int
+    HAADF_NCEMHUB_DM4_DATA_PATH: str
 
     class Config:
         case_sensitive = True

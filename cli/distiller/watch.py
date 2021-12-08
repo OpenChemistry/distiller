@@ -220,8 +220,18 @@ async def monitor(queue: asyncio.Queue) -> None:
                     else:
                         model = event
 
+                    def _log_exception(task: asyncio.Task) -> None:
+                        try:
+                            task.result()
+                        except asyncio.CancelledError:
+                            pass
+                        except Exception:
+                            logger.exception("Exception posting file event.")
+
                     # Fire and forget
-                    asyncio.create_task(post_file_event(session, model))
+                    task = asyncio.create_task(post_file_event(session, model))
+                    task.add_done_callback(_log_exception)
+
     except asyncio.CancelledError:
         logger.info("Monitor loop canceled.")
     except Exception:

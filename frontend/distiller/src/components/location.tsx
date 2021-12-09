@@ -17,8 +17,9 @@ const useStyles = makeStyles((_theme) => ({
 }));
 
 type Props = {
-    scanID: IdType,
+    scanID: IdType;
     locations: ScanLocation[];
+
 }
 
 type UniqueLocation = {

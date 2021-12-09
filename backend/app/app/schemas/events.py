@@ -11,3 +11,4 @@ class SubmitJobEvent(BaseModel):
 
 class RemoveScanFilesEvent(BaseModel):
     scan: Scan
+    host: str

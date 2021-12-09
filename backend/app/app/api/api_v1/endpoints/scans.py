@@ -172,14 +172,20 @@ async def delete_scan(
 )
 async def remove_scan_files(
     id: int,
+    host: str,
     db: Session = Depends(get_db)
 ):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
 
+    # Verify that we have scan files on this host
+    locations = [l for l in db_scan.locations if l.host == host]
+    if len(locations) == 0:
+        raise HTTPException(status_code=400, detail="Invalid request")
+
     scan = schemas.Scan.from_orm(db_scan)
-    await send_remove_scan_files_event_to_kafka(RemoveScanFilesEvent(scan=scan))
+    await send_remove_scan_files_event_to_kafka(RemoveScanFilesEvent(scan=scan, host=host))
 
 
 

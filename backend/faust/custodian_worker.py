@@ -21,6 +21,7 @@ app = faust.App(
 
 class RemoveScanFilesEvent(faust.Record):
     scan: Scan
+    host: str
 
 
 custodian_events_topic = app.topic(
@@ -44,22 +45,21 @@ async def watch_for_custodian_events(custodian_events):
     async with aiohttp.ClientSession() as session:
         async for event in custodian_events:
             scan = event.scan
-            print(event)
+            host = event.host
 
-            # Generate list of edge locations
-            edge_locations = [l for l in scan.locations if l.host not in COMPUTE_HOSTS]
-            edge_hosts = [l.host for l in edge_locations]
-            assert len(set(edge_hosts)) == 1, "scan files on more than one edge host!"
+            if host not in settings.CUSTODIAN_VALID_HOSTS:
+                logger.error(f"Invalid host: {host}")
+                continue
 
             # List of paths to remove from
-            paths = [l.path for l in edge_locations]
-            edge_host = edge_locations[0].host
+            paths = [l.path for l in scan.locations if l.host == host]
 
-            print(paths)
-            print(edge_host)
+            if len(paths) == 0:
+                logger.warn("No paths to remove.")
+                continue
 
             logger.info(
-                f"Remove scan files for {scan.scan_id}({scan.id}) from {edge_host}:{paths}."
+                f"Remove scan files for {scan.scan_id}({scan.id}) from {host}:{paths}."
             )
 
             def _log_exception(future: asyncio.Future) -> None:
@@ -71,5 +71,5 @@ async def watch_for_custodian_events(custodian_events):
                     logger.exception("Exception removing files.")
 
             loop = asyncio.get_event_loop()
-            future = loop.run_in_executor(None, remove, scan, edge_host, paths)
+            future = loop.run_in_executor(None, remove, scan, host, paths)
             future.add_done_callback(_log_exception)

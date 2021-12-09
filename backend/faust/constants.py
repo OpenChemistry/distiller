@@ -25,6 +25,7 @@ DW_JOB_STRIPED_VAR = "${DW_JOB_STRIPED}"
 DATE_DIR_FORMAT = "%Y.%m.%d"
 COMPUTE_HOSTS = ["cori"]
 
+
 class JobState(str, Enum):
     INITIALIZING = (
         "INITIALIZING"  # This is not a slurm state. This is the default start state

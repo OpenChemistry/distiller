@@ -7,7 +7,7 @@ from fabric import Connection
 
 import faust
 from config import settings
-from constants import TOPIC_CUSTODIAN_EVENT, COMPUTE_HOSTS
+from constants import COMPUTE_HOSTS, TOPIC_CUSTODIAN_EVENT
 from utils import Scan
 
 # Setup logger
@@ -18,15 +18,25 @@ app = faust.App(
     "distiller", store="rocksdb://", broker=settings.KAFKA_URL, topic_partitions=1
 )
 
-class RemoveScanFilesEvent(faust.Record):
-    scan:  Scan
 
-custodian_events_topic = app.topic(TOPIC_CUSTODIAN_EVENT, value_type=RemoveScanFilesEvent)
+class RemoveScanFilesEvent(faust.Record):
+    scan: Scan
+
+
+custodian_events_topic = app.topic(
+    TOPIC_CUSTODIAN_EVENT, value_type=RemoveScanFilesEvent
+)
+
 
 def remove(scan: Scan, host: str, paths: List[str]):
-    result = Connection(f"{host}", user=f"{settings.CUSTODIAN_USER}").run(f"rm {scan.scan_id} {' '.join(paths)}", hide=True)
+    result = Connection(f"{host}", user=f"{settings.CUSTODIAN_USER}").run(
+        f"rm {scan.scan_id} {' '.join(paths)}", hide=True
+    )
     if result.exited != 0:
-        logger.error("Error removing scan {scan.scan_id}({scan.id}), exit code: {result.exit_code}.")
+        logger.error(
+            "Error removing scan {scan.scan_id}({scan.id}), exit code: {result.exit_code}."
+        )
+
 
 @app.agent(custodian_events_topic)
 async def watch_for_custodian_events(custodian_events):
@@ -48,7 +58,9 @@ async def watch_for_custodian_events(custodian_events):
             print(paths)
             print(edge_host)
 
-            logger.info(f"Remove scan files for {scan.scan_id}({scan.id}) from {edge_host}:{paths}.")
+            logger.info(
+                f"Remove scan files for {scan.scan_id}({scan.id}) from {edge_host}:{paths}."
+            )
 
             def _log_exception(future: asyncio.Future) -> None:
                 try:
@@ -61,4 +73,3 @@ async def watch_for_custodian_events(custodian_events):
             loop = asyncio.get_event_loop()
             future = loop.run_in_executor(None, remove, scan, edge_host, paths)
             future.add_done_callback(_log_exception)
-

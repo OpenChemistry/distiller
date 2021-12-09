@@ -24,9 +24,9 @@ from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
 from schemas import JobUpdate
 from schemas import Location as LocationRest
 from schemas import Scan, ScanUpdate, SfapiJob
-from utils import get_job, get_scan
+from utils import Scan, get_job, get_scan
 from utils import update_job as update_job_request
-from utils import update_scan, Scan
+from utils import update_scan
 
 # Setup logger
 logger = logging.getLogger("job_worker")
@@ -56,6 +56,7 @@ class JobType(str, Enum):
 
     def __str__(self) -> str:
         return self.value
+
 
 class Job(faust.Record):
     id: int
@@ -332,7 +333,13 @@ completed_jobs = set()
 async def monitor_jobs():
     async with aiohttp.ClientSession() as session:
         try:
-            params = {"kwargs": [f"user={settings.SFAPI_USER}", f"qos={settings.JOB_QOS_FILTER}"], "sacct": True}
+            params = {
+                "kwargs": [
+                    f"user={settings.SFAPI_USER}",
+                    f"qos={settings.JOB_QOS_FILTER}",
+                ],
+                "sacct": True,
+            }
 
             logger.info("Fetching jobs")
             r = await sfapi_get("compute/jobs/cori", params)

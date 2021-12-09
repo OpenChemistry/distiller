@@ -1,12 +1,12 @@
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Union, List
+from typing import List, Optional, Union
 
 import aiohttp
 import tenacity
-import faust
 
+import faust
 from config import settings
 from schemas import Job, JobUpdate, Scan, ScanCreate, ScanUpdate
 
@@ -22,9 +22,11 @@ def extract_scan_id(path: str) -> int:
 
     return int(match.group(1))
 
+
 class Location(faust.Record):
     host: str
     path: str
+
 
 class Scan(faust.Record):
     id: int
@@ -32,6 +34,7 @@ class Scan(faust.Record):
     locations: List[Location]
     created: datetime
     scan_id: Optional[int]
+
 
 @tenacity.retry(
     retry=tenacity.retry_if_exception_type(

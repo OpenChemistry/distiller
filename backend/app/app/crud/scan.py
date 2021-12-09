@@ -182,3 +182,7 @@ def get_location(db: Session, id: int):
 def delete_location(db: Session, id: int) -> None:
     db.query(models.Location).filter(models.Location.id == id).delete()
     db.commit()
+
+def delete_locations(db: Session, scan_id: int, host: str) -> None:
+    db.query(models.Location).filter(models.Location.scan_id == scan_id, models.Location.host == host).delete()
+    db.commit()

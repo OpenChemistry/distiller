@@ -4,6 +4,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import List
+from app.schemas.events import RemoveScanFilesEvent
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.security.api_key import APIKey
@@ -13,7 +14,7 @@ from app import schemas
 from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
 from app.core.config import settings
 from app.crud import scan as crud
-from app.kafka.producer import send_scan_event_to_kafka
+from app.kafka.producer import send_scan_event_to_kafka, send_remove_scan_files_event_to_kafka
 from app.schemas.scan import ScanCreatedEvent
 
 router = APIRouter()
@@ -143,9 +144,11 @@ async def update_scan(
     return scan
 
 
-@router.delete("/{id}")
+@router.delete(
+    "/{id}",
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)])
 async def delete_scan(
-    id: int, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)
+    id: int, db: Session = Depends(get_db)
 ):
 
     db_scan = crud.get_scan(db, id=id)
@@ -163,13 +166,31 @@ async def delete_scan(
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, os.remove, haadf_path)
 
+@router.put(
+    "/{id}/remove",
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
+)
+async def remove_scan_files(
+    id: int,
+    db: Session = Depends(get_db)
+):
+    db_scan = crud.get_scan(db, id=id)
+    if db_scan is None:
+        raise HTTPException(status_code=404, detail="Scan not found")
 
-@router.delete("/{id}/locations/{location_id}")
+    scan = schemas.Scan.from_orm(db_scan)
+    await send_remove_scan_files_event_to_kafka(RemoveScanFilesEvent(scan=scan))
+
+
+
+@router.delete(
+    "/{id}/locations/{location_id}",
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
+)
 def delete_location(
     id: int,
     location_id: int,
-    db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_api_key),
+    db: Session = Depends(get_db)
 ):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
@@ -179,4 +200,16 @@ def delete_location(
     if location is None:
         raise HTTPException(status_code=404, detail="Location not found")
 
-    return crud.delete_location(db, location_id)
+    crud.delete_location(db, location_id)
+
+@router.delete("/{id}/locations", dependencies=[Depends(oauth2_password_bearer_or_api_key)],)
+def remove_scan(
+    id: int,
+    host: str,
+    db: Session = Depends(get_db)
+):
+    db_scan = crud.get_scan(db, id=id)
+    if db_scan is None:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    crud.delete_locations(db, scan_id=id, host=host)

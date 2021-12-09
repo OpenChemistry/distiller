@@ -1,10 +1,11 @@
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union, List
 
 import aiohttp
 import tenacity
+import faust
 
 from config import settings
 from schemas import Job, JobUpdate, Scan, ScanCreate, ScanUpdate
@@ -21,6 +22,16 @@ def extract_scan_id(path: str) -> int:
 
     return int(match.group(1))
 
+class Location(faust.Record):
+    host: str
+    path: str
+
+class Scan(faust.Record):
+    id: int
+    log_files: int
+    locations: List[Location]
+    created: datetime
+    scan_id: Optional[int]
 
 @tenacity.retry(
     retry=tenacity.retry_if_exception_type(

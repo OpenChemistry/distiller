@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS: int
     HAADF_NCEMHUB_DM4_DATA_PATH: str
 
+    CUSTODIAN_USER: str
+
     class Config:
         case_sensitive = True
         env_file = ".env"

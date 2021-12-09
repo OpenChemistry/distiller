@@ -26,7 +26,7 @@ from schemas import Location as LocationRest
 from schemas import Scan, ScanUpdate, SfapiJob
 from utils import get_job, get_scan
 from utils import update_job as update_job_request
-from utils import update_scan
+from utils import update_scan, Scan
 
 # Setup logger
 logger = logging.getLogger("job_worker")
@@ -56,19 +56,6 @@ class JobType(str, Enum):
 
     def __str__(self) -> str:
         return self.value
-
-
-class Location(faust.Record):
-    host: str
-    path: str
-
-
-class Scan(faust.Record):
-    id: int
-    log_files: int
-    locations: List[Location]
-    created: datetime
-
 
 class Job(faust.Record):
     id: int

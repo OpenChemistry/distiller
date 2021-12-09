@@ -8,3 +8,6 @@ from app.schemas.scan import Scan
 class SubmitJobEvent(BaseModel):
     job: Job
     scan: Scan
+
+class RemoveScanFilesEvent(BaseModel):
+    scan: Scan

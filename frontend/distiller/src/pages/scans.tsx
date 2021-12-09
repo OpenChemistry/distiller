@@ -146,7 +146,7 @@ const ScansPage: React.FC = () => {
                   />
                 </TableCell>
                 <TableCell className={classes.location}>
-                  <LocationComponent locations={scan.locations}/>
+                  <LocationComponent scanID={scan.id} locations={scan.locations}/>
                 </TableCell>
                 <TableCell>
                   <Tooltip title={DateTime.fromISO(scan.created).toISO()} followCursor>

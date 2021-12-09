@@ -133,7 +133,7 @@ const ScanPage: React.FC<Props> = () => {
                 <TableRow>
                   <TableCell className={classes.headCell}>Location</TableCell>
                   <TableCell align='right'>
-                    <LocationComponent locations={scan.locations}/>
+                    <LocationComponent scanID={scan.id} locations={scan.locations}/>
                   </TableCell>
                 </TableRow>
                 <TableRow>

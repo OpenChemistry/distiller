@@ -4,6 +4,7 @@ import {
   getScans as getScansAPI,
   getScan as getScanAPI,
   patchScan as patchScanAPI,
+  removeScanFiles as removeScanFilesAPI
 } from './api';
 import { Scan, IdType, ScansRequestResult } from '../../types';
 
@@ -45,6 +46,15 @@ export const patchScan = createAsyncThunk<Scan, {id: IdType; updates: Partial<Sc
     return scan;
   }
 )
+
+export const removeScanFiles = createAsyncThunk<void, {id: IdType; host: string;}>(
+  'scans/remove',
+  async (payload, _thunkAPI) => {
+    const {id, host} = payload;
+    await removeScanFilesAPI(id, host);
+  }
+)
+
 
 export const scansSlice = createSlice({
   name: 'scans',

@@ -82,18 +82,23 @@ def scan_complete(scan_log_files: List[str]):
 
 async def process_delete_event(path: str) -> None:
     scan_id = extract_scan_id(path)
-    del log_files[path]
+
+    if path in log_files:
+        del log_files[path]
+
     scan_log_files = scan_id_to_log_files[scan_id]
+    if not scan_log_files:
+        return
+
     if path in scan_log_files:
         scan_log_files.remove(path)
+        scan_id_to_log_files[scan_id] = scan_log_files
 
     # If all the log file are gone then remove the scan
     if not scan_log_files:
         del scan_id_to_id[scan_id]
         del scan_id_to_log_files[scan_id]
         logger.info(f"Scan {scan_id} removed.")
-    else:
-        scan_id_to_log_files[scan_id] = scan_log_files
 
 
 async def process_log_file(

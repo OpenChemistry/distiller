@@ -24,9 +24,10 @@ from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
 from schemas import JobUpdate
 from schemas import Location as LocationRest
 from schemas import Scan, ScanUpdate, SfapiJob
-from utils import Scan, get_job, get_scan
+from utils import get_job, get_scan
 from utils import update_job as update_job_request
 from utils import update_scan
+from faust_records import Scan as ScanRecord
 
 # Setup logger
 logger = logging.getLogger("job_worker")
@@ -65,7 +66,7 @@ class Job(faust.Record):
 
 class SubmitJobEvent(faust.Record):
     job: Job
-    scan: Scan
+    scan: ScanRecord
 
 
 submit_job_events_topic = app.topic(TOPIC_JOB_SUBMIT_EVENTS, value_type=SubmitJobEvent)

@@ -8,7 +8,7 @@ from fabric import Connection
 import faust
 from config import settings
 from constants import COMPUTE_HOSTS, TOPIC_CUSTODIAN_EVENT
-from utils import Scan
+from faust_records import Scan
 
 # Setup logger
 logger = logging.getLogger("custodian_worker")

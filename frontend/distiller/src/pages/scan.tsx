@@ -38,6 +38,7 @@ import JobStateComponent from '../components/job-state';
 import TransferDialog from '../components/transfer-dialog';
 import CountDialog from '../components/count-dialog';
 import { createJob } from '../features/jobs/api';
+import ScanConfirmDialog from '../components/scan-confirm-dialog';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -78,6 +79,9 @@ const ScanPage: React.FC<Props> = () => {
   const dispatch = useAppDispatch();
 
   const [jobDialog, setJobDialog] = useState<JobType | undefined>()
+  const [scanRemovalScanID, setScanRemovalScanID] = React.useState<number|null>(null);
+  const [scanOnRemovalConfirm, setScanOnRemovalConfirm] = React.useState<((confirm:boolean)=>void)|null>(null);
+  const [scanRemovalMessage, setScanRemovalMessage] = React.useState<string>("");
 
   useEffect(() => {
     dispatch(getScan({id: scanId}));
@@ -101,6 +105,17 @@ const ScanPage: React.FC<Props> = () => {
 
   const onJobSubmit = (type: JobType, params: any) => {
     return createJob(type, scanId, params);
+  }
+
+  const confirmScanRemoval = (scanID: number, message: string)  => {
+    return new Promise<boolean>((resolve) => {
+      setScanRemovalScanID(scanID);
+      setScanRemovalMessage(message);
+      setScanOnRemovalConfirm(() => (confirm: boolean) => {
+        resolve(confirm);
+        setScanRemovalScanID(null)
+      });
+    });
   }
 
   const scan = useAppSelector((state) => scansSelector.selectById(state, scanId));
@@ -133,7 +148,7 @@ const ScanPage: React.FC<Props> = () => {
                 <TableRow>
                   <TableCell className={classes.headCell}>Location</TableCell>
                   <TableCell align='right'>
-                    <LocationComponent scanID={scan.id} locations={scan.locations}/>
+                    <LocationComponent confirmRemoval={confirmScanRemoval} scanID={scan.id} locations={scan.locations}/>
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -220,6 +235,13 @@ const ScanPage: React.FC<Props> = () => {
       onClose={onJobClose}
       onSubmit={(params: any) => onJobSubmit(JobType.Count, params)}
     />
+
+    <ScanConfirmDialog
+      onConfirm={scanOnRemovalConfirm}
+      title={"Remove scan files"}
+      contentText={scanRemovalMessage}
+      scanID={scanRemovalScanID}/>
+
   </React.Fragment>
 }
 

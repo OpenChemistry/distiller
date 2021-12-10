@@ -22,6 +22,7 @@ import ImageDialog from '../components/image-dialog';
 import LocationComponent from '../components/location';
 import { SCANS_PATH } from '../routes';
 import { stopPropagation } from '../utils';
+import ScanConfirmDialog from '../components/scan-confirm-dialog';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -77,6 +78,11 @@ const ScansPage: React.FC = () => {
   const [activeImg, setActiveImg] = useState('');
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(20);
+  const [scanRemovalScanID, setScanRemovalScanID] = React.useState<number|null>(null);
+  const [scanOnRemovalConfirm, setScanOnRemovalConfirm] = React.useState<((confirm:boolean)=>void)|null>(null);
+  const [scanRemovalMessage, setScanRemovalMessage] = React.useState<string>("");
+  const [scanRemovalTitle, setScanRemovalTitle] = React.useState<string>("");
+
 
   useEffect(() => {
     dispatch(getScans({skip: page*rowsPerPage, limit: rowsPerPage}));
@@ -107,6 +113,18 @@ const ScansPage: React.FC = () => {
     setRowsPerPage(scansPerPage);
     setPage(0);
   };
+
+  const confirmScanRemoval = (scanID: number, title: string,  message: string)  => {
+    return new Promise<boolean>((resolve) => {
+      setScanRemovalScanID(scanID);
+      setScanRemovalTitle(title);
+      setScanRemovalMessage(message);
+      setScanOnRemovalConfirm(() => (confirm: boolean) => {
+        resolve(confirm);
+        setScanRemovalScanID(null)
+      });
+    });
+  }
 
   return (
     <React.Fragment>
@@ -146,7 +164,7 @@ const ScansPage: React.FC = () => {
                   />
                 </TableCell>
                 <TableCell className={classes.location}>
-                  <LocationComponent scanID={scan.id} locations={scan.locations}/>
+                  <LocationComponent confirmRemoval={confirmScanRemoval} scanID={scan.id} locations={scan.locations}/>
                 </TableCell>
                 <TableCell>
                   <Tooltip title={DateTime.fromISO(scan.created).toISO()} followCursor>
@@ -175,6 +193,7 @@ const ScansPage: React.FC = () => {
         labelRowsPerPage="Scans per page"
       />
       <ImageDialog open={maximizeImg} src={activeImg} alt='scan image' handleClose={onCloseDialog}/>
+      <ScanConfirmDialog onConfirm={scanOnRemovalConfirm} title={scanRemovalTitle} contentText={scanRemovalMessage} scanID={scanRemovalScanID}/>
     </React.Fragment>
   )
 }

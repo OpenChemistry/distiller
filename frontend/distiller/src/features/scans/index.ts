@@ -100,6 +100,11 @@ export const scansSlice = createSlice({
 
 export const scansSelector = scansAdapter.getSelectors<RootState>(state => state.scans);
 
+const scanState = (rootState: RootState) => rootState.scans;
+const { selectById } = scansAdapter.getSelectors();
+export const scanSelector = (id: IdType) => {
+  return createSelector(scanState, (state) => selectById(state, id));
+}
 
 export const totalCount = (state: RootState) => state.scans.totalCount;
 

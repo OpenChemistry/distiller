@@ -11,7 +11,7 @@
     "@mui/material": "^5.2.3",
     "@mui/styles": "^5.2.3",
     "@reduxjs/toolkit": "^1.6.2",
-    "@sentry/react": "^6.16.0",
+    "@sentry/react": "^6.16.1",
     "@sentry/tracing": "^6.16.0",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",

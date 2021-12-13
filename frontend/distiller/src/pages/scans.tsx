@@ -149,7 +149,7 @@ const ScansPage: React.FC = () => {
                   <LocationComponent locations={scan.locations}/>
                 </TableCell>
                 <TableCell>
-                  <Tooltip title={scan.created} followCursor>
+                  <Tooltip title={DateTime.fromISO(scan.created).toISO()} followCursor>
                     <div>{DateTime.fromISO(scan.created).toLocaleString() }</div>
                   </Tooltip>
                 </TableCell>

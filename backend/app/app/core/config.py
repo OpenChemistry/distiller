@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     JWT_REFRESH_COOKIE_DOMAIN: str = None
     JWT_REFRESH_COOKIE_SECURE: bool = False
 
-    KAFKA_BOOTSTRAP_SERVER: str
+    KAFKA_BOOTSTRAP_SERVERS: List[str]
 
     HAADF_DM4_UPLOAD_DIR: str
     HAADF_IMAGE_UPLOAD_DIR: str

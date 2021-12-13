@@ -22,6 +22,7 @@ async def start():
     producer = AIOKafkaProducer(
         bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
         value_serializer=serializer,
+        enable_idempotence=True,
     )
     await producer.start()
 

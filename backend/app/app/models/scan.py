@@ -8,7 +8,7 @@ class Scan(Base):
     id = Column(Integer, primary_key=True, index=True)
     scan_id = Column(Integer, index=True)
     log_files = Column(Integer, default=0)
-    created = Column(DateTime, nullable=False, index=True)
+    created = Column(DateTime(timezone=True), nullable=False, index=True)
     haadf_path = Column(String, nullable=True, default=None, index=True)
 
     locations = relationship("Location", cascade="delete")

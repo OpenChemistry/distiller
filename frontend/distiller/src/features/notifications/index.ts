@@ -15,7 +15,8 @@ class NotificationHub {
       } catch {}
 
       if (isCreatedEvent(msg)) {
-        dispatch(setScan(msg));
+        const scan = {...msg, jobs: []};
+        dispatch(setScan(scan));
       } else if (isUpdatedEvent(msg)) {
         dispatch(updateScan(msg));
       }

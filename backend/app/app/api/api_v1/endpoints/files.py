@@ -17,6 +17,7 @@ from app.kafka.producer import (send_filesystem_event_to_kafka,
                                 send_haadf_event_to_kafka,
                                 send_scan_event_to_kafka,
                                 send_sync_event_to_kafka)
+from app.core.logging import logger
 
 router = APIRouter()
 
@@ -80,6 +81,7 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
 
     if len(scans) > 0:
         scan = scans[0]
+        logger.info(f"Adding HAADF image '{upload_path}' to scan {scan.id}")
         # Move the file to the right location
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(

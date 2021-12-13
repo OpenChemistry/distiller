@@ -7,6 +7,7 @@ from starlette.middleware.cors import CORSMiddleware
 from app.api.api_v1.api import api_router
 from app.core.config import settings
 from app.kafka import producer
+from app.core.logging import logger
 
 app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
@@ -20,6 +21,7 @@ if settings.SENTRY_DSN_URL is not None:
 
 @app.on_event("startup")
 async def startup_event():
+    logger.info("starting kafka producer")
     await producer.start()
 
 

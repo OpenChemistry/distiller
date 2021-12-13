@@ -16,7 +16,7 @@ async def create():
     consumer = AIOKafkaConsumer(
         TOPIC_SCAN_EVENTS,
         loop=loop,
-        bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVER,
+        bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
         value_deserializer=deserializer,
     )
 

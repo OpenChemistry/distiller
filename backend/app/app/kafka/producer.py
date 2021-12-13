@@ -20,8 +20,9 @@ producer = None
 async def start():
     global producer
     producer = AIOKafkaProducer(
-        bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVER,
+        bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
         value_serializer=serializer,
+        enable_idempotence=True,
     )
     await producer.start()
 

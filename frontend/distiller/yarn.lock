@@ -1024,15 +1024,15 @@
     source-map "^0.5.7"
     stylis "^4.0.3"
 
-"@emotion/cache@^11.6.0":
-  version "11.6.0"
-  resolved "https://registry.npmjs.org/@emotion/cache/-/cache-11.6.0.tgz"
+"@emotion/cache@^11.6.0", "@emotion/cache@^11.7.1":
+  version "11.7.1"
+  resolved "https://registry.yarnpkg.com/@emotion/cache/-/cache-11.7.1.tgz#08d080e396a42e0037848214e8aa7bf879065539"
   dependencies:
     "@emotion/memoize" "^0.7.4"
     "@emotion/sheet" "^1.1.0"
     "@emotion/utils" "^1.0.0"
     "@emotion/weak-memoize" "^0.2.5"
-    stylis "^4.0.10"
+    stylis "4.0.13"
 
 "@emotion/hash@^0.8.0":
   version "0.8.0"
@@ -1048,12 +1048,12 @@
   version "0.7.5"
   resolved "https://registry.npmjs.org/@emotion/memoize/-/memoize-0.7.5.tgz"
 
-"@emotion/react@^11.7.0":
-  version "11.7.0"
-  resolved "https://registry.npmjs.org/@emotion/react/-/react-11.7.0.tgz"
+"@emotion/react@^11.7.1":
+  version "11.7.1"
+  resolved "https://registry.yarnpkg.com/@emotion/react/-/react-11.7.1.tgz#3f800ce9b20317c13e77b8489ac4a0b922b2fe07"
   dependencies:
     "@babel/runtime" "^7.13.10"
-    "@emotion/cache" "^11.6.0"
+    "@emotion/cache" "^11.7.1"
     "@emotion/serialize" "^1.0.2"
     "@emotion/sheet" "^1.1.0"
     "@emotion/utils" "^1.0.0"
@@ -1599,23 +1599,23 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@sentry/browser@6.16.0":
-  version "6.16.0"
-  resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-6.16.0.tgz#aa2207ea4d8e30a10bce0255798323c3b8e9c282"
+"@sentry/browser@6.16.1":
+  version "6.16.1"
+  resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-6.16.1.tgz#4270ab0fbd1de425e339b3e7a364feb09f470a87"
   dependencies:
-    "@sentry/core" "6.16.0"
-    "@sentry/types" "6.16.0"
-    "@sentry/utils" "6.16.0"
+    "@sentry/core" "6.16.1"
+    "@sentry/types" "6.16.1"
+    "@sentry/utils" "6.16.1"
     tslib "^1.9.3"
 
-"@sentry/core@6.16.0":
-  version "6.16.0"
-  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-6.16.0.tgz#3312e38c6ab66c9d9c4704db696194676c25d001"
+"@sentry/core@6.16.1":
+  version "6.16.1"
+  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-6.16.1.tgz#d9f7a75f641acaddf21b6aafa7a32e142f68f17c"
   dependencies:
-    "@sentry/hub" "6.16.0"
-    "@sentry/minimal" "6.16.0"
-    "@sentry/types" "6.16.0"
-    "@sentry/utils" "6.16.0"
+    "@sentry/hub" "6.16.1"
+    "@sentry/minimal" "6.16.1"
+    "@sentry/types" "6.16.1"
+    "@sentry/utils" "6.16.1"
     tslib "^1.9.3"
 
 "@sentry/hub@6.16.0":
@@ -1626,6 +1626,14 @@
     "@sentry/utils" "6.16.0"
     tslib "^1.9.3"
 
+"@sentry/hub@6.16.1":
+  version "6.16.1"
+  resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-6.16.1.tgz#526e19db51f4412da8634734044c605b936a7b80"
+  dependencies:
+    "@sentry/types" "6.16.1"
+    "@sentry/utils" "6.16.1"
+    tslib "^1.9.3"
+
 "@sentry/minimal@6.16.0":
   version "6.16.0"
   resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-6.16.0.tgz#0f41337be90470fbdccc390aaac6a22cb250ed7f"
@@ -1634,14 +1642,22 @@
     "@sentry/types" "6.16.0"
     tslib "^1.9.3"
 
-"@sentry/react@^6.16.0":
-  version "6.16.0"
-  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-6.16.0.tgz#a2f535ae64423e8de17e5517936e806b4957fb27"
+"@sentry/minimal@6.16.1":
+  version "6.16.1"
+  resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-6.16.1.tgz#6a9506a92623d2ff1fc17d60989688323326772e"
   dependencies:
-    "@sentry/browser" "6.16.0"
-    "@sentry/minimal" "6.16.0"
-    "@sentry/types" "6.16.0"
-    "@sentry/utils" "6.16.0"
+    "@sentry/hub" "6.16.1"
+    "@sentry/types" "6.16.1"
+    tslib "^1.9.3"
+
+"@sentry/react@^6.16.1":
+  version "6.16.1"
+  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-6.16.1.tgz#d4930c4b23bcd307306a0549d20964d98caed38c"
+  dependencies:
+    "@sentry/browser" "6.16.1"
+    "@sentry/minimal" "6.16.1"
+    "@sentry/types" "6.16.1"
+    "@sentry/utils" "6.16.1"
     hoist-non-react-statics "^3.3.2"
     tslib "^1.9.3"
 
@@ -1659,11 +1675,22 @@
   version "6.16.0"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.16.0.tgz#05a8daea73ac9faac8036ae5f84b89f27ffb0ec8"
 
+"@sentry/types@6.16.1":
+  version "6.16.1"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.16.1.tgz#4917607115b30315757c2cf84f80bac5100b8ac0"
+
 "@sentry/utils@6.16.0":
   version "6.16.0"
   resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-6.16.0.tgz#f04f1a46fea95662dbb26dc2cde02962fe18acb9"
   dependencies:
     "@sentry/types" "6.16.0"
+    tslib "^1.9.3"
+
+"@sentry/utils@6.16.1":
+  version "6.16.1"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-6.16.1.tgz#1b9e14c2831b6e8b816f7021b9876133bf2be008"
+  dependencies:
+    "@sentry/types" "6.16.1"
     tslib "^1.9.3"
 
 "@sinonjs/commons@^1.7.0":
@@ -9565,7 +9592,11 @@ stylehacks@^4.0.0:
     postcss "^7.0.0"
     postcss-selector-parser "^3.0.0"
 
-stylis@^4.0.10, stylis@^4.0.3:
+stylis@4.0.13:
+  version "4.0.13"
+  resolved "https://registry.yarnpkg.com/stylis/-/stylis-4.0.13.tgz#f5db332e376d13cc84ecfe5dace9a2a51d954c91"
+
+stylis@^4.0.3:
   version "4.0.10"
   resolved "https://registry.npmjs.org/stylis/-/stylis-4.0.10.tgz"
 

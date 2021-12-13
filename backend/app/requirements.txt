@@ -10,3 +10,4 @@ aiokafka
 alembic
 aiofiles
 sentry-sdk
+coloredlogs

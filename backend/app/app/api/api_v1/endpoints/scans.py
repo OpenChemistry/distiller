@@ -204,9 +204,15 @@ def delete_location(id: int, location_id: int, db: Session = Depends(get_db)):
     "/{id}/locations",
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
-def remove_scan(id: int, host: str, db: Session = Depends(get_db)):
+async def remove_scan(id: int, host: str, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
 
     crud.delete_locations(db, scan_id=id, host=host)
+
+    db_scan = crud.get_scan(db, id=id)
+    scan_updated_event = schemas.ScanUpdateEvent(id=id)
+    if db_scan is not None:
+        scan_updated_event.locations = db_scan.locations
+        await send_scan_event_to_kafka(scan_updated_event)

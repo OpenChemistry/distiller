@@ -16,9 +16,9 @@ import { DateTime } from 'luxon'
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getScans, patchScan, scansSelector, totalCount, removeScan } from '../features/scans';
-import { MAX_LOG_FILES } from '../constants';
+import { COMPUTE_HOSTS, MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
-import { IdType, Scan } from '../types';
+import { IdType, Scan, ScanLocation } from '../types';
 import { staticURL } from '../client';
 import ImageDialog from '../components/image-dialog';
 import LocationComponent from '../components/location';
@@ -132,7 +132,18 @@ const ScansPage: React.FC = () => {
     return new Promise<boolean>((resolve) => {
       setScanRemovalScanID(scan.scan_id);
       setScanRemovalTitle("Remove scan")
-      setScanRemovalMessage(`You are about to remove scan ${scan.scan_id}. This operation can not be undone.`);
+      let message = `You are about to remove scan ${scan.scan_id}. This operation can not be undone.`;
+      const edgeLocations = scan.locations.filter((l: ScanLocation) => {
+        return !COMPUTE_HOSTS.includes(l.host);
+      })
+
+
+      // Extra warning
+      if (edgeLocations.length != 0) {
+        message = `${message} Warning: Scan files exist on the acquisition machine, these will not be removed.`
+      }
+
+      setScanRemovalMessage(message);
       setScanOnRemovalConfirm(() => (confirm: boolean) => {
         if (confirm) {
           const id = scan.id;

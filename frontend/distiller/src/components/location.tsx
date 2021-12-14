@@ -44,7 +44,7 @@ const LocationChip: React.FC<ChipProps> = (props) => {
       return;
     }
 
-    const confirmed = await confirmRemoval(scanID, "Remove scan files", `You are about to remove scan files from the acquisition machine for scan ${scan.scan_id}. This operation can not be undone.`);
+    const confirmed = await confirmRemoval(scan.scan_id, "Remove scan files", `You are about to remove scan files from the acquisition machine for scan ${scan.scan_id}. This operation can not be undone.`);
 
     if (confirmed) {
       dispatch(removeScanFiles({id: scanID, host}));

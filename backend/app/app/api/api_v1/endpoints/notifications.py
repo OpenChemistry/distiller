@@ -7,8 +7,8 @@ from fastapi.exceptions import HTTPException
 from starlette.endpoints import WebSocketEndpoint
 
 from app.api.deps import get_current_user, get_db
-from app.kafka import consumer
 from app.core.logging import logger
+from app.kafka import consumer
 
 router = APIRouter()
 

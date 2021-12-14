@@ -1,8 +1,8 @@
 import asyncio
+import datetime
 import re
 import shutil
 from pathlib import Path
-import datetime
 
 import aiofiles
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
@@ -73,11 +73,14 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
         contents = await file.read()
         await fp.write(contents)
 
-
     current_time = datetime.datetime.utcnow()
-    created_since = current_time - datetime.timedelta(hours=settings.HAADF_SCAN_AGE_LIMIT)
+    created_since = current_time - datetime.timedelta(
+        hours=settings.HAADF_SCAN_AGE_LIMIT
+    )
 
-    scans = scan_crud.get_scans(db, scan_id=scan_id, has_haadf=False, created_since=created_since)
+    scans = scan_crud.get_scans(
+        db, scan_id=scan_id, has_haadf=False, created_since=created_since
+    )
 
     if len(scans) > 0:
         scan = scans[0]
@@ -92,9 +95,7 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
         )
 
         haaf_path = f"{settings.HAADF_IMAGE_URL_PREFIX}/{scan.id}.png"
-        (updated, _) = scan_crud.update_scan(
-            db, scan.id, haadf_path=haaf_path
-        )
+        (updated, _) = scan_crud.update_scan(db, scan.id, haadf_path=haaf_path)
 
         if updated:
             await send_scan_event_to_kafka(

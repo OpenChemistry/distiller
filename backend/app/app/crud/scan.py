@@ -62,7 +62,9 @@ def get_scans(
     created_since: datetime = None,
     has_haadf: bool = None,
 ):
-    query = _get_scans_query(db, skip, limit, scan_id, state, created, created_since, has_haadf)
+    query = _get_scans_query(
+        db, skip, limit, scan_id, state, created, created_since, has_haadf
+    )
 
     return query.order_by(desc(models.Scan.created)).offset(skip).limit(limit).all()
 
@@ -183,6 +185,9 @@ def delete_location(db: Session, id: int) -> None:
     db.query(models.Location).filter(models.Location.id == id).delete()
     db.commit()
 
+
 def delete_locations(db: Session, scan_id: int, host: str) -> None:
-    db.query(models.Location).filter(models.Location.scan_id == scan_id, models.Location.host == host).delete()
+    db.query(models.Location).filter(
+        models.Location.scan_id == scan_id, models.Location.host == host
+    ).delete()
     db.commit()

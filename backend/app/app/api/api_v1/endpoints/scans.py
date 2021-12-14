@@ -4,7 +4,6 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import List
-from app.schemas.events import RemoveScanFilesEvent
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.security.api_key import APIKey
@@ -14,7 +13,9 @@ from app import schemas
 from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
 from app.core.config import settings
 from app.crud import scan as crud
-from app.kafka.producer import send_scan_event_to_kafka, send_remove_scan_files_event_to_kafka
+from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
+                                send_scan_event_to_kafka)
+from app.schemas.events import RemoveScanFilesEvent
 from app.schemas.scan import ScanCreatedEvent
 
 router = APIRouter()
@@ -144,12 +145,8 @@ async def update_scan(
     return scan
 
 
-@router.delete(
-    "/{id}",
-    dependencies=[Depends(oauth2_password_bearer_or_api_key)])
-async def delete_scan(
-    id: int, db: Session = Depends(get_db)
-):
+@router.delete("/{id}", dependencies=[Depends(oauth2_password_bearer_or_api_key)])
+async def delete_scan(id: int, db: Session = Depends(get_db)):
 
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
@@ -166,15 +163,12 @@ async def delete_scan(
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, os.remove, haadf_path)
 
+
 @router.put(
     "/{id}/remove",
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
-async def remove_scan_files(
-    id: int,
-    host: str,
-    db: Session = Depends(get_db)
-):
+async def remove_scan_files(id: int, host: str, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
@@ -185,19 +179,16 @@ async def remove_scan_files(
         raise HTTPException(status_code=400, detail="Invalid request")
 
     scan = schemas.Scan.from_orm(db_scan)
-    await send_remove_scan_files_event_to_kafka(RemoveScanFilesEvent(scan=scan, host=host))
-
+    await send_remove_scan_files_event_to_kafka(
+        RemoveScanFilesEvent(scan=scan, host=host)
+    )
 
 
 @router.delete(
     "/{id}/locations/{location_id}",
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
-def delete_location(
-    id: int,
-    location_id: int,
-    db: Session = Depends(get_db)
-):
+def delete_location(id: int, location_id: int, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
@@ -208,12 +199,12 @@ def delete_location(
 
     crud.delete_location(db, location_id)
 
-@router.delete("/{id}/locations", dependencies=[Depends(oauth2_password_bearer_or_api_key)],)
-def remove_scan(
-    id: int,
-    host: str,
-    db: Session = Depends(get_db)
-):
+
+@router.delete(
+    "/{id}/locations",
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
+)
+def remove_scan(id: int, host: str, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")

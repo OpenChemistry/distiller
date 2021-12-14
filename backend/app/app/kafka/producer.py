@@ -1,16 +1,13 @@
-import asyncio
-
 from aiokafka import AIOKafkaProducer
 
 from app.core.config import settings
-from app.core.constants import (TOPIC_HAADF_FILE_EVENTS, TOPIC_JOB_EVENTS,
-                                TOPIC_LOG_FILE_EVENTS,
-                                TOPIC_LOG_FILE_SYNC_EVENTS, TOPIC_SCAN_EVENTS, TOPIC_CUSTODIAN_EVENT)
+from app.core.constants import (TOPIC_CUSTODIAN_EVENT, TOPIC_HAADF_FILE_EVENTS,
+                                TOPIC_JOB_EVENTS, TOPIC_LOG_FILE_EVENTS,
+                                TOPIC_LOG_FILE_SYNC_EVENTS, TOPIC_SCAN_EVENTS)
+from app.core.logging import logger
 from app.schemas import (FileSystemEvent, HaadfUploaded, ScanUpdateEvent,
                          SyncEvent)
-from app.schemas.events import SubmitJobEvent
-from app.core.logging import logger
-from app.schemas.events import SubmitJobEvent, RemoveScanFilesEvent
+from app.schemas.events import RemoveScanFilesEvent, SubmitJobEvent
 
 
 def serializer(event: FileSystemEvent) -> bytes:
@@ -18,6 +15,7 @@ def serializer(event: FileSystemEvent) -> bytes:
 
 
 producer = None
+
 
 async def start():
     global producer
@@ -28,6 +26,7 @@ async def start():
     )
     await producer.start()
 
+
 async def stop():
     await producer.stop()
 
@@ -37,7 +36,6 @@ async def send_filesystem_event_to_kafka(event: FileSystemEvent) -> None:
         await producer.send(TOPIC_LOG_FILE_EVENTS, event)
     except:
         logger.exception(f"Exception send on topic: {TOPIC_LOG_FILE_EVENTS}")
-
 
 
 async def send_sync_event_to_kafka(event: SyncEvent) -> None:

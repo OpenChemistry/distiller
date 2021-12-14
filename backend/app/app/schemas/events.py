@@ -9,6 +9,7 @@ class SubmitJobEvent(BaseModel):
     job: Job
     scan: Scan
 
+
 class RemoveScanFilesEvent(BaseModel):
     scan: Scan
     host: str

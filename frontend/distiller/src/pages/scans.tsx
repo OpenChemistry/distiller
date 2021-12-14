@@ -10,10 +10,12 @@ import CompleteIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
 import {pink } from '@mui/material/colors';
 import Tooltip from '@mui/material/Tooltip';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
 import { DateTime } from 'luxon'
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { getScans, patchScan, scansSelector, totalCount } from '../features/scans';
+import { getScans, patchScan, scansSelector, totalCount, removeScan } from '../features/scans';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
 import { IdType, Scan } from '../types';
@@ -126,6 +128,22 @@ const ScansPage: React.FC = () => {
     });
   }
 
+  const onDelete = (scan: Scan) => {
+    return new Promise<boolean>((resolve) => {
+      setScanRemovalScanID(scan.scan_id);
+      setScanRemovalTitle("Remove scan")
+      setScanRemovalMessage(`You are about to remove scan ${scan.scan_id}. This operation can not be undone.`);
+      setScanOnRemovalConfirm(() => (confirm: boolean) => {
+        if (confirm) {
+          const id = scan.id;
+          dispatch(removeScan({id}))
+        }
+
+        setScanRemovalScanID(null)
+      });
+    });
+  }
+
   return (
     <React.Fragment>
       <TableContainer component={Paper}>
@@ -176,6 +194,11 @@ const ScansPage: React.FC = () => {
                     ? <LinearProgress variant='determinate' value={100 * scan.log_files / MAX_LOG_FILES}/>
                     : <CompleteIcon color='primary'/>
                   }
+                </TableCell>
+                <TableCell align='right'>
+                  <IconButton aria-label="delete" onClick={stopPropagation(() => onDelete(scan))}>
+                    <DeleteIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

@@ -9,7 +9,7 @@ from app.core.constants import (TOPIC_HAADF_FILE_EVENTS, TOPIC_JOB_EVENTS,
 from app.schemas import (FileSystemEvent, HaadfUploaded, ScanUpdateEvent,
                          SyncEvent)
 from app.schemas.events import SubmitJobEvent
-
+from app.core.logging import logger
 
 def serializer(event: FileSystemEvent) -> bytes:
     return event.json(exclude_none=True).encode()
@@ -31,20 +31,36 @@ async def stop():
 
 
 async def send_filesystem_event_to_kafka(event: FileSystemEvent) -> None:
-    await producer.send(TOPIC_LOG_FILE_EVENTS, event)
+    try:
+        await producer.send(TOPIC_LOG_FILE_EVENTS, event)
+    except:
+        logger.exception(f"Exception send on topic: {TOPIC_LOG_FILE_EVENTS}")
+
 
 
 async def send_sync_event_to_kafka(event: SyncEvent) -> None:
-    await producer.send(TOPIC_LOG_FILE_SYNC_EVENTS, event)
+    try:
+        await producer.send(TOPIC_LOG_FILE_SYNC_EVENTS, event)
+    except:
+        logger.exception(f"Exception send on topic: {TOPIC_LOG_FILE_SYNC_EVENTS}")
 
 
 async def send_haadf_event_to_kafka(event: HaadfUploaded) -> None:
-    await producer.send(TOPIC_HAADF_FILE_EVENTS, event)
+    try:
+        await producer.send(TOPIC_HAADF_FILE_EVENTS, event)
+    except:
+        logger.exception(f"Exception send on topic: {TOPIC_HAADF_FILE_EVENTS}")
 
 
 async def send_scan_event_to_kafka(event: ScanUpdateEvent) -> None:
-    await producer.send(TOPIC_SCAN_EVENTS, event)
+    try:
+        await producer.send(TOPIC_SCAN_EVENTS, event)
+    except:
+        logger.exception(f"Exception send on topic: {TOPIC_SCAN_EVENTS}")
 
 
 async def send_submit_job_event_to_kafka(event: SubmitJobEvent) -> None:
-    await producer.send(TOPIC_JOB_EVENTS, event)
+    try:
+        await producer.send(TOPIC_JOB_EVENTS, event)
+    except:
+        logger.exception(f"Exception send on topic: {TOPIC_JOB_EVENTS}")

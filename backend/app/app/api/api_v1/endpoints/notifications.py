@@ -8,6 +8,7 @@ from starlette.endpoints import WebSocketEndpoint
 
 from app.api.deps import get_current_user, get_db
 from app.kafka import consumer
+from app.core.logging import logger
 
 router = APIRouter()
 
@@ -55,5 +56,7 @@ class WebsocketConsumer(WebSocketEndpoint):
                 except KeyError:
                     pass
                 await self.websocket.send_json(event)
+        except:
+            logger.exception("Exception relaying kafka message.")
         finally:
             await self.consumer.stop()

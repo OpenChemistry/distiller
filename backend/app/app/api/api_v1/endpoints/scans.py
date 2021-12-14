@@ -156,7 +156,7 @@ async def delete_scan(
         raise HTTPException(status_code=404, detail="Scan not found")
 
         # See if we have HAADF image for this scan
-    upload_path = Path(settings.HAADF_IMAGE_UPLOAD_DIR) / f"scan{scan.scan_id}.png"
+    upload_path = Path(settings.HAADF_IMAGE_UPLOAD_DIR) / f"scan{db_scan.scan_id}.png"
 
     crud.delete_scan(db, id)
 

@@ -14,7 +14,8 @@ from constants import (FILE_EVENT_TYPE_CLOSED, FILE_EVENT_TYPE_CREATED,
                        LOG_PREFIX, PRIMARY_LOG_FILE_REGEX,
                        TOPIC_LOG_FILE_EVENTS, TOPIC_LOG_FILE_SYNC_EVENTS)
 from schemas import Location, ScanCreate, ScanUpdate
-from utils import create_scan, extract_scan_id, get_scans, update_scan, delete_locations
+from utils import (create_scan, delete_locations, extract_scan_id, get_scans,
+                   update_scan)
 
 # Setup logger
 logger = logging.getLogger("scan_worker")
@@ -88,7 +89,6 @@ async def process_delete_event(session: aiohttp.ClientSession, path: str) -> Non
         host = log_files[path].host
         del log_files[path]
 
-
     scan_log_files = scan_id_to_log_files[scan_id]
     # We are already done
     if not scan_log_files:
@@ -107,7 +107,6 @@ async def process_delete_event(session: aiohttp.ClientSession, path: str) -> Non
         if host is not None:
             logger.info("Delete locations '{host}' for scan {id}")
             await delete_locations(session, id, host)
-
 
 
 async def process_log_file(

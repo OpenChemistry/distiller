@@ -7,7 +7,7 @@ from fabric import Connection
 
 import faust
 from config import settings
-from constants import COMPUTE_HOSTS, TOPIC_CUSTODIAN_EVENT
+from constants import TOPIC_CUSTODIAN_EVENT
 from faust_records import Scan
 
 # Setup logger

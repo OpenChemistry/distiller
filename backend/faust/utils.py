@@ -1,12 +1,11 @@
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Union
 
 import aiohttp
 import tenacity
 
-import faust
 from config import settings
 from schemas import Job, JobUpdate, Scan, ScanCreate, ScanUpdate
 
@@ -21,6 +20,7 @@ def extract_scan_id(path: str) -> int:
         raise ValueError("Unable to extract scan id.")
 
     return int(match.group(1))
+
 
 @tenacity.retry(
     retry=tenacity.retry_if_exception_type(
@@ -186,6 +186,7 @@ async def get_job(session: aiohttp.ClientSession, id: int) -> Union[Scan, None]:
 
         return Job(**json)
 
+
 @tenacity.retry(
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
@@ -199,12 +200,10 @@ async def delete_locations(session: aiohttp.ClientSession, id: int, host: str) -
         "Content-Type": "application/json",
     }
 
-    params = {
-        "host": host
-    }
+    params = {"host": host}
 
     async with session.delete(
         f"{settings.API_URL}/scans/{id}/locations", headers=headers, params=params
     ) as r:
         r.raise_for_status()
-        json = await r.json()
+        await r.json()

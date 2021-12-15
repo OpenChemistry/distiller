@@ -21,13 +21,13 @@ from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
                        DW_JOB_STRIPED_VAR, SFAPI_BASE_URL, SFAPI_TOKEN_URL,
                        SLURM_RUNNING_STATES, TOPIC_JOB_SUBMIT_EVENTS,
                        TRANSFER_JOB_SCRIPT_TEMPLATE, JobState)
+from faust_records import Scan as ScanRecord
 from schemas import JobUpdate
 from schemas import Location as LocationRest
 from schemas import Scan, ScanUpdate, SfapiJob
 from utils import get_job, get_scan
 from utils import update_job as update_job_request
 from utils import update_scan
-from faust_records import Scan as ScanRecord
 
 # Setup logger
 logger = logging.getLogger("job_worker")

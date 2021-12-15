@@ -12,12 +12,12 @@ from sqlalchemy.orm import Session
 from app import schemas
 from app.api import deps
 from app.core.config import settings
+from app.core.logging import logger
 from app.crud import scan as scan_crud
 from app.kafka.producer import (send_filesystem_event_to_kafka,
                                 send_haadf_event_to_kafka,
                                 send_scan_event_to_kafka,
                                 send_sync_event_to_kafka)
-from app.core.logging import logger
 
 router = APIRouter()
 

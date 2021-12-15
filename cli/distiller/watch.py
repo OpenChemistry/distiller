@@ -216,7 +216,7 @@ async def monitor(queue: asyncio.Queue) -> None:
 
                         if await path.exists():
                             stat_info = await path.stat()
-                            model.created = datetime.fromtimestamp(stat_info.st_ctime)
+                            model.created = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
                     else:
                         model = event
 

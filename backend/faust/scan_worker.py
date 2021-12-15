@@ -14,7 +14,7 @@ from constants import (FILE_EVENT_TYPE_CLOSED, FILE_EVENT_TYPE_CREATED,
                        LOG_PREFIX, PRIMARY_LOG_FILE_REGEX,
                        TOPIC_LOG_FILE_EVENTS, TOPIC_LOG_FILE_SYNC_EVENTS)
 from schemas import Location, ScanCreate, ScanUpdate
-from utils import create_scan, extract_scan_id, get_scans, update_scan
+from utils import create_scan, extract_scan_id, get_scans, update_scan, delete_locations
 
 # Setup logger
 logger = logging.getLogger("scan_worker")
@@ -80,13 +80,17 @@ def scan_complete(scan_log_files: List[str]):
     return len(scan_log_files) == 72
 
 
-async def process_delete_event(path: str) -> None:
+async def process_delete_event(session: aiohttp.ClientSession, path: str) -> None:
     scan_id = extract_scan_id(path)
 
+    host = None
     if path in log_files:
+        host = log_files[path].host
         del log_files[path]
 
+
     scan_log_files = scan_id_to_log_files[scan_id]
+    # We are already done
     if not scan_log_files:
         return
 
@@ -96,9 +100,14 @@ async def process_delete_event(path: str) -> None:
 
     # If all the log file are gone then remove the scan
     if not scan_log_files:
+        id = scan_id_to_id[scan_id]
         del scan_id_to_id[scan_id]
         del scan_id_to_log_files[scan_id]
         logger.info(f"Scan {scan_id} removed.")
+        if host is not None:
+            logger.info("Delete locations '{host}' for scan {id}")
+            await delete_locations(session, id, host)
+
 
 
 async def process_log_file(
@@ -201,7 +210,7 @@ async def watch_for_logs(file_events):
 
             # Handle delete
             if event_type == FILE_EVENT_TYPE_DELETED:
-                await process_delete_event(path)
+                await process_delete_event(session, path)
                 continue
 
             # Check if we have already processed this log file.

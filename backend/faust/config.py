@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     HAADF_NCEMHUB_DM4_DATA_PATH: str
 
     CUSTODIAN_USER: str
+    CUSTODIAN_PRIVATE_KEY: str
     CUSTODIAN_VALID_HOSTS: List[str] = []
 
     class Config:

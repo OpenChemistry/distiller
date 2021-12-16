@@ -30,7 +30,10 @@ custodian_events_topic = app.topic(
 
 
 def remove(scan: Scan, host: str, paths: List[str]):
-    result = Connection(f"{host}", user=f"{settings.CUSTODIAN_USER}").run(
+
+
+
+    result = Connection(f"{host}", user=f"{settings.CUSTODIAN_USER}", connect_kwargs={"key_filename": settings.CUSTODIAN_PRIVATE_KEY}).run(
         f"rm {scan.scan_id} {' '.join(paths)}", hide=True
     )
     if result.exited != 0:

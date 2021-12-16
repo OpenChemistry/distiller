@@ -52,6 +52,10 @@ def _traverse(args, patterns, func):
 
     scan_id = int(args[0])
     paths = args[1:]
+    logger.info(f"Traverse paths: {paths}")
+
+    invalid_paths = [p for p in paths if p not in settings.SCAN_DIRECTORIES]
+    logger.info(f"Removing the following invalid paths: {invalid_paths}.")
 
     # Validate paths
     paths = [p for p in paths if p in settings.SCAN_DIRECTORIES]

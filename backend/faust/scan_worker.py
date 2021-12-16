@@ -105,7 +105,7 @@ async def process_delete_event(session: aiohttp.ClientSession, path: str) -> Non
         del scan_id_to_log_files[scan_id]
         logger.info(f"Scan {scan_id} removed.")
         if host is not None:
-            logger.info("Delete locations '{host}' for scan {id}")
+            logger.info(f"Delete all '{host}' locations for scan {id}")
             await delete_locations(session, id, host)
 
 

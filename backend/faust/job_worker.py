@@ -222,7 +222,7 @@ async def process_submit_job_event(
     bbcp_dest_dir = DW_JOB_STRIPED_VAR
     # Not sure why by created comes in as a str, so convert to datatime
     created_datetime = datetime.fromisoformat(event.scan.created)
-    date_dir = created_datetime.strftime(DATE_DIR_FORMAT)
+    date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
 
     base_dir = None
     if event.job.job_type == JobType.TRANSFER:
@@ -403,7 +403,7 @@ async def monitor_jobs():
                 if job.state == JobState.COMPLETED and JobType.TRANSFER in job.name:
                     job = await get_job(session, id)
                     scan = await get_scan(session, job.scan_id)
-                    date_dir = scan.created.strftime(DATE_DIR_FORMAT)
+                    date_dir = scan.created.astimezone().strftime(DATE_DIR_FORMAT)
 
                     update = ScanUpdate(
                         id=job.scan_id,

@@ -4239,9 +4239,9 @@ he@^1.2.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/he/-/he-1.2.0.tgz"
 
-history@^5.1.0:
-  version "5.1.0"
-  resolved "https://registry.npmjs.org/history/-/history-5.1.0.tgz"
+history@^5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/history/-/history-5.2.0.tgz#7cdd31cf9bac3c5d31f09c231c9928fad0007b7c"
   dependencies:
     "@babel/runtime" "^7.7.6"
 
@@ -6589,18 +6589,18 @@ react-refresh@^0.11.0:
   version "0.11.0"
   resolved "https://registry.npmjs.org/react-refresh/-/react-refresh-0.11.0.tgz"
 
-react-router-dom@^6.1.1:
-  version "6.1.1"
-  resolved "https://registry.npmjs.org/react-router-dom/-/react-router-dom-6.1.1.tgz"
+react-router-dom@^6.2.1:
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/react-router-dom/-/react-router-dom-6.2.1.tgz#32ec81829152fbb8a7b045bf593a22eadf019bec"
   dependencies:
-    history "^5.1.0"
-    react-router "6.1.1"
+    history "^5.2.0"
+    react-router "6.2.1"
 
-react-router@6.1.1:
-  version "6.1.1"
-  resolved "https://registry.npmjs.org/react-router/-/react-router-6.1.1.tgz"
+react-router@6.2.1:
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/react-router/-/react-router-6.2.1.tgz#be2a97a6006ce1d9123c28934e604faef51448a3"
   dependencies:
-    history "^5.1.0"
+    history "^5.2.0"
 
 react-scripts@5.0.0:
   version "5.0.0"

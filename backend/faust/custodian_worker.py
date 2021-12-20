@@ -2,7 +2,6 @@ import asyncio
 import logging
 from typing import List
 
-import aiohttp
 from fabric import Connection
 
 import faust
@@ -15,7 +14,10 @@ logger = logging.getLogger("custodian_worker")
 logger.setLevel(logging.INFO)
 
 app = faust.App(
-    "distiller-custodain", store="rocksdb://", broker=settings.KAFKA_URL, topic_partitions=1
+    "distiller-custodain",
+    store="rocksdb://",
+    broker=settings.KAFKA_URL,
+    topic_partitions=1,
 )
 
 
@@ -31,11 +33,11 @@ custodian_events_topic = app.topic(
 
 def remove(scan: Scan, host: str, paths: List[str]):
 
-
-
-    result = Connection(f"{host}", user=f"{settings.CUSTODIAN_USER}", connect_kwargs={"key_filename": settings.CUSTODIAN_PRIVATE_KEY}).run(
-        f"rm {scan.scan_id} {' '.join(paths)}", hide=True
-    )
+    result = Connection(
+        f"{host}",
+        user=f"{settings.CUSTODIAN_USER}",
+        connect_kwargs={"key_filename": settings.CUSTODIAN_PRIVATE_KEY},
+    ).run(f"rm {scan.scan_id} {' '.join(paths)}", hide=True)
     if result.exited != 0:
         logger.error(
             "Error removing scan {scan.scan_id}({scan.id}), exit code: {result.exit_code}."

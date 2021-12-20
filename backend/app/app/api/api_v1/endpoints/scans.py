@@ -12,13 +12,13 @@ from sqlalchemy.orm import Session
 from app import schemas
 from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
 from app.core.config import settings
+from app.core.constants import COMPUTE_HOSTS
 from app.crud import scan as crud
 from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
                                 send_scan_event_to_kafka)
+from app.models import Scan
 from app.schemas.events import RemoveScanFilesEvent
 from app.schemas.scan import ScanCreatedEvent
-from app.models import Scan
-from app.core.constants import COMPUTE_HOSTS
 
 router = APIRouter()
 
@@ -163,6 +163,7 @@ async def _remove_scan_files(db_scan: Scan, host: str = None):
         await send_remove_scan_files_event_to_kafka(
             RemoveScanFilesEvent(scan=scan, host=host)
         )
+
 
 @router.delete("/{id}", dependencies=[Depends(oauth2_password_bearer_or_api_key)])
 async def delete_scan(id: int, remove_scan_files: bool, db: Session = Depends(get_db)):

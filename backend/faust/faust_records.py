@@ -1,6 +1,8 @@
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
+
 import faust
+
 
 class Location(faust.Record):
     host: str

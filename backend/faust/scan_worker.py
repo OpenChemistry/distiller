@@ -9,8 +9,7 @@ import aiohttp
 
 import faust
 from config import settings
-from constants import (FILE_EVENT_TYPE_CLOSED, FILE_EVENT_TYPE_CREATED,
-                       FILE_EVENT_TYPE_DELETED, FILE_EVENT_TYPE_MODIFIED,
+from constants import (FILE_EVENT_TYPE_CREATED, FILE_EVENT_TYPE_DELETED,
                        LOG_PREFIX, PRIMARY_LOG_FILE_REGEX,
                        TOPIC_LOG_FILE_EVENTS, TOPIC_LOG_FILE_SYNC_EVENTS)
 from schemas import Location, ScanCreate, ScanUpdate
@@ -194,11 +193,7 @@ async def watch_for_logs(file_events):
 
             # Skip event we are not interested in
             if (
-                event_type
-                not in [
-                    FILE_EVENT_TYPE_CREATED,
-                    FILE_EVENT_TYPE_DELETED
-                ]
+                event_type not in [FILE_EVENT_TYPE_CREATED, FILE_EVENT_TYPE_DELETED]
                 or event.is_directory
             ):
                 continue

@@ -16,15 +16,15 @@ import { DateTime } from 'luxon'
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getScans, patchScan, scansSelector, totalCount, removeScan } from '../features/scans';
-import { COMPUTE_HOSTS, MAX_LOG_FILES } from '../constants';
+import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
-import { IdType, Scan, ScanLocation } from '../types';
+import { IdType, Scan } from '../types';
 import { staticURL } from '../client';
 import ImageDialog from '../components/image-dialog';
 import LocationComponent from '../components/location';
 import { SCANS_PATH } from '../routes';
 import { stopPropagation } from '../utils';
-import ScanConfirmDialog from '../components/scan-confirm-dialog';
+import {ScanDeleteConfirmDialog, RemoveScanFilesConfirmDialog} from '../components/scan-confirm-dialog';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -80,11 +80,9 @@ const ScansPage: React.FC = () => {
   const [activeImg, setActiveImg] = useState('');
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(20);
-  const [scanRemovalScanID, setScanRemovalScanID] = React.useState<number|null>(null);
-  const [scanOnRemovalConfirm, setScanOnRemovalConfirm] = React.useState<((confirm:boolean)=>void)|null>(null);
-  const [scanRemovalMessage, setScanRemovalMessage] = React.useState<string>("");
-  const [scanRemovalTitle, setScanRemovalTitle] = React.useState<string>("");
-
+  const [scanToDelete, setScanToDelete] = React.useState<Scan|null>(null);
+  const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan|null>(null);
+  const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] = React.useState<(params: {[key: string]: any}) => void|undefined>();
 
   useEffect(() => {
     dispatch(getScans({skip: page*rowsPerPage, limit: rowsPerPage}));
@@ -116,44 +114,31 @@ const ScansPage: React.FC = () => {
     setPage(0);
   };
 
-  const confirmScanRemoval = (scanID: number, title: string,  message: string)  => {
+  const confirmScanFilesRemoval = (scan: Scan)  => {
     return new Promise<boolean>((resolve) => {
-      setScanRemovalScanID(scanID);
-      setScanRemovalTitle(title);
-      setScanRemovalMessage(message);
-      setScanOnRemovalConfirm(() => (confirm: boolean) => {
+      setScanFilesToRemove(scan);
+      setOnScanFilesRemovalConfirm(() => (params: {[key: string]: any}) => {
+        const { confirm } = params;
         resolve(confirm);
-        setScanRemovalScanID(null)
+        setScanFilesToRemove(null)
       });
     });
   }
 
   const onDelete = (scan: Scan) => {
-    return new Promise<boolean>((resolve) => {
-      setScanRemovalScanID(scan.scan_id);
-      setScanRemovalTitle("Remove scan")
-      let message = `You are about to remove scan ${scan.scan_id}. This operation can not be undone.`;
-      const edgeLocations = scan.locations.filter((l: ScanLocation) => {
-        return !COMPUTE_HOSTS.includes(l.host);
-      })
-
-
-      // Extra warning
-      if (edgeLocations.length != 0) {
-        message = `${message} Warning: Scan files exist on the acquisition machine, these will not be removed.`
-      }
-
-      setScanRemovalMessage(message);
-      setScanOnRemovalConfirm(() => (confirm: boolean) => {
-        if (confirm) {
-          const id = scan.id;
-          dispatch(removeScan({id}))
-        }
-
-        setScanRemovalScanID(null)
-      });
-    });
+    setScanToDelete(scan);
   }
+
+  const onScanDeleteConfirm = (params: {[key: string]: any}) => {
+    const {confirm, removeScanFiles} = params;
+
+    if (confirm && scanToDelete !== null) {
+      const id = scanToDelete.id;
+      dispatch(removeScan({id, removeScanFiles}))
+    }
+
+    setScanToDelete(null)
+  };
 
   return (
     <React.Fragment>
@@ -193,7 +178,7 @@ const ScansPage: React.FC = () => {
                   />
                 </TableCell>
                 <TableCell className={classes.location}>
-                  <LocationComponent confirmRemoval={confirmScanRemoval} scanID={scan.id} locations={scan.locations}/>
+                  <LocationComponent confirmRemoval={confirmScanFilesRemoval} scanID={scan.id} locations={scan.locations}/>
                 </TableCell>
                 <TableCell>
                   <Tooltip title={DateTime.fromISO(scan.created).toISO()} followCursor>
@@ -227,7 +212,8 @@ const ScansPage: React.FC = () => {
         labelRowsPerPage="Scans per page"
       />
       <ImageDialog open={maximizeImg} src={activeImg} alt='scan image' handleClose={onCloseDialog}/>
-      <ScanConfirmDialog onConfirm={scanOnRemovalConfirm} title={scanRemovalTitle} contentText={scanRemovalMessage} scanID={scanRemovalScanID}/>
+      <RemoveScanFilesConfirmDialog onConfirm={onScanFilesRemovalConfirm} scan={scanFilesToRemove}/>
+      <ScanDeleteConfirmDialog onConfirm={onScanDeleteConfirm} scan={scanToDelete}/>
     </React.Fragment>
   )
 }

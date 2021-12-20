@@ -3,7 +3,7 @@ import React from 'react';
 import { Chip } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 
-import { ScanLocation, IdType } from '../types';
+import { ScanLocation, IdType, Scan } from '../types';
 
 import {  } from '../features/scans';
 
@@ -19,7 +19,7 @@ const useStyles = makeStyles((_theme) => ({
 type Props = {
     scanID: IdType;
     locations: ScanLocation[];
-    confirmRemoval: (scanID: number, title: string, message: string) => Promise<boolean>;
+    confirmRemoval: (scan: Scan) => Promise<boolean>;
 }
 
 type UniqueLocation = {
@@ -30,7 +30,7 @@ type UniqueLocation = {
 type ChipProps = {
   scanID: number;
   host: string;
-  confirmRemoval: (scanID: number, title: string, message: string) => Promise<boolean>;
+  confirmRemoval: (scan: Scan) => Promise<boolean>;
 }
 
 const LocationChip: React.FC<ChipProps> = (props) => {
@@ -44,7 +44,7 @@ const LocationChip: React.FC<ChipProps> = (props) => {
       return;
     }
 
-    const confirmed = await confirmRemoval(scan.scan_id, "Remove scan files", `You are about to remove scan files from the acquisition machine for scan ${scan.scan_id}. This operation can not be undone.`);
+    const confirmed = await confirmRemoval(scan);
 
     if (confirmed) {
       dispatch(removeScanFiles({id: scanID, host}));

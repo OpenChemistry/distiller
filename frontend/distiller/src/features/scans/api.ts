@@ -54,8 +54,9 @@ export function removeScanFiles(id: IdType, host: string): Promise<void> {
   }).then(_ => undefined);
 }
 
-export function removeScan(id: IdType): Promise<void> {
+export function removeScan(id: IdType, removeScanFiles: boolean): Promise<void> {
   return apiClient.delete({
-    url: `scans/${id}`
+    url: `scans/${id}`,
+    params: {remove_scan_files: removeScanFiles},
   }).then(_ => undefined);
 }

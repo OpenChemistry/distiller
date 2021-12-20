@@ -56,11 +56,11 @@ export const removeScanFiles = createAsyncThunk<void, {id: IdType; host: string;
   }
 )
 
-export const removeScan = createAsyncThunk<IdType, {id: IdType}>(
+export const removeScan = createAsyncThunk<IdType, {id: IdType, removeScanFiles: boolean}>(
   'scans/remove',
   async (payload, _thunkAPI) => {
-    const {id} = payload;
-    await removeScanAPI(id);
+    const {id, removeScanFiles} = payload;
+    await removeScanAPI(id, removeScanFiles);
 
     return id;
   }

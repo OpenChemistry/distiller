@@ -33,12 +33,12 @@ import { getScan, scansSelector, patchScan } from '../features/scans';
 import LocationComponent from '../components/location';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
-import { IdType, JobType } from '../types';
+import { IdType, JobType, Scan } from '../types';
 import JobStateComponent from '../components/job-state';
 import TransferDialog from '../components/transfer-dialog';
 import CountDialog from '../components/count-dialog';
 import { createJob } from '../features/jobs/api';
-import ScanConfirmDialog from '../components/scan-confirm-dialog';
+import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -79,9 +79,8 @@ const ScanPage: React.FC<Props> = () => {
   const dispatch = useAppDispatch();
 
   const [jobDialog, setJobDialog] = useState<JobType | undefined>()
-  const [scanRemovalScanID, setScanRemovalScanID] = React.useState<number|null>(null);
-  const [scanOnRemovalConfirm, setScanOnRemovalConfirm] = React.useState<((confirm:boolean)=>void)|null>(null);
-  const [scanRemovalMessage, setScanRemovalMessage] = React.useState<string>("");
+  const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan|null>(null);
+  const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] = React.useState<((params: {[key: string]: any}|undefined) => void)>();
 
   useEffect(() => {
     dispatch(getScan({id: scanId}));
@@ -107,13 +106,14 @@ const ScanPage: React.FC<Props> = () => {
     return createJob(type, scanId, params);
   }
 
-  const confirmScanRemoval = (scanID: number, message: string)  => {
+  const confirmScanRemoval = (scan: Scan)  => {
     return new Promise<boolean>((resolve) => {
-      setScanRemovalScanID(scanID);
-      setScanRemovalMessage(message);
-      setScanOnRemovalConfirm(() => (confirm: boolean) => {
+      setScanFilesToRemove(scan);
+
+      setOnScanFilesRemovalConfirm(() => (params: {[key: string]: any}) => {
+        const {confirm} = params;
         resolve(confirm);
-        setScanRemovalScanID(null)
+        setScanFilesToRemove(null)
       });
     });
   }
@@ -236,11 +236,9 @@ const ScanPage: React.FC<Props> = () => {
       onSubmit={(params: any) => onJobSubmit(JobType.Count, params)}
     />
 
-    <ScanConfirmDialog
-      onConfirm={scanOnRemovalConfirm}
-      title={"Remove scan files"}
-      contentText={scanRemovalMessage}
-      scanID={scanRemovalScanID}/>
+    <RemoveScanFilesConfirmDialog
+      onConfirm={onScanFilesRemovalConfirm}
+      scan={scanFilesToRemove}/>
 
   </React.Fragment>
 }

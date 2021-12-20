@@ -17,6 +17,8 @@ from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
                                 send_scan_event_to_kafka)
 from app.schemas.events import RemoveScanFilesEvent
 from app.schemas.scan import ScanCreatedEvent
+from app.models import Scan
+from app.core.constants import COMPUTE_HOSTS
 
 router = APIRouter()
 
@@ -145,12 +147,33 @@ async def update_scan(
     return scan
 
 
+async def _remove_scan_files(db_scan: Scan, host: str = None):
+    if host is None:
+        hosts = set([l.host for l in db_scan.locations if l.host not in COMPUTE_HOSTS])
+    else:
+        hosts = [host]
+
+    for host in hosts:
+        # Verify that we have scan files on this host
+        locations = [l for l in db_scan.locations if l.host == host]
+        if len(locations) == 0:
+            raise HTTPException(status_code=400, detail="Invalid request")
+
+        scan = schemas.Scan.from_orm(db_scan)
+        await send_remove_scan_files_event_to_kafka(
+            RemoveScanFilesEvent(scan=scan, host=host)
+        )
+
 @router.delete("/{id}", dependencies=[Depends(oauth2_password_bearer_or_api_key)])
-async def delete_scan(id: int, db: Session = Depends(get_db)):
+async def delete_scan(id: int, remove_scan_files: bool, db: Session = Depends(get_db)):
 
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
+
+    if remove_scan_files:
+        print("remove files")
+        await _remove_scan_files(db_scan)
 
         # See if we have HAADF image for this scan
     upload_path = Path(settings.HAADF_IMAGE_UPLOAD_DIR) / f"scan{db_scan.scan_id}.png"
@@ -173,15 +196,7 @@ async def remove_scan_files(id: int, host: str, db: Session = Depends(get_db)):
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
 
-    # Verify that we have scan files on this host
-    locations = [l for l in db_scan.locations if l.host == host]
-    if len(locations) == 0:
-        raise HTTPException(status_code=400, detail="Invalid request")
-
-    scan = schemas.Scan.from_orm(db_scan)
-    await send_remove_scan_files_event_to_kafka(
-        RemoveScanFilesEvent(scan=scan, host=host)
-    )
+    await _remove_scan_files(db_scan, host)
 
 
 @router.delete(

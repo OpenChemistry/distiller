@@ -15,7 +15,7 @@ logger = logging.getLogger("custodian_worker")
 logger.setLevel(logging.INFO)
 
 app = faust.App(
-    "distiller", store="rocksdb://", broker=settings.KAFKA_URL, topic_partitions=1
+    "distiller-custodain", store="rocksdb://", broker=settings.KAFKA_URL, topic_partitions=1
 )
 
 
@@ -44,35 +44,33 @@ def remove(scan: Scan, host: str, paths: List[str]):
 
 @app.agent(custodian_events_topic)
 async def watch_for_custodian_events(custodian_events):
+    async for event in custodian_events:
+        scan = event.scan
+        host = event.host
 
-    async with aiohttp.ClientSession() as session:
-        async for event in custodian_events:
-            scan = event.scan
-            host = event.host
+        if host not in settings.CUSTODIAN_VALID_HOSTS:
+            logger.error(f"Invalid host: {host}")
+            continue
 
-            if host not in settings.CUSTODIAN_VALID_HOSTS:
-                logger.error(f"Invalid host: {host}")
-                continue
+        # List of paths to remove from
+        paths = [l.path for l in scan.locations if l.host == host]
 
-            # List of paths to remove from
-            paths = [l.path for l in scan.locations if l.host == host]
+        if len(paths) == 0:
+            logger.warn("No paths to remove.")
+            continue
 
-            if len(paths) == 0:
-                logger.warn("No paths to remove.")
-                continue
+        logger.info(
+            f"Remove scan files for {scan.scan_id}({scan.id}) from {host}:{paths}."
+        )
 
-            logger.info(
-                f"Remove scan files for {scan.scan_id}({scan.id}) from {host}:{paths}."
-            )
+        def _log_exception(future: asyncio.Future) -> None:
+            try:
+                future.result()
+            except asyncio.CancelledError:
+                pass
+            except Exception:
+                logger.exception("Exception removing files.")
 
-            def _log_exception(future: asyncio.Future) -> None:
-                try:
-                    future.result()
-                except asyncio.CancelledError:
-                    pass
-                except Exception:
-                    logger.exception("Exception removing files.")
-
-            loop = asyncio.get_event_loop()
-            future = loop.run_in_executor(None, remove, scan, host, paths)
-            future.add_done_callback(_log_exception)
+        loop = asyncio.get_event_loop()
+        future = loop.run_in_executor(None, remove, scan, host, paths)
+        future.add_done_callback(_log_exception)

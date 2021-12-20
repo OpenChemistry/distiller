@@ -202,8 +202,12 @@ async def delete_locations(session: aiohttp.ClientSession, id: int, host: str) -
 
     params = {"host": host}
 
-    async with session.delete(
-        f"{settings.API_URL}/scans/{id}/locations", headers=headers, params=params
-    ) as r:
-        r.raise_for_status()
-        await r.json()
+    try:
+        async with session.delete(
+            f"{settings.API_URL}/scans/{id}/locations", headers=headers, params=params
+        ) as r:
+            r.raise_for_status()
+    except aiohttp.client_exceptions.ClientResponseError as ex:
+        # Ignore 404, the scan may have been deleted
+        if ex.status != 404:
+            logger.exception("Exception deleting locations")

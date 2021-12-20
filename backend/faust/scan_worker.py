@@ -62,8 +62,6 @@ sync_events_topic = app.topic(TOPIC_LOG_FILE_SYNC_EVENTS, value_type=SyncEvent)
 
 
 class LogFileState(faust.Record):
-    received_created_event: bool = False
-    received_closed_event: bool = False
     created: datetime = None
     processed: bool = False
     host: str = None
@@ -199,9 +197,7 @@ async def watch_for_logs(file_events):
                 event_type
                 not in [
                     FILE_EVENT_TYPE_CREATED,
-                    FILE_EVENT_TYPE_CLOSED,
-                    FILE_EVENT_TYPE_DELETED,
-                    FILE_EVENT_TYPE_MODIFIED,
+                    FILE_EVENT_TYPE_DELETED
                 ]
                 or event.is_directory
             ):
@@ -223,24 +219,18 @@ async def watch_for_logs(file_events):
 
             state.created = event.created
             state.host = event.host
-            if event_type == FILE_EVENT_TYPE_CREATED:
-                state.received_created_event = True
-            elif event_type == FILE_EVENT_TYPE_MODIFIED:
-                state.received_closed_event = True
 
-            # We have seen the right events process the logfile
-            if state.received_created_event and state.received_closed_event:
-                # First set processed to True, otherwise another event for this
-                # file could trigger double processing ...
-                state.processed = True
+            # First set processed to True, otherwise another event for this
+            # file could trigger double processing ...
+            state.processed = True
+            log_files[path] = state
+            try:
+                await process_log_file(session, event)
+            except:
+                # Reset the processed state
+                state.processed = False
                 log_files[path] = state
-                try:
-                    await process_log_file(session, event)
-                except:
-                    # Reset the processed state
-                    state.processed = False
-                    log_files[path] = state
-                    raise
+                raise
 
             # Ensure changelog is updated
             log_files[path] = state

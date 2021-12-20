@@ -21,7 +21,7 @@ from schemas import FileSystemEvent as FileSystemEventModel
 from schemas import SyncEvent
 from watchdog.events import (EVENT_TYPE_CLOSED, EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED,
                              EVENT_TYPE_MOVED, FileSystemEvent)
-from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver as Observer
 
 
 # Setup logger
@@ -40,12 +40,6 @@ if settings.LOG_FILE_PATH is not None:
     )
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
-
-if settings.POLLING:
-    logger.info("Using polling observer.")
-    from watchdog.observers.polling import PollingObserver as Observer
-
-
 
 def get_host():
     if settings.HOST is None:
@@ -167,12 +161,9 @@ async def monitor(queue: asyncio.Queue) -> None:
     log_pattern = re.compile(r"^log_scan([0-9]*)_.*\.data")
     dm4_pattern = re.compile(r"^scan([0-9]*)\.dm4")
 
-    cache = TTLCache(maxsize=100000, ttl=60)
+    cache = TTLCache(maxsize=100000, ttl=30)
 
-    dm4_file_events = [EVENT_TYPE_CLOSED]
-    # If we are using the polling observer we a created or moved event.
-    if settings.POLLING:
-        dm4_file_events = [EVENT_TYPE_CREATED, EVENT_TYPE_MOVED]
+    dm4_file_events = [EVENT_TYPE_CREATED, EVENT_TYPE_MODIFIED, EVENT_TYPE_MOVED]
 
     try:
         async with aiohttp.ClientSession() as session:
@@ -180,6 +171,14 @@ async def monitor(queue: asyncio.Queue) -> None:
                 async for event in AIOEventIterator(queue):
                     if isinstance(event, FileSystemEvent):
                         path = AsyncPath(event.src_path)
+
+                        # Don't send all events, the debounces the events.
+                        key = f"{host}:{event.src_path}"
+                        if event.event_type in [EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED]:
+                            if key in cache:
+                                continue
+                            else:
+                                cache[key] = True
 
                         # DM4 file case
                         if event.event_type in dm4_file_events:
@@ -197,18 +196,13 @@ async def monitor(queue: asyncio.Queue) -> None:
                         if not log_pattern.match(path.name):
                             continue
 
-                        # Don't send all modified events
-                        key = f"{host}:{event.src_path}"
-                        if event.event_type == EVENT_TYPE_MODIFIED:
-                            if key in cache:
-                                continue
-                            else:
-                                cache[key] = True
-                        elif event.event_type == EVENT_TYPE_CLOSED and key in cache:
-                            del cache[key]
+                        event_type = event.event_type
+                        # We just send a single created event to the server
+                        if event_type == EVENT_TYPE_MODIFIED:
+                            event_type  = EVENT_TYPE_CREATED
 
                         model = FileSystemEventModel(
-                            event_type=event.event_type,
+                            event_type=event_type,
                             src_path=event.src_path,
                             is_directory=event.is_directory,
                             host=host,

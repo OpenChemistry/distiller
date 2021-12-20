@@ -18,7 +18,6 @@ import Checkbox from '@mui/material/Checkbox';
 
 import {Scan, ScanLocation} from '../types'
 import { COMPUTE_HOSTS } from '../constants';
-import { UndoRounded } from '@material-ui/icons';
 
 const useStyles = makeStyles((theme) => ({
   warningText: {

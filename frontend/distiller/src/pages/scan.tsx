@@ -148,7 +148,7 @@ const ScanPage: React.FC<Props> = () => {
                 <TableRow>
                   <TableCell className={classes.headCell}>Location</TableCell>
                   <TableCell align='right'>
-                    <LocationComponent confirmRemoval={confirmScanRemoval} scanID={scan.id} locations={scan.locations}/>
+                    <LocationComponent confirmRemoval={confirmScanRemoval} scan={scan} locations={scan.locations}/>
                   </TableCell>
                 </TableRow>
                 <TableRow>

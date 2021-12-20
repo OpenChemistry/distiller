@@ -3,10 +3,10 @@ import React from 'react';
 import { Chip } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 
-import { ScanLocation, IdType, Scan } from '../types';
+import { ScanLocation, Scan } from '../types';
 
-import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { removeScanFiles, scanSelector } from '../features/scans';
+import { useAppDispatch} from '../app/hooks';
+import { removeScanFiles } from '../features/scans';
 
 import { COMPUTE_HOSTS } from '../constants';
 
@@ -15,7 +15,7 @@ const useStyles = makeStyles((_theme) => ({
 }));
 
 type Props = {
-    scanID: IdType;
+    scan: Scan;
     locations: ScanLocation[];
     confirmRemoval: (scan: Scan) => Promise<boolean>;
 }
@@ -26,7 +26,7 @@ type UniqueLocation = {
 }
 
 type ChipProps = {
-  scanID: number;
+  scan: Scan;
   host: string;
   confirmRemoval: (scan: Scan) => Promise<boolean>;
 }
@@ -34,8 +34,7 @@ type ChipProps = {
 const LocationChip: React.FC<ChipProps> = (props) => {
   const dispatch = useAppDispatch();
   const [deletable, setDeletable] = React.useState(true);
-  const {scanID, host, confirmRemoval} = props;
-  const scan = useAppSelector(scanSelector(scanID));
+  const {scan, host, confirmRemoval} = props;
 
   const onDelete =  async () => {
     if (scan === undefined) {
@@ -45,7 +44,7 @@ const LocationChip: React.FC<ChipProps> = (props) => {
     const confirmed = await confirmRemoval(scan);
 
     if (confirmed) {
-      dispatch(removeScanFiles({id: scanID, host}));
+      dispatch(removeScanFiles({id: scan.id, host}));
       setDeletable(false);
     }
   };
@@ -76,7 +75,7 @@ const LocationComponent: React.FC<Props> = (props) => {
       {uniqueLocations.map(location => {
         return (
           <div key={location.host} title={location.paths.join(', ')} className={classes.chip}>
-            <LocationChip scanID={props.scanID} host={location.host} confirmRemoval={props.confirmRemoval}/>
+            <LocationChip scan={props.scan} host={location.host} confirmRemoval={props.confirmRemoval}/>
           </div>
         )
       })}

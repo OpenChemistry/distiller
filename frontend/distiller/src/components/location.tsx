@@ -5,8 +5,6 @@ import makeStyles from '@mui/styles/makeStyles';
 
 import { ScanLocation, IdType, Scan } from '../types';
 
-import {  } from '../features/scans';
-
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { removeScanFiles, scanSelector } from '../features/scans';
 

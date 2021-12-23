@@ -141,7 +141,7 @@ def main():
         except ValueError:
             logger.info("Invalid command")
     except:
-        logger.exception("Exception running custodian."
+        logger.exception("Exception running custodian.")
 
 
 if __name__ == "__main__":

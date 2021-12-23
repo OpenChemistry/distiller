@@ -11,7 +11,6 @@ class Settings(BaseSettings):
     HOST: str = None
     LOG_FILE_PATH: str = None
     SYNC: bool = True
-    POLLING: bool = False
 
     class Config:
         case_sensitive = True

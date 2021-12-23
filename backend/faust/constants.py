@@ -5,6 +5,7 @@ TOPIC_SCAN_EVENTS = "scan_events"
 TOPIC_LOG_FILE_SYNC_EVENTS = "log_file_sync_events"
 TOPIC_HAADF_FILE_EVENTS = "haadf_file_events"
 TOPIC_JOB_SUBMIT_EVENTS = "job_events"
+TOPIC_CUSTODIAN_EVENT = "custodian_events"
 
 FILE_EVENT_TYPE_DELETED = "deleted"
 FILE_EVENT_TYPE_CREATED = "created"
@@ -22,6 +23,7 @@ COUNT_JOB_SCRIPT_TEMPLATE = "count.sh.j2"
 DW_JOB_STRIPED_VAR = "${DW_JOB_STRIPED}"
 
 DATE_DIR_FORMAT = "%Y.%m.%d"
+COMPUTE_HOSTS = ["cori"]
 
 
 class JobState(str, Enum):

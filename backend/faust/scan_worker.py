@@ -9,12 +9,12 @@ import aiohttp
 
 import faust
 from config import settings
-from constants import (FILE_EVENT_TYPE_CLOSED, FILE_EVENT_TYPE_CREATED,
-                       FILE_EVENT_TYPE_DELETED, FILE_EVENT_TYPE_MODIFIED,
+from constants import (FILE_EVENT_TYPE_CREATED, FILE_EVENT_TYPE_DELETED,
                        LOG_PREFIX, PRIMARY_LOG_FILE_REGEX,
                        TOPIC_LOG_FILE_EVENTS, TOPIC_LOG_FILE_SYNC_EVENTS)
 from schemas import Location, ScanCreate, ScanUpdate
-from utils import create_scan, extract_scan_id, get_scans, update_scan
+from utils import (create_scan, delete_locations, extract_scan_id, get_scans,
+                   update_scan)
 
 # Setup logger
 logger = logging.getLogger("scan_worker")
@@ -61,8 +61,6 @@ sync_events_topic = app.topic(TOPIC_LOG_FILE_SYNC_EVENTS, value_type=SyncEvent)
 
 
 class LogFileState(faust.Record):
-    received_created_event: bool = False
-    received_closed_event: bool = False
     created: datetime = None
     processed: bool = False
     host: str = None
@@ -80,20 +78,32 @@ def scan_complete(scan_log_files: List[str]):
     return len(scan_log_files) == 72
 
 
-async def process_delete_event(path: str) -> None:
+async def process_delete_event(session: aiohttp.ClientSession, path: str) -> None:
     scan_id = extract_scan_id(path)
-    del log_files[path]
+
+    host = None
+    if path in log_files:
+        host = log_files[path].host
+        del log_files[path]
+
     scan_log_files = scan_id_to_log_files[scan_id]
+    # We are already done
+    if not scan_log_files:
+        return
+
     if path in scan_log_files:
         scan_log_files.remove(path)
+        scan_id_to_log_files[scan_id] = scan_log_files
 
     # If all the log file are gone then remove the scan
     if not scan_log_files:
+        id = scan_id_to_id[scan_id]
         del scan_id_to_id[scan_id]
         del scan_id_to_log_files[scan_id]
         logger.info(f"Scan {scan_id} removed.")
-    else:
-        scan_id_to_log_files[scan_id] = scan_log_files
+        if host is not None:
+            logger.info(f"Delete all '{host}' locations for scan {id}")
+            await delete_locations(session, id, host)
 
 
 async def process_log_file(
@@ -183,20 +193,14 @@ async def watch_for_logs(file_events):
 
             # Skip event we are not interested in
             if (
-                event_type
-                not in [
-                    FILE_EVENT_TYPE_CREATED,
-                    FILE_EVENT_TYPE_CLOSED,
-                    FILE_EVENT_TYPE_DELETED,
-                    FILE_EVENT_TYPE_MODIFIED,
-                ]
+                event_type not in [FILE_EVENT_TYPE_CREATED, FILE_EVENT_TYPE_DELETED]
                 or event.is_directory
             ):
                 continue
 
             # Handle delete
             if event_type == FILE_EVENT_TYPE_DELETED:
-                await process_delete_event(path)
+                await process_delete_event(session, path)
                 continue
 
             # Check if we have already processed this log file.
@@ -210,24 +214,18 @@ async def watch_for_logs(file_events):
 
             state.created = event.created
             state.host = event.host
-            if event_type == FILE_EVENT_TYPE_CREATED:
-                state.received_created_event = True
-            elif event_type == FILE_EVENT_TYPE_MODIFIED:
-                state.received_closed_event = True
 
-            # We have seen the right events process the logfile
-            if state.received_created_event and state.received_closed_event:
-                # First set processed to True, otherwise another event for this
-                # file could trigger double processing ...
-                state.processed = True
+            # First set processed to True, otherwise another event for this
+            # file could trigger double processing ...
+            state.processed = True
+            log_files[path] = state
+            try:
+                await process_log_file(session, event)
+            except:
+                # Reset the processed state
+                state.processed = False
                 log_files[path] = state
-                try:
-                    await process_log_file(session, event)
-                except:
-                    # Reset the processed state
-                    state.processed = False
-                    log_files[path] = state
-                    raise
+                raise
 
             # Ensure changelog is updated
             log_files[path] = state

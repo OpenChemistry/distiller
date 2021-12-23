@@ -10,10 +10,12 @@ import CompleteIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
 import {pink } from '@mui/material/colors';
 import Tooltip from '@mui/material/Tooltip';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
 import { DateTime } from 'luxon'
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { getScans, patchScan, scansSelector, totalCount } from '../features/scans';
+import { getScans, patchScan, scansSelector, totalCount, removeScan } from '../features/scans';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
 import { IdType, Scan } from '../types';
@@ -22,6 +24,7 @@ import ImageDialog from '../components/image-dialog';
 import LocationComponent from '../components/location';
 import { SCANS_PATH } from '../routes';
 import { stopPropagation } from '../utils';
+import {ScanDeleteConfirmDialog, RemoveScanFilesConfirmDialog} from '../components/scan-confirm-dialog';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -77,6 +80,9 @@ const ScansPage: React.FC = () => {
   const [activeImg, setActiveImg] = useState('');
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(20);
+  const [scanToDelete, setScanToDelete] = React.useState<Scan|null>(null);
+  const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan|null>(null);
+  const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] = React.useState<(params: {[key: string]: any}) => void|undefined>();
 
   useEffect(() => {
     dispatch(getScans({skip: page*rowsPerPage, limit: rowsPerPage}));
@@ -106,6 +112,32 @@ const ScansPage: React.FC = () => {
     const scansPerPage = +event.target.value
     setRowsPerPage(scansPerPage);
     setPage(0);
+  };
+
+  const confirmScanFilesRemoval = (scan: Scan)  => {
+    return new Promise<boolean>((resolve) => {
+      setScanFilesToRemove(scan);
+      setOnScanFilesRemovalConfirm(() => (params: {[key: string]: any}) => {
+        const { confirm } = params;
+        resolve(confirm);
+        setScanFilesToRemove(null)
+      });
+    });
+  }
+
+  const onDelete = (scan: Scan) => {
+    setScanToDelete(scan);
+  }
+
+  const onScanDeleteConfirm = (params: {[key: string]: any}) => {
+    const {confirm, removeScanFiles} = params;
+
+    if (confirm && scanToDelete !== null) {
+      const id = scanToDelete.id;
+      dispatch(removeScan({id, removeScanFiles}))
+    }
+
+    setScanToDelete(null)
   };
 
   return (
@@ -146,7 +178,7 @@ const ScansPage: React.FC = () => {
                   />
                 </TableCell>
                 <TableCell className={classes.location}>
-                  <LocationComponent locations={scan.locations}/>
+                  <LocationComponent confirmRemoval={confirmScanFilesRemoval} scan={scan} locations={scan.locations}/>
                 </TableCell>
                 <TableCell>
                   <Tooltip title={DateTime.fromISO(scan.created).toISO()} followCursor>
@@ -158,6 +190,11 @@ const ScansPage: React.FC = () => {
                     ? <LinearProgress variant='determinate' value={100 * scan.log_files / MAX_LOG_FILES}/>
                     : <CompleteIcon color='primary'/>
                   }
+                </TableCell>
+                <TableCell align='right'>
+                  <IconButton aria-label="delete" onClick={stopPropagation(() => onDelete(scan))}>
+                    <DeleteIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
@@ -175,6 +212,8 @@ const ScansPage: React.FC = () => {
         labelRowsPerPage="Scans per page"
       />
       <ImageDialog open={maximizeImg} src={activeImg} alt='scan image' handleClose={onCloseDialog}/>
+      <RemoveScanFilesConfirmDialog onConfirm={onScanFilesRemovalConfirm} scan={scanFilesToRemove}/>
+      <ScanDeleteConfirmDialog onConfirm={onScanDeleteConfirm} scan={scanToDelete}/>
     </React.Fragment>
   )
 }

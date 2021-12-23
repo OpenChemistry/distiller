@@ -1,9 +1,11 @@
-import { createAsyncThunk, createSlice, createEntityAdapter, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, createEntityAdapter, PayloadAction, createSelector } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import {
   getScans as getScansAPI,
   getScan as getScanAPI,
   patchScan as patchScanAPI,
+  removeScanFiles as removeScanFilesAPI,
+  removeScan as removeScanAPI
 } from './api';
 import { Scan, IdType, ScansRequestResult } from '../../types';
 
@@ -46,6 +48,24 @@ export const patchScan = createAsyncThunk<Scan, {id: IdType; updates: Partial<Sc
   }
 )
 
+export const removeScanFiles = createAsyncThunk<void, {id: IdType; host: string;}>(
+  'scans/remove-files',
+  async (payload, _thunkAPI) => {
+    const {id, host} = payload;
+    await removeScanFilesAPI(id, host);
+  }
+)
+
+export const removeScan = createAsyncThunk<IdType, {id: IdType, removeScanFiles: boolean}>(
+  'scans/remove',
+  async (payload, _thunkAPI) => {
+    const {id, removeScanFiles} = payload;
+    await removeScanAPI(id, removeScanFiles);
+
+    return id;
+  }
+)
+
 export const scansSlice = createSlice({
   name: 'scans',
   initialState,
@@ -85,11 +105,19 @@ export const scansSlice = createSlice({
       .addCase(patchScan.fulfilled, (state, action) => {
         scansAdapter.setOne(state, action.payload);
       })
+      .addCase(removeScan.fulfilled, (state, action) => {
+        scansAdapter.removeOne(state, action.payload);
+      })
   },
 });
 
 export const scansSelector = scansAdapter.getSelectors<RootState>(state => state.scans);
 
+const scanState = (rootState: RootState) => rootState.scans;
+const { selectById } = scansAdapter.getSelectors();
+export const scanSelector = (id: IdType) => {
+  return createSelector(scanState, (state) => selectById(state, id));
+}
 
 export const totalCount = (state: RootState) => state.scans.totalCount;
 

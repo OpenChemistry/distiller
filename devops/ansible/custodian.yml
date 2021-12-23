@@ -1,0 +1,20 @@
+---
+- hosts: all
+  vars:
+    custodian_path: "cli/custodian/distiller/"
+    ssh_options: "no-port-forwarding,no-x11-forwarding,no-agent-forwarding,no-pty"
+  tasks:
+  - name: Create distiller account
+    ansible.builtin.user:
+      name: distiller
+      comment: Distiller account
+    become: yes
+  - name: Setup authorized_keys file
+    authorized_key:
+      user: distiller
+      state: present
+      key: "{{ lookup('file', key_path) }}"
+      key_options: 'command="cd {{distiller_repo_path}}/{{custodian_path}} && {{distiller_python_path}} custodian.py $SSH_ORIGINAL_COMMAND",{{ssh_options}}'
+      exclusive: true
+      manage_dir: true
+    become: yes

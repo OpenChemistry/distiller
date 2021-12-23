@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import AnyHttpUrl, BaseSettings
 
 
@@ -26,6 +28,10 @@ class Settings(BaseSettings):
     HAADF_IMAGE_UPLOAD_DIR: str
     HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS: int
     HAADF_NCEMHUB_DM4_DATA_PATH: str
+
+    CUSTODIAN_USER: str
+    CUSTODIAN_PRIVATE_KEY: str
+    CUSTODIAN_VALID_HOSTS: List[str] = []
 
     class Config:
         case_sensitive = True

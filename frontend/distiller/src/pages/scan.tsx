@@ -33,11 +33,12 @@ import { getScan, scansSelector, patchScan } from '../features/scans';
 import LocationComponent from '../components/location';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
-import { IdType, JobType } from '../types';
+import { IdType, JobType, Scan } from '../types';
 import JobStateComponent from '../components/job-state';
 import TransferDialog from '../components/transfer-dialog';
 import CountDialog from '../components/count-dialog';
 import { createJob } from '../features/jobs/api';
+import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -78,6 +79,8 @@ const ScanPage: React.FC<Props> = () => {
   const dispatch = useAppDispatch();
 
   const [jobDialog, setJobDialog] = useState<JobType | undefined>()
+  const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan|null>(null);
+  const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] = React.useState<((params: {[key: string]: any}|undefined) => void)>();
 
   useEffect(() => {
     dispatch(getScan({id: scanId}));
@@ -101,6 +104,18 @@ const ScanPage: React.FC<Props> = () => {
 
   const onJobSubmit = (type: JobType, params: any) => {
     return createJob(type, scanId, params);
+  }
+
+  const confirmScanRemoval = (scan: Scan)  => {
+    return new Promise<boolean>((resolve) => {
+      setScanFilesToRemove(scan);
+
+      setOnScanFilesRemovalConfirm(() => (params: {[key: string]: any}) => {
+        const {confirm} = params;
+        resolve(confirm);
+        setScanFilesToRemove(null)
+      });
+    });
   }
 
   const scan = useAppSelector((state) => scansSelector.selectById(state, scanId));
@@ -133,7 +148,7 @@ const ScanPage: React.FC<Props> = () => {
                 <TableRow>
                   <TableCell className={classes.headCell}>Location</TableCell>
                   <TableCell align='right'>
-                    <LocationComponent locations={scan.locations}/>
+                    <LocationComponent confirmRemoval={confirmScanRemoval} scan={scan} locations={scan.locations}/>
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -220,6 +235,11 @@ const ScanPage: React.FC<Props> = () => {
       onClose={onJobClose}
       onSubmit={(params: any) => onJobSubmit(JobType.Count, params)}
     />
+
+    <RemoveScanFilesConfirmDialog
+      onConfirm={onScanFilesRemovalConfirm}
+      scan={scanFilesToRemove}/>
+
   </React.Fragment>
 }
 

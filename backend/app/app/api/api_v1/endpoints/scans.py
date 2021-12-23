@@ -12,8 +12,12 @@ from sqlalchemy.orm import Session
 from app import schemas
 from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
 from app.core.config import settings
+from app.core.constants import COMPUTE_HOSTS
 from app.crud import scan as crud
-from app.kafka.producer import send_scan_event_to_kafka
+from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
+                                send_scan_event_to_kafka)
+from app.models import Scan
+from app.schemas.events import RemoveScanFilesEvent
 from app.schemas.scan import ScanCreatedEvent
 
 router = APIRouter()
@@ -143,17 +147,37 @@ async def update_scan(
     return scan
 
 
-@router.delete("/{id}")
-async def delete_scan(
-    id: int, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)
-):
+async def _remove_scan_files(db_scan: Scan, host: str = None):
+    if host is None:
+        hosts = set([l.host for l in db_scan.locations if l.host not in COMPUTE_HOSTS])
+    else:
+        hosts = [host]
+
+    for host in hosts:
+        # Verify that we have scan files on this host
+        locations = [l for l in db_scan.locations if l.host == host]
+        if len(locations) == 0:
+            raise HTTPException(status_code=400, detail="Invalid request")
+
+        scan = schemas.Scan.from_orm(db_scan)
+        await send_remove_scan_files_event_to_kafka(
+            RemoveScanFilesEvent(scan=scan, host=host)
+        )
+
+
+@router.delete("/{id}", dependencies=[Depends(oauth2_password_bearer_or_api_key)])
+async def delete_scan(id: int, remove_scan_files: bool, db: Session = Depends(get_db)):
 
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
 
+    if remove_scan_files:
+        print("remove files")
+        await _remove_scan_files(db_scan)
+
         # See if we have HAADF image for this scan
-    upload_path = Path(settings.HAADF_IMAGE_UPLOAD_DIR) / f"scan{scan.scan_id}.png"
+    upload_path = Path(settings.HAADF_IMAGE_UPLOAD_DIR) / f"scan{db_scan.scan_id}.png"
 
     crud.delete_scan(db, id)
 
@@ -164,13 +188,23 @@ async def delete_scan(
         await loop.run_in_executor(None, os.remove, haadf_path)
 
 
-@router.delete("/{id}/locations/{location_id}")
-def delete_location(
-    id: int,
-    location_id: int,
-    db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_api_key),
-):
+@router.put(
+    "/{id}/remove",
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
+)
+async def remove_scan_files(id: int, host: str, db: Session = Depends(get_db)):
+    db_scan = crud.get_scan(db, id=id)
+    if db_scan is None:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    await _remove_scan_files(db_scan, host)
+
+
+@router.delete(
+    "/{id}/locations/{location_id}",
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
+)
+def delete_location(id: int, location_id: int, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
@@ -179,4 +213,22 @@ def delete_location(
     if location is None:
         raise HTTPException(status_code=404, detail="Location not found")
 
-    return crud.delete_location(db, location_id)
+    crud.delete_location(db, location_id)
+
+
+@router.delete(
+    "/{id}/locations",
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
+)
+async def remove_scan(id: int, host: str, db: Session = Depends(get_db)):
+    db_scan = crud.get_scan(db, id=id)
+    if db_scan is None:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    crud.delete_locations(db, scan_id=id, host=host)
+
+    db_scan = crud.get_scan(db, id=id)
+    scan_updated_event = schemas.ScanUpdateEvent(id=id)
+    if db_scan is not None:
+        scan_updated_event.locations = db_scan.locations
+        await send_scan_event_to_kafka(scan_updated_event)

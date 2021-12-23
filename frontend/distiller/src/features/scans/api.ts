@@ -46,3 +46,17 @@ export function patchScan(id: IdType, updates: Partial<Scan>): Promise<Scan> {
     json: updates,
   }).then(res => res.json());
 }
+
+export function removeScanFiles(id: IdType, host: string): Promise<void> {
+  return apiClient.put({
+    url: `scans/${id}/remove`,
+    params: {host},
+  }).then(_ => undefined);
+}
+
+export function removeScan(id: IdType, removeScanFiles: boolean): Promise<void> {
+  return apiClient.delete({
+    url: `scans/${id}`,
+    params: {remove_scan_files: removeScanFiles},
+  }).then(_ => undefined);
+}

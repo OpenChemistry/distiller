@@ -185,3 +185,29 @@ async def get_job(session: aiohttp.ClientSession, id: int) -> Union[Scan, None]:
         json = await r.json()
 
         return Job(**json)
+
+
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    ),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
+async def delete_locations(session: aiohttp.ClientSession, id: int, host: str) -> None:
+    headers = {
+        settings.API_KEY_NAME: settings.API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    params = {"host": host}
+
+    try:
+        async with session.delete(
+            f"{settings.API_URL}/scans/{id}/locations", headers=headers, params=params
+        ) as r:
+            r.raise_for_status()
+    except aiohttp.client_exceptions.ClientResponseError as ex:
+        # Ignore 404, the scan may have been deleted
+        if ex.status != 404:
+            logger.exception("Exception deleting locations")

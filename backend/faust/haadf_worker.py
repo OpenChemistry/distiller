@@ -1,10 +1,10 @@
 import asyncio
 import logging
 import os
+import shutil
 import sys
 import tempfile
 from datetime import datetime
-import shutil
 
 import aiohttp
 import matplotlib.pyplot as plt
@@ -14,7 +14,7 @@ from aiopath import AsyncPath
 
 import faust
 from config import settings
-from constants import TOPIC_HAADF_FILE_EVENTS, DATE_DIR_FORMAT
+from constants import DATE_DIR_FORMAT, TOPIC_HAADF_FILE_EVENTS
 
 # Setup logger
 logger = logging.getLogger("haadf_worker")
@@ -50,6 +50,7 @@ async def generate_haadf_image(tmp_dir: str, dm4_path: str, scan_id: int) -> Asy
 
     return path
 
+
 async def copy_to_ncemhub(path: AsyncPath):
 
     stat_info = await path.stat()
@@ -61,15 +62,13 @@ async def copy_to_ncemhub(path: AsyncPath):
     loop = asyncio.get_event_loop()
     loop.run_in_executor(None, shutil.copy, path, dest_path)
 
+
 @tenacity.retry(
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
-    ) | tenacity.retry_if_exception_type(
-        aiohttp.client_exceptions.ClientResponseError
-    ) | tenacity.retry_if_exception_type(
-        asyncio.exceptions.TimeoutError
     )
-    ,
+    | tenacity.retry_if_exception_type(aiohttp.client_exceptions.ClientResponseError)
+    | tenacity.retry_if_exception_type(asyncio.exceptions.TimeoutError),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )

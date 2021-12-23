@@ -117,28 +117,31 @@ def _bbcp(args):
 
 
 def main():
-    args = sys.argv[1:]
-
-    if len(args) < 1:
-        return
-
-    command = args[0]
-
-    if command not in COMMANDS:
-        return
-
     try:
-        if command == "rm":
-            _rm(args[1:])
-        elif command == "ls":
-            _ls(args[1:])
-        elif command == "bbcp":
-            _bbcp(args)
-        else:
-            logger.error(f"Invalid command: {command}")
+        args = sys.argv[1:]
 
-    except ValueError:
-        logger.info("Invalid command")
+        if len(args) < 1:
+            return
+
+        command = args[0]
+
+        if command not in COMMANDS:
+            return
+
+        try:
+            if command == "rm":
+                _rm(args[1:])
+            elif command == "ls":
+                _ls(args[1:])
+            elif command == "bbcp":
+                _bbcp(args)
+            else:
+                logger.error(f"Invalid command: {command}")
+
+        except ValueError:
+            logger.info("Invalid command")
+    except:
+        logger.exception("Exception running custodian."
 
 
 if __name__ == "__main__":

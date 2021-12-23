@@ -27,7 +27,6 @@ LOG_FILE_GLOB_PATTERN = "log_scan{scan_id}_to*_module*_dst*_file*.data"
 COMMANDS = ["rm", "ls", "bbcp"]
 
 # Setup logger
-# Setup logger
 logger = logging.getLogger("custodian")
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler(sys.stdout)

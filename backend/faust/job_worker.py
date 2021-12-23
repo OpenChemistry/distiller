@@ -34,7 +34,7 @@ logger = logging.getLogger("job_worker")
 logger.setLevel(logging.INFO)
 
 app = faust.App(
-    "distiller", store="rocksdb://", broker=settings.KAFKA_URL, topic_partitions=1
+    "distiller-job", store="rocksdb://", broker=settings.KAFKA_URL, topic_partitions=1
 )
 
 

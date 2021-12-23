@@ -21,7 +21,7 @@ logger = logging.getLogger("scan_worker")
 logger.setLevel(logging.INFO)
 
 app = faust.App(
-    "distiller", store="rocksdb://", broker=settings.KAFKA_URL, topic_partitions=1
+    "distiller-scan", store="rocksdb://", broker=settings.KAFKA_URL, topic_partitions=1
 )
 
 

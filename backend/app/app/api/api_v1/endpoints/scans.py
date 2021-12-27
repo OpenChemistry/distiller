@@ -19,6 +19,7 @@ from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
 from app.models import Scan
 from app.schemas.events import RemoveScanFilesEvent
 from app.schemas.scan import ScanCreatedEvent
+from app.core.logging import logger
 
 router = APIRouter()
 
@@ -173,16 +174,15 @@ async def delete_scan(id: int, remove_scan_files: bool, db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="Scan not found")
 
     if remove_scan_files:
-        print("remove files")
+        logger.info("Removing scan files.")
         await _remove_scan_files(db_scan)
-
-        # See if we have HAADF image for this scan
-    upload_path = Path(settings.HAADF_IMAGE_UPLOAD_DIR) / f"scan{db_scan.scan_id}.png"
 
     crud.delete_scan(db, id)
 
     haadf_path = Path(settings.HAADF_IMAGE_STATIC_DIR) / f"{id}.png"
-    if upload_path.exists():
+    logger.info(f"Checking if HAADF image exists: {haadf_path}")
+    if haadf_path.exists():
+        logger.info(f"Removing HAADF image: {haadf_path}")
         # Remove it
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, os.remove, haadf_path)

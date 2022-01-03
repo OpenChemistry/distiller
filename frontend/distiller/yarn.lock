@@ -1294,9 +1294,9 @@
     prop-types "^15.7.2"
     react-is "^16.8.0 || ^17.0.0"
 
-"@mui/base@5.0.0-alpha.62":
-  version "5.0.0-alpha.62"
-  resolved "https://registry.yarnpkg.com/@mui/base/-/base-5.0.0-alpha.62.tgz#d86ff07f33d7b49ebb545f29e184750c0270c3f8"
+"@mui/base@5.0.0-alpha.63":
+  version "5.0.0-alpha.63"
+  resolved "https://registry.yarnpkg.com/@mui/base/-/base-5.0.0-alpha.63.tgz#8646b9b91dae128a474feadac74748c532ffef2c"
   dependencies:
     "@babel/runtime" "^7.16.3"
     "@emotion/is-prop-valid" "^1.1.1"
@@ -1312,12 +1312,12 @@
   dependencies:
     "@babel/runtime" "^7.16.3"
 
-"@mui/material@^5.2.6":
-  version "5.2.6"
-  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.2.6.tgz#fda165759281fe7d6f0ec2744a255f283e17b7aa"
+"@mui/material@^5.2.7":
+  version "5.2.7"
+  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.2.7.tgz#2051da37b3c5176124ee8042d9d4c571af3da93a"
   dependencies:
     "@babel/runtime" "^7.16.3"
-    "@mui/base" "5.0.0-alpha.62"
+    "@mui/base" "5.0.0-alpha.63"
     "@mui/system" "^5.2.6"
     "@mui/types" "^7.1.0"
     "@mui/utils" "^5.2.3"

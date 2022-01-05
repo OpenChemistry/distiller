@@ -15,12 +15,14 @@ import {
   CardHeader,
   CardActions,
   Button,
+  IconButton,
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import CompleteIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
 import TransferIcon from '@mui/icons-material/CompareArrows';
 import CountIcon from '@mui/icons-material/BlurOn';
+import OutputIcon from '@mui/icons-material/Terminal';
 import { pink } from '@mui/material/colors';
 import Tooltip from '@mui/material/Tooltip';
 import humanizeDuration from 'humanize-duration';
@@ -33,12 +35,13 @@ import { getScan, scansSelector, patchScan } from '../features/scans';
 import LocationComponent from '../components/location';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
-import { IdType, JobType, Scan } from '../types';
+import { IdType, JobType, Scan, ScanJob } from '../types';
 import JobStateComponent from '../components/job-state';
 import TransferDialog from '../components/transfer-dialog';
 import CountDialog from '../components/count-dialog';
 import { createJob } from '../features/jobs/api';
 import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
+import JobOutputDialog from '../components/job-output';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -55,6 +58,13 @@ const useStyles = makeStyles((theme) => ({
   noImage: {
     color: pink.A400,
   },
+  stateCell: {
+    width: '3rem',
+  },
+  stateContent: {
+    display: 'flex',
+    alignItems: 'end'
+  }
 }));
 
 type Props = {}
@@ -78,7 +88,8 @@ const ScanPage: React.FC<Props> = () => {
 
   const dispatch = useAppDispatch();
 
-  const [jobDialog, setJobDialog] = useState<JobType | undefined>()
+  const [jobDialog, setJobDialog] = useState<JobType | undefined>();
+  const [jobOutputDialog, setJobOutputDialog] = useState<ScanJob | undefined>();
   const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan|null>(null);
   const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] = React.useState<((params: {[key: string]: any}|undefined) => void)>();
 
@@ -104,6 +115,14 @@ const ScanPage: React.FC<Props> = () => {
 
   const onJobSubmit = (type: JobType, params: any) => {
     return createJob(type, scanId, params);
+  }
+
+  const onJobOutputClick = (job: ScanJob) => {
+    setJobOutputDialog(job);
+  }
+
+  const onJobOutputClose = () => {
+    setJobOutputDialog(undefined);
   }
 
   const confirmScanRemoval = (scan: Scan)  => {
@@ -215,7 +234,14 @@ const ScanPage: React.FC<Props> = () => {
                   <TableCell title={job.job_type}><Icon/></TableCell>
                   <TableCell>{job.slurm_id}</TableCell>
                   <TableCell>{humanizeDuration(job.elapsed*1000)}</TableCell>
-                  <TableCell align='right'><JobStateComponent state={job.state}/></TableCell>
+                  <TableCell className={classes.stateCell} align='right'>
+                    <div className={classes.stateContent}>
+                      <IconButton disabled={!job.output} onClick={() => onJobOutputClick(job)}>
+                        <OutputIcon/>
+                      </IconButton>
+                      <JobStateComponent state={job.state}/>
+                    </div>
+                  </TableCell>
                 </TableRow>
               )
             })}
@@ -239,6 +265,12 @@ const ScanPage: React.FC<Props> = () => {
     <RemoveScanFilesConfirmDialog
       onConfirm={onScanFilesRemovalConfirm}
       scan={scanFilesToRemove}/>
+
+    <JobOutputDialog
+      open={!!jobOutputDialog}
+      onClose={onJobOutputClose}
+      job={jobOutputDialog}
+    />
 
   </React.Fragment>
 }

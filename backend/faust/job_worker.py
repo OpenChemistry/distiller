@@ -27,7 +27,7 @@ from schemas import Location as LocationRest
 from schemas import Scan, ScanUpdate, SfapiJob
 from utils import get_job, get_scan
 from utils import update_job as update_job_request
-from utils import update_scan
+from utils import update_scan, mkdir
 
 # Setup logger
 logger = logging.getLogger("job_worker")
@@ -223,7 +223,7 @@ async def process_submit_job_event(
 
     # Ensure we have the output directory created
     dest_path = AsyncPath(base_dir) / date_dir
-    await dest_path.mkdir(parents=True, exist_ok=True)
+    await mkdir(dest_path)
     dest_dir = str(dest_path)
 
     # If this is a transfer job, then reset the bbcp dir to the destination dir

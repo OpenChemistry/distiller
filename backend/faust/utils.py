@@ -1,10 +1,13 @@
 import re
+import os
+import stat
 from datetime import datetime
 from pathlib import Path
 from typing import Union
 
 import aiohttp
 import tenacity
+from aiopath import AsyncPath
 
 from config import settings
 from schemas import Job, JobUpdate, Scan, ScanCreate, ScanUpdate
@@ -211,3 +214,10 @@ async def delete_locations(session: aiohttp.ClientSession, id: int, host: str) -
         # Ignore 404, the scan may have been deleted
         if ex.status != 404:
             logger.exception("Exception deleting locations")
+
+async def mkdir(path: AsyncPath):
+    await path.mkdir(parents=True, exist_ok=True)
+    # Now update the permissions to allow group write access
+    stat_info = await path.stat()
+    current =  stat.S_IMODE(stat_info.st_mode)
+    await path.chmod(current | stat.S_IWGRP)

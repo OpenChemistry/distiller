@@ -54,7 +54,7 @@ async def generate_haadf_image(tmp_dir: str, dm4_path: str, scan_id: int) -> Asy
 async def copy_to_ncemhub(path: AsyncPath):
 
     stat_info = await path.stat()
-    created_datetime = datetime.fromtimestamp(stat_info.st_ctime)
+    created_datetime = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
 
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
     dest_path = AsyncPath(settings.HAADF_NCEMHUB_DM4_DATA_PATH) / date_dir / path.name

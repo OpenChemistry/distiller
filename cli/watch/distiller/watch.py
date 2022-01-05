@@ -57,7 +57,7 @@ async def create_sync_snapshot(watch_dirs: List[str]) -> List[File]:
         async for f in AsyncPath(watch_dir).glob(LOG_FILE_GLOB):
             path = AsyncPath(f)
             stat_info = await path.stat()
-            created = datetime.fromtimestamp(stat_info.st_ctime)
+            created = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
             files.append(File(path=str(f), created=created, host=host))
 
     return files

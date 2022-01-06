@@ -13,4 +13,6 @@ RUN pip install -r /app/requirements.txt
 COPY *.py /app/
 COPY *.env /app/
 
-CMD ["/bin/sh", "-c", "faust -A ${WORKER}_worker worker -l info"]
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+
+ENTRYPOINT [ "/docker-entrypoint.sh" ]

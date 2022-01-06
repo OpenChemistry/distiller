@@ -39,8 +39,8 @@ COPY *.py /app/
 COPY *.env /app/
 COPY templates/ /app/templates/
 
-ARG WORKER
-ENV WORKER $WORKER
+ENV WORKER job
 
+COPY docker-entrypoint.sh /docker-entrypoint.sh
 
-CMD ["/bin/sh", "-c", "faust -A job_worker worker -l info"]
+ENTRYPOINT [ "/docker-entrypoint.sh" ]

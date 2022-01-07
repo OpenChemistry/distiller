@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
-from app.api.api_v1.endpoints import auth, files, jobs, notifications, scans, machines
+from app.api.api_v1.endpoints import (auth, files, jobs, machines,
+                                      notifications, scans)
 
 api_router = APIRouter()
 

@@ -17,8 +17,7 @@ export interface ScanCreatedEvent extends ScanEvent<ScanEventType.Created> {
   log_files: number;
 }
 
-export interface ScanUpdatedEvent extends ScanEvent<ScanEventType.Updated> {
-}
+export interface ScanUpdatedEvent extends ScanEvent<ScanEventType.Updated> {}
 
 export function isCreatedEvent(ev: any): ev is ScanCreatedEvent {
   return ev && ev.event_type === ScanEventType.Created;

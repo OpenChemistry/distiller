@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import useLocalStorageState from 'use-local-storage-state'
+import useLocalStorageState from 'use-local-storage-state';
 
 import {
   Button,
@@ -13,20 +13,20 @@ import {
 } from '@mui/material';
 
 type Props = {
-    open: boolean;
-    onClose: () => void;
-    onSubmit: (params: any) => Promise<any>;
-}
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (params: any) => Promise<any>;
+};
 
 const CountDialog: React.FC<Props> = (props) => {
   const { open, onClose, onSubmit } = props;
-  const [threshold, setThreshold]  = useLocalStorageState('threshold', 4);
+  const [threshold, setThreshold] = useLocalStorageState('threshold', 4);
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
 
   const submitClick = () => {
     setPending(true);
-    onSubmit({threshold})
+    onSubmit({ threshold })
       .then(() => {
         setPending(false);
         onClose();
@@ -35,19 +35,26 @@ const CountDialog: React.FC<Props> = (props) => {
         setPending(false);
         setError('Submission Failed');
       });
-  }
+  };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      aria-labelledby="count-job-title"
-    >
+    <Dialog open={open} onClose={onClose} aria-labelledby="count-job-title">
       <DialogTitle id="count-job-title">Count Job</DialogTitle>
       <DialogContent>
-        <DialogContentText mt={1} mb={1}>Create a new count job</DialogContentText>
-        <TextField label='threshold' fullWidth value={threshold} onChange={(ev) => setThreshold(parseFloat(ev.target.value))} type='number' variant="standard"/>
-        <Typography color='error' variant='caption'>{error}</Typography>
+        <DialogContentText mt={1} mb={1}>
+          Create a new count job
+        </DialogContentText>
+        <TextField
+          label="threshold"
+          fullWidth
+          value={threshold}
+          onChange={(ev) => setThreshold(parseFloat(ev.target.value))}
+          type="number"
+          variant="standard"
+        />
+        <Typography color="error" variant="caption">
+          {error}
+        </Typography>
       </DialogContent>
       <DialogActions>
         <Button onClick={submitClick} disabled={pending}>
@@ -58,7 +65,7 @@ const CountDialog: React.FC<Props> = (props) => {
         </Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};
 
 export default CountDialog;

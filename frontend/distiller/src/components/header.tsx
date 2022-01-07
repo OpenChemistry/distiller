@@ -16,11 +16,11 @@ import logo from '../logo.png';
 
 const useStyles = makeStyles((theme) => ({
   logo: {
-    height: theme.spacing(5)
+    height: theme.spacing(5),
   },
   title: {
-    flexGrow: 1
-  }
+    flexGrow: 1,
+  },
 }));
 
 const HeaderComponent: React.FC = () => {
@@ -32,31 +32,29 @@ const HeaderComponent: React.FC = () => {
 
   const onLogoClick = () => {
     navigate(HOME_PATH);
-  }
+  };
 
   const onUserClick = () => {
     navigate(AUTH_PATH);
-  }
+  };
 
   return (
-    <AppBar color='transparent' position='static'>
+    <AppBar color="transparent" position="static">
       <Toolbar>
         <Button onClick={onLogoClick}>
-          <img className={classes.logo} src={logo} alt='logo' />
+          <img className={classes.logo} src={logo} alt="logo" />
         </Button>
-        <div className={classes.title}/>
-        {
-          authenticated
-          ? <IconButton onClick={onUserClick} size="large">
-              <UserIcon/>
-            </IconButton>
-          : <Button onClick={onUserClick}>
-              Log In
-            </Button>
-        }
+        <div className={classes.title} />
+        {authenticated ? (
+          <IconButton onClick={onUserClick} size="large">
+            <UserIcon />
+          </IconButton>
+        ) : (
+          <Button onClick={onUserClick}>Log In</Button>
+        )}
       </Toolbar>
     </AppBar>
   );
-}
+};
 
 export default HeaderComponent;

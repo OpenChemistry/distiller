@@ -17,18 +17,20 @@ const useStyles = makeStyles({
 });
 
 type NavPath = {
-    pathname: string;
-    icon: React.ReactNode;
-    label: string;
-}
+  pathname: string;
+  icon: React.ReactNode;
+  label: string;
+};
 
-const PATHS: {[name: string]: NavPath} = ([
-  { pathname: HOME_PATH, icon: <HomeIcon/>, label: 'Home' },
-  { pathname: SCANS_PATH, icon: <ScansIcon/>, label: 'Scans' },
-] as const).reduce((paths, path) => {
+const PATHS: { [name: string]: NavPath } = (
+  [
+    { pathname: HOME_PATH, icon: <HomeIcon />, label: 'Home' },
+    { pathname: SCANS_PATH, icon: <ScansIcon />, label: 'Scans' },
+  ] as const
+).reduce((paths, path) => {
   paths[path.pathname] = { ...path };
   return paths;
-}, {} as {[name: string]: NavPath});
+}, {} as { [name: string]: NavPath });
 
 const NavigationComponent: React.FC = () => {
   const classes = useStyles();
@@ -45,11 +47,16 @@ const NavigationComponent: React.FC = () => {
       showLabels
       className={classes.root}
     >
-      {Object.values(PATHS).map(({pathname, icon, label}) => (
-        <BottomNavigationAction key={pathname} value={pathname} label={label} icon={icon} />
+      {Object.values(PATHS).map(({ pathname, icon, label }) => (
+        <BottomNavigationAction
+          key={pathname}
+          value={pathname}
+          label={label}
+          icon={icon}
+        />
       ))}
     </BottomNavigation>
   );
-}
+};
 
 export default NavigationComponent;

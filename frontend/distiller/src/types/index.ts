@@ -2,13 +2,13 @@ export type IdType = number;
 
 export type User = {
   username: string;
-}
+};
 
 export type ScanLocation = {
   id: IdType;
   host: string;
   path: string;
-}
+};
 
 export enum JobType {
   Transfer = 'transfer',
@@ -16,31 +16,31 @@ export enum JobType {
 }
 
 export enum JobState {
-  INITIALIZING = "INITIALIZING",
-  BOOT_FAIL = "BOOT_FAIL",
-  CANCELLED = "CANCELLED",
-  COMPLETED = "COMPLETED",
-  CONFIGURING = "CONFIGURING",
-  COMPLETING = "COMPLETING",
-  DEADLINE = "DEADLINE",
-  FAILED = "FAILED",
-  NODE_FAIL = "NODE_FAIL",
-  OUT_OF_MEMORY = "OUT_OF_MEMORY",
-  PENDING = "PENDING",
-  PREEMPTED = "PREEMPTED",
-  RUNNING = "RUNNING",
-  RESV_DEL_HOLD = "RESV_DEL_HOLD",
-  REQUEUE_FED = "REQUEUE_FED",
-  REQUEUE_HOLD = "REQUEUE_HOLD",
-  REQUEUED = "REQUEUED",
-  RESIZING = "RESIZING",
-  REVOKED = "REVOKED",
-  SIGNALING = "SIGNALING",
-  SPECIAL_EXIT = "SPECIAL_EXIT",
-  STAGE_OUT = "STAGE_OUT",
-  STOPPED = "STOPPED",
-  SUSPENDED = "SUSPENDED",
-  TIMEOUT = "TIMEOUT",
+  INITIALIZING = 'INITIALIZING',
+  BOOT_FAIL = 'BOOT_FAIL',
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+  CONFIGURING = 'CONFIGURING',
+  COMPLETING = 'COMPLETING',
+  DEADLINE = 'DEADLINE',
+  FAILED = 'FAILED',
+  NODE_FAIL = 'NODE_FAIL',
+  OUT_OF_MEMORY = 'OUT_OF_MEMORY',
+  PENDING = 'PENDING',
+  PREEMPTED = 'PREEMPTED',
+  RUNNING = 'RUNNING',
+  RESV_DEL_HOLD = 'RESV_DEL_HOLD',
+  REQUEUE_FED = 'REQUEUE_FED',
+  REQUEUE_HOLD = 'REQUEUE_HOLD',
+  REQUEUED = 'REQUEUED',
+  RESIZING = 'RESIZING',
+  REVOKED = 'REVOKED',
+  SIGNALING = 'SIGNALING',
+  SPECIAL_EXIT = 'SPECIAL_EXIT',
+  STAGE_OUT = 'STAGE_OUT',
+  STOPPED = 'STOPPED',
+  SUSPENDED = 'SUSPENDED',
+  TIMEOUT = 'TIMEOUT',
 }
 
 export const PendingJobStates = new Set<JobState>([
@@ -49,7 +49,6 @@ export const PendingJobStates = new Set<JobState>([
 ]);
 
 export const RunningJobStates = new Set<JobState>([
-
   JobState.CONFIGURING,
   JobState.COMPLETING,
   JobState.RUNNING,
@@ -62,9 +61,7 @@ export const RunningJobStates = new Set<JobState>([
   JobState.SUSPENDED,
 ]);
 
-export const CompleteJobStates = new Set<JobState>([
-  JobState.COMPLETED,
-]);
+export const CompleteJobStates = new Set<JobState>([JobState.COMPLETED]);
 
 export const FailedJobStates = new Set<JobState>([
   JobState.BOOT_FAIL,
@@ -88,7 +85,7 @@ export type ScanJob = {
   state: JobState;
   params: any;
   output?: string;
-}
+};
 
 export type Scan = {
   id: IdType;
@@ -99,10 +96,10 @@ export type Scan = {
   notes?: string;
   haadf_path?: string;
   jobs: ScanJob[];
-}
+};
 
 export type ScansRequestResult = {
   scans: Scan[];
   // The unfiltered number of scans, needed for pagination
   totalCount: number;
-}
+};

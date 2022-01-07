@@ -1,10 +1,6 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 
-import {
-  Typography,
-  TextField,
-  IconButton,
-} from '@mui/material';
+import { Typography, TextField, IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import makeStyles from '@mui/styles/makeStyles';
@@ -13,7 +9,7 @@ import { stopPropagation } from '../utils';
 type Props = {
   value: string;
   onSave: (value: string) => Promise<any>;
-}
+};
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -22,11 +18,11 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
   },
   field: {
-    flexGrow: 1
-  }
+    flexGrow: 1,
+  },
 }));
 
-const EditableField: React.FC<Props> = ({value, onSave}) => {
+const EditableField: React.FC<Props> = ({ value, onSave }) => {
   const classes = useStyles();
 
   const [draftValue, setDraftValue] = useState('');
@@ -38,7 +34,7 @@ const EditableField: React.FC<Props> = ({value, onSave}) => {
     setDraftValue(value);
     setEditing(true);
     setSaving(false);
-  }
+  };
 
   const onSaveClick = () => {
     setSaving(true);
@@ -46,23 +42,23 @@ const EditableField: React.FC<Props> = ({value, onSave}) => {
       .then(() => {
         setSaving(false);
         setEditing(false);
-      }).catch(() => {
+      })
+      .catch(() => {
         setSaving(false);
         setError(true);
       });
-  }
+  };
 
-  const onKeyPress = (ev:  React.KeyboardEvent<Element>) => {
+  const onKeyPress = (ev: React.KeyboardEvent<Element>) => {
     if (ev.key === 'Enter') {
       onSaveClick();
     }
   };
 
-
   return (
     <div className={classes.container}>
-      {editing
-        ? <React.Fragment>
+      {editing ? (
+        <React.Fragment>
           <TextField
             className={classes.field}
             value={draftValue}
@@ -73,15 +69,24 @@ const EditableField: React.FC<Props> = ({value, onSave}) => {
             autoFocus={true}
             onKeyPress={onKeyPress}
           />
-          <IconButton onClick={stopPropagation(onSaveClick)} disabled={saving} size="large"><SaveIcon/></IconButton>
+          <IconButton
+            onClick={stopPropagation(onSaveClick)}
+            disabled={saving}
+            size="large"
+          >
+            <SaveIcon />
+          </IconButton>
         </React.Fragment>
-        : <React.Fragment>
+      ) : (
+        <React.Fragment>
           <Typography className={classes.field}>{value}</Typography>
-          <IconButton onClick={stopPropagation(onEditClick)} size="large"><EditIcon/></IconButton>
+          <IconButton onClick={stopPropagation(onEditClick)} size="large">
+            <EditIcon />
+          </IconButton>
         </React.Fragment>
-      }
+      )}
     </div>
   );
-}
+};
 
 export default EditableField;

@@ -16,15 +16,15 @@ type Props = {
   open: boolean;
   onClose: () => void;
   job?: ScanJob;
-}
+};
 
 const useStyles = makeStyles((theme) => ({
   outputContainer: {
-    backgroundColor: "#121858",
+    backgroundColor: '#121858',
     color: lime['A400'],
     minHeight: '20rem',
     fontFamily: 'monospace',
-    padding: '1rem'
+    padding: '1rem',
   },
 }));
 
@@ -47,16 +47,16 @@ const JobOutputDialog: React.FC<Props> = (props) => {
       <DialogTitle id="job-output-title">{`Job ${job.id}`}</DialogTitle>
       <DialogContent>
         <div className={classes.outputContainer}>
-          {(job.output || '').split('\n').map(line => <p>{line}</p>)}
+          {(job.output || '').split('\n').map((line) => (
+            <p>{line}</p>
+          ))}
         </div>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>
-          Close
-        </Button>
+        <Button onClick={onClose}>Close</Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};
 
 export default JobOutputDialog;

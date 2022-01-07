@@ -236,7 +236,7 @@ async def process_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -
     log_file_paths = [f.path for f in event.files]
     for f in log_files.keys():
         if f not in log_file_paths:
-            await process_delete_event(f)
+            await process_delete_event(session, f)
 
     for f in event.files:
         path = f.path

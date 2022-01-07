@@ -69,7 +69,7 @@ export class ApiClient implements IApiClient {
   ws(options: IWebsocketOptions) {
     return new Promise<WebSocket>((resolve, reject) => {
       try {
-        const {url} = options;
+        const { url } = options;
         const baseUrl = this.getBaseURL().replace('http', 'ws');
         const params: any = {};
         const token = this.getToken();
@@ -82,10 +82,10 @@ export class ApiClient implements IApiClient {
         const ws = new WebSocket(fullURL);
         ws.onopen = (_ev) => resolve(ws);
         ws.onerror = (ev) => reject(ev);
-      } catch(e) {
+      } catch (e) {
         reject(e);
       }
-    })
+    });
   }
 
   protected request(options: IRequestOptions) {
@@ -93,7 +93,8 @@ export class ApiClient implements IApiClient {
   }
 
   protected rawRequest(options: IRequestOptions) {
-    let { url, method, headers, params, json, form, extra, abortSignal } = options;
+    let { url, method, headers, params, json, form, extra, abortSignal } =
+      options;
     if (method === undefined) method = 'GET';
     if (headers === undefined) headers = {};
     if (params === undefined) params = {};
@@ -137,7 +138,7 @@ export class ApiClient implements IApiClient {
 
     return new Promise<Response>((resolve, reject) => {
       fetch(fullURL, requestParams)
-        .then(res => {
+        .then((res) => {
           if (res.status >= 200 && res.status < 300) {
             resolve(res);
           } else {
@@ -145,7 +146,7 @@ export class ApiClient implements IApiClient {
           }
         })
         .catch(reject);
-    })
+    });
   }
 }
 
@@ -191,18 +192,16 @@ export class ThrottledApiClient extends ApiClient implements IApiClient {
   private executeTask(task: IRequestTask) {
     this.runningTasks += 1;
     const { options, resolve, reject } = task;
-    this.rawRequest(options)
-      .then(resolve)
-      .catch(reject);
+    this.rawRequest(options).then(resolve).catch(reject);
   }
 }
 
-export const apiURL = process.env.REACT_APP_API_URL || `${window.location.origin}/api/v1`;
-export const staticURL = process.env.REACT_APP_STATIC_URL || window.location.origin;
+export const apiURL =
+  process.env.REACT_APP_API_URL || `${window.location.origin}/api/v1`;
+export const staticURL =
+  process.env.REACT_APP_STATIC_URL || window.location.origin;
 
 const apiClient: IApiClient = new ApiClient();
 apiClient.setBaseURL(apiURL);
 
 export { apiClient };
-
-

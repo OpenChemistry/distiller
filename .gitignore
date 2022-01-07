@@ -1,2 +1,3 @@
 *.pyc
 backend/faust/distiller-data/
+node_modules/

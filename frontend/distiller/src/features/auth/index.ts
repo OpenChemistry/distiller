@@ -1,4 +1,9 @@
-import { AnyAction, createAsyncThunk, createSlice, ThunkDispatch } from '@reduxjs/toolkit';
+import {
+  AnyAction,
+  createAsyncThunk,
+  createSlice,
+  ThunkDispatch,
+} from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import {
   authenticate as authenticateAPI,
@@ -22,16 +27,16 @@ const initialState: AuthState = {
 
 let refreshController = new AbortController();
 
-type AuthenticatePayload = {username: string, password: string};
+type AuthenticatePayload = { username: string; password: string };
 export const login = createAsyncThunk<User, AuthenticatePayload>(
   'auth/authenticate',
   async (payload, thunkAPI) => {
-    const {username, password} = payload;
+    const { username, password } = payload;
     const { dispatch } = thunkAPI;
 
     const auth = await authenticateAPI(username, password);
 
-    const {access_token, exp } = auth;
+    const { access_token, exp } = auth;
     apiClient.setToken(access_token);
 
     refreshController.abort();
@@ -50,11 +55,15 @@ export const login = createAsyncThunk<User, AuthenticatePayload>(
   }
 );
 
-async function refreshToken(autoRefresh: boolean, dispatch: ThunkDispatch<unknown, unknown, AnyAction>, signal: AbortSignal) {
+async function refreshToken(
+  autoRefresh: boolean,
+  dispatch: ThunkDispatch<unknown, unknown, AnyAction>,
+  signal: AbortSignal
+) {
   try {
     const auth = await refreshTokenAPI();
 
-    const {access_token, exp } = auth;
+    const { access_token, exp } = auth;
     apiClient.setToken(access_token);
 
     if (autoRefresh) {
@@ -64,7 +73,7 @@ async function refreshToken(autoRefresh: boolean, dispatch: ThunkDispatch<unknow
         }
       }, (exp - 30) * 1000); // Refresh 30 seconds before actual expiration
     }
-  } catch(e) {
+  } catch (e) {
     dispatch(logout());
     throw e;
   }
@@ -87,7 +96,7 @@ export const restoreSession = createAsyncThunk<User, void>(
 
     return user;
   }
-)
+);
 
 export const logout = createAsyncThunk<void, void>(
   'auth/logout',
@@ -96,7 +105,7 @@ export const logout = createAsyncThunk<void, void>(
     await deleteRefreshTokenAPI();
     apiClient.setToken(undefined);
   }
-)
+);
 
 export const authSlice = createSlice({
   name: 'auth',
@@ -129,7 +138,8 @@ export const authSlice = createSlice({
   },
 });
 
-export const isAuthenticated = (state: RootState) => state.auth.status === 'authenticated';
+export const isAuthenticated = (state: RootState) =>
+  state.auth.status === 'authenticated';
 export const authStatus = (state: RootState) => state.auth.status;
 export const getUser = (state: RootState) => state.auth.user;
 

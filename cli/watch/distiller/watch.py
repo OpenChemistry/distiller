@@ -12,6 +12,7 @@ import aiohttp
 import coloredlogs
 import tenacity
 from aiopath import AsyncPath
+from pathlib import Path
 from aiowatchdog import AIOEventHandler, AIOEventIterator
 from cachetools import TTLCache
 from config import settings
@@ -145,7 +146,10 @@ async def upload_dm4(session: aiohttp.ClientSession, dm4_path: AsyncPath):
     logger.info(f"Uploading {dm4_path}")
     data = aiohttp.FormData()
     headers = {settings.API_KEY_NAME: settings.API_KEY}
-    async with dm4_path.open("rb") as fp:
+    # We use the standard Path object here rather than the async version here,
+    # as the AsyncPath performs very badly in our deployment (SL7). We can
+    # probably revert this fix if/when we move away from SL7.
+    with Path(dm4_path).open("rb") as fp:
         data.add_field(
             "file", fp, filename=dm4_path.name, content_type="application/octet-stream"
         )

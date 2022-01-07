@@ -3,6 +3,8 @@ from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
 
+from app.schemas import Machine
+
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
@@ -66,6 +68,8 @@ class Settings(BaseSettings):
     HAADF_SCAN_AGE_LIMIT: int = 1
 
     SENTRY_DSN_URL: AnyHttpUrl = None
+
+    MACHINES: List[Machine]
 
     class Config:
         case_sensitive = True

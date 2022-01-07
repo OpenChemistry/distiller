@@ -1,0 +1,22 @@
+{
+  "name": "distiller-root",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenChemistry/distiller.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/OpenChemistry/distiller/issues"
+  },
+  "homepage": "https://github.com/OpenChemistry/distiller#readme",
+  "devDependencies": {
+    "husky": "^7.0.4"
+  }
+}

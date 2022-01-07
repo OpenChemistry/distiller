@@ -6,3 +6,5 @@ from .jwt import Token, TokenData
 from .scan import (Location, Scan, ScanCreate, ScanState, ScanUpdate,
                    ScanUpdateEvent)
 from .user import User, UserCreate, UserResponse
+
+from .machine import Machine

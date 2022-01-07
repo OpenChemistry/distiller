@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 
 import { useParams as useUrlParams } from 'react-router-dom';
 
+import useLocalStorageState from 'use-local-storage-state';
+
 import {
   Card,
   Grid,
@@ -31,6 +33,7 @@ import { DateTime } from 'luxon';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
 import { getScan, scansSelector, patchScan } from '../features/scans';
+import { machinesSelector } from '../features/machines';
 import LocationComponent from '../components/location';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
@@ -94,6 +97,12 @@ const ScanPage: React.FC<Props> = () => {
   );
   const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] =
     React.useState<(params: { [key: string]: any } | undefined) => void>();
+
+  const machines = useAppSelector((state) => machinesSelector(state).machines);
+  const [machine, setMachine] = useLocalStorageState<string>(
+    'machine',
+    machines.length > 0 ? machines[0] : ''
+  );
 
   useEffect(() => {
     dispatch(getScan({ id: scanId }));
@@ -299,12 +308,18 @@ const ScanPage: React.FC<Props> = () => {
 
       <TransferDialog
         open={jobDialog === JobType.Transfer}
+        machines={machines}
+        machine={machine}
+        setMachine={setMachine}
         onClose={onJobClose}
         onSubmit={(params) => onJobSubmit(JobType.Transfer, params)}
       />
 
       <CountDialog
         open={jobDialog === JobType.Count}
+        machines={machines}
+        machine={machine}
+        setMachine={setMachine}
         onClose={onJobClose}
         onSubmit={(params: any) => onJobSubmit(JobType.Count, params)}
       />

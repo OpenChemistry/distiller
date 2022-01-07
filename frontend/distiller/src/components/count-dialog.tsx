@@ -8,25 +8,32 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
   Typography,
 } from '@mui/material';
 
 type Props = {
   open: boolean;
+  machines: string[];
+  machine: string;
+  setMachine: (machine: string) => void;
   onClose: () => void;
   onSubmit: (params: any) => Promise<any>;
 };
 
 const CountDialog: React.FC<Props> = (props) => {
-  const { open, onClose, onSubmit } = props;
+  const { open, machines, machine, setMachine, onClose, onSubmit } = props;
   const [threshold, setThreshold] = useLocalStorageState('threshold', 4);
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
 
   const submitClick = () => {
     setPending(true);
-    onSubmit({ threshold })
+    onSubmit({ threshold, machine })
       .then(() => {
         setPending(false);
         onClose();
@@ -44,20 +51,39 @@ const CountDialog: React.FC<Props> = (props) => {
         <DialogContentText mt={1} mb={1}>
           Create a new count job
         </DialogContentText>
-        <TextField
-          label="threshold"
-          fullWidth
-          value={threshold}
-          onChange={(ev) => setThreshold(parseFloat(ev.target.value))}
-          type="number"
-          variant="standard"
-        />
-        <Typography color="error" variant="caption">
-          {error}
-        </Typography>
+        <FormControl variant="standard">
+          <InputLabel id="machine-select-label">Machine</InputLabel>
+          <Select
+            fullWidth
+            label="Machine"
+            labelId="machine-select-label"
+            value={machine}
+            size="small"
+            onChange={(ev) => setMachine(ev.target.value)}
+            placeholder="Machine"
+          >
+            {machines.map((machine) => (
+              <MenuItem key={machine} value={machine}>
+                {machine}
+              </MenuItem>
+            ))}
+          </Select>
+          <TextField
+            label="threshold"
+            fullWidth
+            value={threshold}
+            onChange={(ev) => setThreshold(parseFloat(ev.target.value))}
+            type="number"
+            variant="standard"
+            margin="normal"
+          />
+          <Typography color="error" variant="caption">
+            {error}
+          </Typography>
+        </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button onClick={submitClick} disabled={pending}>
+        <Button onClick={submitClick} disabled={!machine || pending}>
           Submit
         </Button>
         <Button onClick={onClose} disabled={pending}>

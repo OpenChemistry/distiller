@@ -1,0 +1,21 @@
+name: frontend build
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ main ]
+jobs:
+  build:
+    defaults:
+      run:
+        working-directory: frontend/distiller
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - run: npm ci
+      - run: npm run prettier:check-all
+      - run: npm run build

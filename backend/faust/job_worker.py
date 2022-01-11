@@ -5,7 +5,8 @@ import logging
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from re import M
+from typing import Any, Dict, List, Union, Optional
 
 import aiohttp
 import httpx
@@ -24,10 +25,10 @@ from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
 from faust_records import Scan as ScanRecord
 from schemas import JobUpdate
 from schemas import Location as LocationRest
-from schemas import Scan, ScanUpdate, SfapiJob
-from utils import get_job, get_scan
+from schemas import Scan, ScanUpdate, SfapiJob, Machine
+from utils import get_job, get_scan, update_scan, get_machine
 from utils import update_job as update_job_request
-from utils import update_scan
+from utils import get_machine as fetch_machine, get_machines as fetch_machines
 
 # Setup logger
 logger = logging.getLogger("job_worker")
@@ -37,18 +38,22 @@ app = faust.App(
     "distiller-job", store="rocksdb://", broker=settings.KAFKA_URL, topic_partitions=1
 )
 
+_client = None
+async def get_oauth2_client() -> AsyncOAuth2Client:
+    global _client
+    if _client is None:
+        _client = AsyncOAuth2Client(
+            client_id=settings.SFAPI_CLIENT_ID,
+            client_secret=settings.SFAPI_PRIVATE_KEY,
+            token_endpoint_auth_method=PrivateKeyJWT(SFAPI_TOKEN_URL),
+            grant_type=settings.SFAPI_GRANT_TYPE,
+            token_endpoint=SFAPI_TOKEN_URL,
+            timeout=10.0,
+        )
 
-client = AsyncOAuth2Client(
-    client_id=settings.SFAPI_CLIENT_ID,
-    client_secret=settings.SFAPI_PRIVATE_KEY,
-    token_endpoint_auth_method=PrivateKeyJWT(SFAPI_TOKEN_URL),
-    grant_type=settings.SFAPI_GRANT_TYPE,
-    token_endpoint=SFAPI_TOKEN_URL,
-    timeout=10.0,
-)
+        await _client.fetch_token()
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(client.fetch_token())
+    return _client
 
 
 class JobType(str, Enum):
@@ -62,17 +67,39 @@ class JobType(str, Enum):
 class Job(faust.Record):
     id: int
     job_type: JobType
-
+    machine: str
+    params: Dict[str, Union[str, int, float]]
 
 class SubmitJobEvent(faust.Record):
     job: Job
+    machine: str
     scan: ScanRecord
+
 
 
 submit_job_events_topic = app.topic(TOPIC_JOB_SUBMIT_EVENTS, value_type=SubmitJobEvent)
 
+# Cache to store machines, we only need to fetch them once
+_machines = None
+async def get_machines(session: aiohttp.ClientSession) -> Dict[str, Machine]:
+    global _machines
 
-async def render_job_script(scan: Scan, job: Job, dest_dir: str) -> str:
+    # Fetch once
+    if _machines is None:
+        _machines = {}
+        names = await fetch_machines(session)
+        for name in names:
+            machine = await fetch_machine(session, name)
+            _machines[name] = machine
+
+    return _machines
+
+async def get_machine(session: aiohttp.ClientSession, name: str) -> Machine:
+    machines = await get_machines(session)
+
+    return machines[name]
+
+async def render_job_script(scan: Scan, job: Job, machine: Machine, dest_dir: str, machine_names: List[str]) -> str:
     if job.job_type == JobType.COUNT:
         template_name = COUNT_JOB_SCRIPT_TEMPLATE
     else:
@@ -84,15 +111,17 @@ async def render_job_script(scan: Scan, job: Job, dest_dir: str) -> str:
     template_env = jinja2.Environment(loader=template_loader, enable_async=True)
     template = template_env.get_template(template_name)
 
-    # Make a copy and filter out cori from locations
+    # Make a copy and filter out machines from locations
     scan = copy.deepcopy(scan)
-    scan.locations = [x for x in scan.locations if x.host != "cori"]
+    scan.locations = [x for x in scan.locations if x.host not in machine_names]
 
-    output = await template.render_async(
-        settings=settings, scan=scan, dest_dir=dest_dir, job=job, **job.params
-    )
-
-    logger.info(output)
+    try:
+        output = await template.render_async(
+            settings=settings, scan=scan, dest_dir=dest_dir, job=job, machine=machine, **job.params
+        )
+    except:
+        logger.exception("Exception rendering job script.")
+        raise
 
     return output
 
@@ -116,6 +145,7 @@ async def render_bbcp_script(job: Job, dest_dir: str) -> str:
     stop=tenacity.stop_after_attempt(10),
 )
 async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
+    client = await get_oauth2_client()
     await client.ensure_active_token()
 
     r = await client.get(
@@ -137,6 +167,7 @@ async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
     stop=tenacity.stop_after_attempt(10),
 )
 async def sfapi_post(url: str, data: Dict[str, Any]) -> httpx.Response:
+    client = await get_oauth2_client()
     await client.ensure_active_token()
 
     r = await client.post(
@@ -203,13 +234,15 @@ async def update_slurm_job_id(
     update = JobUpdate(id=job_id, slurm_id=slurm_id)
     await update_job_request(session, update)
 
-
 async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
 
-    bbcp_dest_dir = DW_JOB_STRIPED_VAR
-    # Not sure why by created comes in as a str, so convert to datatime
+    # We need to fetch the machine specific configuration
+    machine = await get_machine(session, event.machine)
+
+    bbcp_dest_dir = machine.bbcp_dest_dir
+    # Not sure why by created comes in as a str, so convert to datetime
     created_datetime = datetime.fromisoformat(event.scan.created)
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
 
@@ -227,13 +260,14 @@ async def process_submit_job_event(
     dest_dir = str(dest_path)
 
     # If this is a transfer job, then reset the bbcp dir to the destination dir
-    # rather than burst buffers
+    # rather than burst buffers or scratch
     if event.job.job_type == JobType.TRANSFER:
         bbcp_dest_dir = dest_dir
 
     # Render the scripts
+    machines = await get_machines(session)
     job_script_output = await render_job_script(
-        scan=event.scan, job=event.job, dest_dir=dest_dir
+        scan=event.scan, job=event.job, machine=machine, dest_dir=dest_dir, machine_names=list(machines.keys())
     )
     bbcp_script_output = await render_bbcp_script(job=event.job, dest_dir=bbcp_dest_dir)
 

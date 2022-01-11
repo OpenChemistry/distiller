@@ -64,6 +64,7 @@ class JobCreate(BaseModel):
     job_type: JobType
     scan_id: int
     params: Dict[str, Union[str, int, float]]
+    machine: str
 
 
 class JobUpdate(BaseModel):

@@ -1,0 +1,8 @@
+jinja2
+httpx
+tenacity
+aiohttp
+aiopath
+pytest
+pytest-mock
+pytest-asyncio

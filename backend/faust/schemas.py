@@ -54,6 +54,7 @@ class SfapiJob(BaseModel):
     state: str
     elapsed: timedelta
 
+
 class Machine(BaseModel):
     name: str
     account: str

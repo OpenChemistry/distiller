@@ -2,10 +2,9 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.api.deps import oauth2_password_bearer_or_api_key, get_api_key
-from app.core.config import settings
 from app import schemas
-
+from app.api.deps import get_api_key, oauth2_password_bearer_or_api_key
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -19,6 +18,7 @@ def read_machines():
     machines = [m.name for m in settings.MACHINES]
 
     return machines
+
 
 @router.get(
     "/{name}",

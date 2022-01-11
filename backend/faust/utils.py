@@ -1,13 +1,13 @@
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Union, List
+from typing import List, Union
 
 import aiohttp
 import tenacity
 
 from config import settings
-from schemas import Job, JobUpdate, Scan, ScanCreate, ScanUpdate, Machine
+from schemas import Job, JobUpdate, Machine, Scan, ScanCreate, ScanUpdate
 
 pattern = re.compile(r"^log_scan([0-9]*)_.*\.data")
 
@@ -212,6 +212,7 @@ async def delete_locations(session: aiohttp.ClientSession, id: int, host: str) -
         if ex.status != 404:
             logger.exception("Exception deleting locations")
 
+
 @tenacity.retry(
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
@@ -239,7 +240,7 @@ async def get_machines(session: aiohttp.ClientSession) -> List[str]:
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
-async def get_machine(session: aiohttp.ClientSession, name : str) -> Machine:
+async def get_machine(session: aiohttp.ClientSession, name: str) -> Machine:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,
         "Content-Type": "application/json",

@@ -188,10 +188,10 @@ class SfApiError(Exception):
         self.message = message
 
 
-async def submit_job(batch_submit_file: str) -> int:
+async def submit_job(machine: str, batch_submit_file: str) -> int:
     data = {"job": batch_submit_file, "isPath": True}
 
-    r = await sfapi_post("compute/jobs/cori", data)
+    r = await sfapi_post("compute/jobs/{machine}", data)
     r.raise_for_status()
 
     sfapi_response = r.json()
@@ -293,7 +293,7 @@ async def process_submit_job_event(
     await bbcp_script_path.chmod(0o740)
 
     # Submit the job
-    slurm_id = await submit_job(str(submission_script_path))
+    slurm_id = await submit_job(machine.name, str(submission_script_path))
 
     # Update the job model with the slurm id
     await update_slurm_job_id(session, event.job.id, slurm_id)
@@ -351,7 +351,7 @@ def extract_job_id(workdir: str) -> Union[int, None]:
         return None
 
 
-async def read_slurm_out(slurm_id: int, workdir: str) -> str:
+async def read_slurm_out(slurm_id: int, workdir: str) -> Union[str, None]:
     out_file_path = AsyncPath(workdir) / f"slurm-{slurm_id}.out"
     if await out_file_path.exists():
         logger.info("Output exists: %s", str(out_file_path))
@@ -376,20 +376,26 @@ async def monitor_jobs():
                 "sacct": True,
             }
 
-            logger.info("Fetching jobs")
-            r = await sfapi_get("compute/jobs/cori", params)
-            r.raise_for_status()
+            # First fetch all jobs for machines we have configured
+            jobs = []
+            machines = await get_machines(session)
+            for machine in machines.keys():
+                logger.info(f"Fetching jobs for '{machine}'")
+                r = await sfapi_get(f"compute/jobs/{machine}", params)
+                r.raise_for_status()
 
-            response_json = r.json()
+                response_json = r.json()
 
-            if response_json["status"] != "ok":
-                error = response_json["error"]
-                logger.warning(f"SFAPI request to fetch jobs failed with: {error}")
-                return
+                if response_json["status"] != "ok":
+                    error = response_json["error"]
+                    logger.warning(f"SFAPI request to fetch jobs failed with: {error}")
+                    return
 
-            logger.info(response_json)
+                logger.info(response_json)
 
-            jobs = extract_jobs(response_json)
+                jobs += extract_jobs(response_json)
+
+            # Now process the jobs
             for job in jobs:
                 id = extract_job_id(job.workdir)
                 if id is None:
@@ -438,7 +444,7 @@ async def monitor_jobs():
                         id=job.scan_id,
                         locations=[
                             LocationRest(
-                                host="cori",
+                                host=f"{machine}",
                                 path=str(
                                     AsyncPath(settings.JOB_NCEMHUB_RAW_DATA_PATH)
                                     / date_dir

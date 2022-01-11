@@ -44,6 +44,7 @@ class Job(BaseModel):
     scan_id: int
     slurm_id: Optional[int]
     state: str
+    machine: str
 
 
 class SfapiJob(BaseModel):

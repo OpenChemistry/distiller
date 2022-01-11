@@ -111,7 +111,11 @@ async def render_bbcp_script(job: Job, dest_dir: str) -> str:
 
 
 @tenacity.retry(
-    retry=tenacity.retry_if_exception_type(httpx.TimeoutException),
+    retry=tenacity.retry_if_exception_type(
+        httpx.TimeoutException
+    ) |  tenacity.retry_if_exception_type(
+        httpx.ConnectError
+    ),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
@@ -132,7 +136,11 @@ async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
 
 
 @tenacity.retry(
-    retry=tenacity.retry_if_exception_type(httpx.TimeoutException),
+    retry=tenacity.retry_if_exception_type(
+        httpx.TimeoutException
+    ) |  tenacity.retry_if_exception_type(
+        httpx.ConnectError
+    ),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )

@@ -111,11 +111,7 @@ async def render_bbcp_script(job: Job, dest_dir: str) -> str:
 
 
 @tenacity.retry(
-    retry=tenacity.retry_if_exception_type(
-        httpx.TimeoutException
-    ) |  tenacity.retry_if_exception_type(
-        httpx.ConnectError
-    ),
+    retry=tenacity.retry_if_exception_type(httpx.TimeoutException),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
@@ -136,11 +132,7 @@ async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
 
 
 @tenacity.retry(
-    retry=tenacity.retry_if_exception_type(
-        httpx.TimeoutException
-    ) |  tenacity.retry_if_exception_type(
-        httpx.ConnectError
-    ),
+    retry=tenacity.retry_if_exception_type(httpx.TimeoutException),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
@@ -255,7 +247,10 @@ async def process_submit_job_event(
         AsyncPath(settings.JOB_SCRIPT_DIRECTORY) / str(event.job.id) / "bbcp.sh"
     )
 
-    await submission_script_path.parent.mkdir(parents=True, exist_ok=False)
+    if submission_script_path.parent.exists():
+        logger.warning(f"Job dir exists overriding: '{submission_script_path.parent}")
+
+    await submission_script_path.parent.mkdir(parents=True, exist_ok=True)
 
     async with submission_script_path.open("w") as fp:
         await fp.write(job_script_output)

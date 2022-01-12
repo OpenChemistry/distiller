@@ -247,7 +247,10 @@ async def process_submit_job_event(
         AsyncPath(settings.JOB_SCRIPT_DIRECTORY) / str(event.job.id) / "bbcp.sh"
     )
 
-    await submission_script_path.parent.mkdir(parents=True, exist_ok=False)
+    if submission_script_path.parent.exists():
+        logger.warning(f"Job dir exists overriding: '{submission_script_path.parent}")
+
+    await submission_script_path.parent.mkdir(parents=True, exist_ok=True)
 
     async with submission_script_path.open("w") as fp:
         await fp.write(job_script_output)

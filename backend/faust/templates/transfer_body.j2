@@ -14,13 +14,13 @@ list_files() {
   data_files=($(ssh {{settings.ACQUISITION_USER}}@$host ls $path/data_scan0*0{{scan.scan_id}}_module*.data || error_exit "Error listing files: $host:$path."))
   number_of_files={{"${#data_files[@]}"}}
   for ((i=0;i<$number_of_files;i++)); do
-    echo "{{settings.ACQUISITION_USER}}@$host:${data_files[$i]}" >> _ncem_files_{{job.id}}_$((i%{{settings.JOB_NUMBER_OF_NODES}})).txt
+    echo "{{settings.ACQUISITION_USER}}@$host:${data_files[$i]}" >> _ncem_files_{{job.id}}_$((i%{{machine.nodes}})).txt
   done
 }
 {% for l in scan.locations %}
 list_files {{l.host}} {{l.path}}
 {%- endfor %}
 
-srun -n {{machine.nodes}} --cpus-per-task=2 --cpu-bind=cores bbcp.sh  || error_exit "Error bbcp srun command failed."
+srun -n {{machine.nodes}} --cpus-per-task=2 {% if machine.ntasks_per_node -%} --ntasks-per-node={{machine.ntasks_per_node}} {% endif %}--cpu-bind=cores bbcp.sh  || error_exit "Error bbcp srun command failed."
 
 rm _ncem_files_{{job.id}}_*.txt

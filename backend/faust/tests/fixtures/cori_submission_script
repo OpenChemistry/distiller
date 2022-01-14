@@ -35,7 +35,7 @@ list_files() {
   data_files=($(ssh changeme@$host ls $path/data_scan0*01_module*.data || error_exit "Error listing files: $host:$path."))
   number_of_files=${#data_files[@]}
   for ((i=0;i<$number_of_files;i++)); do
-    echo "changeme@$host:${data_files[$i]}" >> _ncem_files_0_$((i%24)).txt
+    echo "changeme@$host:${data_files[$i]}" >> _ncem_files_0_$((i%20)).txt
   done
 }
 
@@ -47,6 +47,9 @@ srun -n 20 --cpus-per-task=2 --cpu-bind=cores bbcp.sh  || error_exit "Error bbcp
 
 rm _ncem_files_0_*.txt
 
-srun --exclusive -c 64 -n 20 shifter python3 /script --pad -l ${DW_JOB_STRIPED} -t 4.0 -s 1 --multi-pass || error_exit "Error shifter execution failed."
+# Remove any // ($DW_JOB_STRIPED has a trailing slash)
+BBCP_DEST_DIR=`echo "${DW_JOB_STRIPED}/0" |  sed 's/\/\//\//g'`
 
-cp ${DW_JOB_STRIPED}/data_scan*.h5  /tmp/data_scan1_id0_th4.0_electrons.h5 || error_exit "Failed to copy counted data to ncemhub."
+srun --exclusive -c 64 -n 20 shifter python3 /script --pad -l $BBCP_DEST_DIR -t 4.0 -s 1 --multi-pass || error_exit "Error shifter execution failed."
+
+cp ${BBCP_DEST_DIR}/data_scan*.h5  /tmp/data_scan1_id0_th4.0_electrons.h5 || error_exit "Failed to copy counted data to ncemhub."

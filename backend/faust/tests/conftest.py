@@ -64,7 +64,7 @@ def perlmutter_machine():
         "constraint": "gpu",
         "cpus_per_task": 128,
         "ntasks_per_node": 1,
-        "bbcp_dest_dir": "$PSCRATCH/test",
+        "bbcp_dest_dir": "$PSCRATCH/ncem",
     }
 
 

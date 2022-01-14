@@ -11,9 +11,6 @@
 #SBATCH --qos={{machine.qos}}
 #SBATCH --constraint={{machine.constraint}}
 #SBATCH --nodes={{machine.nodes}}
-{%- if machine.ntasks_per_node %}
-#SBATCH --ntasks-per-node={{machine.ntasks_per_node}}
-{%- endif %}
 #SBATCH --time=00:30:00
 #SBATCH --job-name=distiller-{{job.job_type}}-{{job.id}}
 #SBATCH --exclusive

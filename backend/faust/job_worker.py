@@ -206,7 +206,7 @@ class SfApiError(Exception):
 async def submit_job(machine: str, batch_submit_file: str) -> int:
     data = {"job": batch_submit_file, "isPath": True}
 
-    r = await sfapi_post("compute/jobs/{machine}", data)
+    r = await sfapi_post(f"compute/jobs/{machine}", data)
     r.raise_for_status()
 
     sfapi_response = r.json()
@@ -255,9 +255,11 @@ async def process_submit_job_event(
 ) -> None:
 
     # We need to fetch the machine specific configuration
-    machine = await get_machine(session, event.machine)
+    machine = await get_machine(session, event.job.machine)
 
-    bbcp_dest_dir = machine.bbcp_dest_dir
+    # Add job id to allow for simple clean up
+    bbcp_dest_dir = str(Path(machine.bbcp_dest_dir) / str(event.job.id))
+
     # Not sure why by created comes in as a str, so convert to datetime
     created_datetime = datetime.fromisoformat(event.scan.created)
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
@@ -388,19 +390,21 @@ completed_jobs = set()
 async def monitor_jobs():
     async with aiohttp.ClientSession() as session:
         try:
-            params = {
-                "kwargs": [
-                    f"user={settings.SFAPI_USER}",
-                    f"qos={settings.JOB_QOS_FILTER}",
-                ],
-                "sacct": True,
-            }
-
             # First fetch all jobs for machines we have configured
             jobs = []
             machines = await get_machines(session)
-            for machine in machines.keys():
+            for machine, machine_params in machines.items():
                 logger.info(f"Fetching jobs for '{machine}'")
+                kwargs = [f"user={settings.SFAPI_USER}"]
+                if machine_params.qos_filter is not None:
+                    logger.info(f"Using qos={machine_params.qos_filter}.")
+                    kwargs.append(f"qos={machine_params.qos_filter}")
+                params = {
+                    "kwargs": kwargs,
+                    "sacct": True,
+                }
+
+                logger.info(f"compute/jobs/{machine}")
                 r = await sfapi_get(f"compute/jobs/{machine}", params)
                 r.raise_for_status()
 

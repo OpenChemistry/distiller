@@ -264,6 +264,7 @@ const ScanPage: React.FC<Props> = () => {
             <TableHead>
               <TableRow>
                 <TableCell className={classes.headCell}>ID</TableCell>
+                <TableCell className={classes.headCell}>Machine</TableCell>
                 <TableCell className={classes.headCell}>Type</TableCell>
                 <TableCell className={classes.headCell}>Slurm ID</TableCell>
                 <TableCell className={classes.headCell}>Elapsed</TableCell>
@@ -280,6 +281,7 @@ const ScanPage: React.FC<Props> = () => {
                   return (
                     <TableRow key={job.id}>
                       <TableCell>{job.id}</TableCell>
+                      <TableCell>{job.machine}</TableCell>
                       <TableCell title={job.job_type}>
                         <Icon />
                       </TableCell>

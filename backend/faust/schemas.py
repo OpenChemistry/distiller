@@ -59,6 +59,7 @@ class Machine(BaseModel):
     name: str
     account: str
     qos: str
+    qos_filter: Optional[str]
     nodes: int
     constraint: str
     ntasks_per_node: Optional[str]

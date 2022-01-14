@@ -78,7 +78,6 @@ class Job(faust.Record):
 
 class SubmitJobEvent(faust.Record):
     job: Job
-    machine: str
     scan: ScanRecord
 
 

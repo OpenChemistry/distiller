@@ -23,6 +23,7 @@ def read_machines():
 @router.get(
     "/{name}",
     response_model=schemas.Machine,
+    response_model_exclude_none=True,
     dependencies=[Depends(get_api_key)],
 )
 def read_machine(name: str):

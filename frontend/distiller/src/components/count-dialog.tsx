@@ -33,7 +33,7 @@ const CountDialog: React.FC<Props> = (props) => {
 
   const submitClick = () => {
     setPending(true);
-    onSubmit({ threshold, machine })
+    onSubmit({ threshold })
       .then(() => {
         setPending(false);
         onClose();

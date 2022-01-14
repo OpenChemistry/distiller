@@ -124,8 +124,8 @@ const ScanPage: React.FC<Props> = () => {
     setJobDialog(undefined);
   };
 
-  const onJobSubmit = (type: JobType, params: any) => {
-    return createJob(type, scanId, params);
+  const onJobSubmit = (type: JobType, machine: string, params: any) => {
+    return createJob(type, scanId, machine, params);
   };
 
   const onJobOutputClick = (job: ScanJob) => {
@@ -312,7 +312,7 @@ const ScanPage: React.FC<Props> = () => {
         machine={machine}
         setMachine={setMachine}
         onClose={onJobClose}
-        onSubmit={(params) => onJobSubmit(JobType.Transfer, params)}
+        onSubmit={(params) => onJobSubmit(JobType.Transfer, machine, params)}
       />
 
       <CountDialog
@@ -321,7 +321,7 @@ const ScanPage: React.FC<Props> = () => {
         machine={machine}
         setMachine={setMachine}
         onClose={onJobClose}
-        onSubmit={(params: any) => onJobSubmit(JobType.Count, params)}
+        onSubmit={(params: any) => onJobSubmit(JobType.Count, machine, params)}
       />
 
       <RemoveScanFilesConfirmDialog

@@ -12,7 +12,6 @@ from sqlalchemy.orm import Session
 from app import schemas
 from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
 from app.core.config import settings
-from app.core.constants import COMPUTE_HOSTS
 from app.core.logging import logger
 from app.crud import scan as crud
 from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
@@ -150,7 +149,8 @@ async def update_scan(
 
 async def _remove_scan_files(db_scan: Scan, host: str = None):
     if host is None:
-        hosts = set([l.host for l in db_scan.locations if l.host not in COMPUTE_HOSTS])
+        comput_hosts = [m.name for m in settings.MACHINES]
+        hosts = set([l.host for l in db_scan.locations if l.host not in comput_hosts])
     else:
         hosts = [host]
 

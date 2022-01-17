@@ -13,5 +13,5 @@ class Job(Base):
     params = Column(JSON)
     output = Column(String, nullable=True)
     elapsed = Column(Interval, nullable=True)
-    machine = Column(String)
+    machine = Column(String, nullable=False)
     scan_id = Column(Integer, ForeignKey("scans.id", ondelete="CASCADE"))

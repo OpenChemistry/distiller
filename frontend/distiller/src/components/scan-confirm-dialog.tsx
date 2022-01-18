@@ -17,7 +17,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 
 import { Scan, ScanLocation } from '../types';
-import { COMPUTE_HOSTS } from '../constants';
 
 const useStyles = makeStyles((theme) => ({
   warningText: {
@@ -31,6 +30,7 @@ const useStyles = makeStyles((theme) => ({
 
 type BaseProps = {
   scan: Scan | null;
+  machines: string[];
   onConfirm: ((params: { [key: string]: any }) => void) | undefined;
 };
 
@@ -114,7 +114,7 @@ const ScanConfirmDialog: React.FC<ScanConfirmDialogProps> = (props) => {
 
 export const ScanDeleteConfirmDialog: React.FC<BaseProps> = (props) => {
   const classes = useStyles();
-  const { scan } = props;
+  const { scan, machines } = props;
   const [removeScanFiles, setRemoveScanFiles] = useState<boolean>(false);
 
   if (scan === null) {
@@ -126,7 +126,7 @@ export const ScanDeleteConfirmDialog: React.FC<BaseProps> = (props) => {
 
   const hasLocations = () => {
     const edgeLocations = scan.locations.filter((l: ScanLocation) => {
-      return !COMPUTE_HOSTS.includes(l.host);
+      return !machines.includes(l.host);
     });
 
     return edgeLocations.length !== 0;
@@ -154,6 +154,7 @@ export const ScanDeleteConfirmDialog: React.FC<BaseProps> = (props) => {
       contentText={contentText}
       scan={scan}
       onConfirm={onConfirm}
+      machines={machines}
     >
       {hasLocations() && (
         <React.Fragment>
@@ -180,7 +181,7 @@ export const ScanDeleteConfirmDialog: React.FC<BaseProps> = (props) => {
 };
 
 export const RemoveScanFilesConfirmDialog: React.FC<BaseProps> = (props) => {
-  const { onConfirm, scan } = props;
+  const { onConfirm, scan, machines } = props;
 
   if (scan === null) {
     return null;
@@ -195,6 +196,7 @@ export const RemoveScanFilesConfirmDialog: React.FC<BaseProps> = (props) => {
       contentText={contentText}
       scan={scan}
       onConfirm={onConfirm}
+      machines={machines}
     />
   );
 };

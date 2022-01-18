@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 
 import { useParams as useUrlParams } from 'react-router-dom';
 
+import useLocalStorageState from 'use-local-storage-state';
+
 import {
   Card,
   Grid,
@@ -31,6 +33,7 @@ import { DateTime } from 'luxon';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
 import { getScan, scansSelector, patchScan } from '../features/scans';
+import { machinesSelector } from '../features/machines';
 import LocationComponent from '../components/location';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
@@ -95,6 +98,12 @@ const ScanPage: React.FC<Props> = () => {
   const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] =
     React.useState<(params: { [key: string]: any } | undefined) => void>();
 
+  const machines = useAppSelector((state) => machinesSelector(state).machines);
+  const [machine, setMachine] = useLocalStorageState<string>(
+    'machine',
+    machines.length > 0 ? machines[0] : ''
+  );
+
   useEffect(() => {
     dispatch(getScan({ id: scanId }));
   }, [dispatch, scanId]);
@@ -115,8 +124,8 @@ const ScanPage: React.FC<Props> = () => {
     setJobDialog(undefined);
   };
 
-  const onJobSubmit = (type: JobType, params: any) => {
-    return createJob(type, scanId, params);
+  const onJobSubmit = (type: JobType, machine: string, params: any) => {
+    return createJob(type, scanId, machine, params);
   };
 
   const onJobOutputClick = (job: ScanJob) => {
@@ -180,6 +189,7 @@ const ScanPage: React.FC<Props> = () => {
                         confirmRemoval={confirmScanRemoval}
                         scan={scan}
                         locations={scan.locations}
+                        machines={machines}
                       />
                     </TableCell>
                   </TableRow>
@@ -255,6 +265,7 @@ const ScanPage: React.FC<Props> = () => {
             <TableHead>
               <TableRow>
                 <TableCell className={classes.headCell}>ID</TableCell>
+                <TableCell className={classes.headCell}>Machine</TableCell>
                 <TableCell className={classes.headCell}>Type</TableCell>
                 <TableCell className={classes.headCell}>Slurm ID</TableCell>
                 <TableCell className={classes.headCell}>Elapsed</TableCell>
@@ -271,6 +282,7 @@ const ScanPage: React.FC<Props> = () => {
                   return (
                     <TableRow key={job.id}>
                       <TableCell>{job.id}</TableCell>
+                      <TableCell>{job.machine}</TableCell>
                       <TableCell title={job.job_type}>
                         <Icon />
                       </TableCell>
@@ -299,19 +311,26 @@ const ScanPage: React.FC<Props> = () => {
 
       <TransferDialog
         open={jobDialog === JobType.Transfer}
+        machines={machines}
+        machine={machine}
+        setMachine={setMachine}
         onClose={onJobClose}
-        onSubmit={(params) => onJobSubmit(JobType.Transfer, params)}
+        onSubmit={(params) => onJobSubmit(JobType.Transfer, machine, params)}
       />
 
       <CountDialog
         open={jobDialog === JobType.Count}
+        machines={machines}
+        machine={machine}
+        setMachine={setMachine}
         onClose={onJobClose}
-        onSubmit={(params: any) => onJobSubmit(JobType.Count, params)}
+        onSubmit={(params: any) => onJobSubmit(JobType.Count, machine, params)}
       />
 
       <RemoveScanFilesConfirmDialog
         onConfirm={onScanFilesRemovalConfirm}
         scan={scanFilesToRemove}
+        machines={machines}
       />
 
       <JobOutputDialog

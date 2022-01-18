@@ -44,6 +44,7 @@ class Job(BaseModel):
     scan_id: int
     slurm_id: Optional[int]
     state: str
+    machine: str
 
 
 class SfapiJob(BaseModel):
@@ -52,3 +53,16 @@ class SfapiJob(BaseModel):
     workdir: str
     state: str
     elapsed: timedelta
+
+
+class Machine(BaseModel):
+    name: str
+    account: str
+    qos: str
+    qos_filter: Optional[str]
+    nodes: int
+    constraint: str
+    ntasks_per_node: Optional[str]
+    cpus_per_task: int
+    cpu_bind: Optional[str]
+    bbcp_dest_dir: str

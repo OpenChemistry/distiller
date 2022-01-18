@@ -23,7 +23,6 @@ COUNT_JOB_SCRIPT_TEMPLATE = "count.sh.j2"
 DW_JOB_STRIPED_VAR = "${DW_JOB_STRIPED}"
 
 DATE_DIR_FORMAT = "%Y.%m.%d"
-COMPUTE_HOSTS = ["cori"]
 
 
 class JobState(str, Enum):

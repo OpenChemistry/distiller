@@ -50,6 +50,7 @@ class Job(BaseModel):
     id: int
     job_type: JobType
     scan_id: int
+    machine: str
     slurm_id: Optional[int]
     state: JobState = JobState.INITIALIZING
     params: Dict[str, Union[str, int, float]]
@@ -64,6 +65,7 @@ class JobCreate(BaseModel):
     job_type: JobType
     scan_id: int
     params: Dict[str, Union[str, int, float]]
+    machine: str
 
 
 class JobUpdate(BaseModel):

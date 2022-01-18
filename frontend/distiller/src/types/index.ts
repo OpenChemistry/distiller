@@ -85,6 +85,7 @@ export type ScanJob = {
   state: JobState;
   params: any;
   output?: string;
+  machine?: string;
 };
 
 export type Scan = {

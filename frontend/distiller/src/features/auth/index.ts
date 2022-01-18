@@ -14,6 +14,7 @@ import {
 import { User } from '../../types';
 import { apiClient } from '../../client';
 import { connectNotifications } from '../notifications';
+import { getMachines } from '../machines';
 
 export interface AuthState {
   user?: User;
@@ -48,6 +49,7 @@ export const login = createAsyncThunk<User, AuthenticatePayload>(
     }, (exp - 30) * 1000); // Refresh 30 seconds before actual expiration
 
     dispatch(connectNotifications());
+    dispatch(getMachines());
 
     const user = await getUserAPI();
 
@@ -91,6 +93,7 @@ export const restoreSession = createAsyncThunk<User, void>(
     await refreshToken(true, thunkAPI.dispatch, controller.signal);
 
     dispatch(connectNotifications());
+    dispatch(getMachines());
 
     const user = await getUserAPI();
 

@@ -53,9 +53,7 @@ const LocationChip: React.FC<ChipProps> = (props) => {
   return (
     <Chip
       label={host}
-      onDelete={
-        deletable && !machines.includes(host) ? onDelete : undefined
-      }
+      onDelete={deletable && !machines.includes(host) ? onDelete : undefined}
     />
   );
 };

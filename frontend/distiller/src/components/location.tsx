@@ -8,8 +8,6 @@ import { ScanLocation, Scan } from '../types';
 import { useAppDispatch } from '../app/hooks';
 import { removeScanFiles } from '../features/scans';
 
-import { COMPUTE_HOSTS } from '../constants';
-
 const useStyles = makeStyles((_theme) => ({
   chip: {},
 }));
@@ -18,6 +16,7 @@ type Props = {
   scan: Scan;
   locations: ScanLocation[];
   confirmRemoval: (scan: Scan) => Promise<boolean>;
+  machines: string[];
 };
 
 type UniqueLocation = {
@@ -28,13 +27,15 @@ type UniqueLocation = {
 type ChipProps = {
   scan: Scan;
   host: string;
+  machines: string[];
+
   confirmRemoval: (scan: Scan) => Promise<boolean>;
 };
 
 const LocationChip: React.FC<ChipProps> = (props) => {
   const dispatch = useAppDispatch();
   const [deletable, setDeletable] = React.useState(true);
-  const { scan, host, confirmRemoval } = props;
+  const { scan, host, confirmRemoval, machines } = props;
 
   const onDelete = async () => {
     if (scan === undefined) {
@@ -53,7 +54,7 @@ const LocationChip: React.FC<ChipProps> = (props) => {
     <Chip
       label={host}
       onDelete={
-        deletable && !COMPUTE_HOSTS.includes(host) ? onDelete : undefined
+        deletable && !machines.includes(host) ? onDelete : undefined
       }
     />
   );
@@ -62,7 +63,7 @@ const LocationChip: React.FC<ChipProps> = (props) => {
 const LocationComponent: React.FC<Props> = (props) => {
   const classes = useStyles();
 
-  const { locations } = props;
+  const { locations, machines } = props;
   const uniqueLocations: UniqueLocation[] = Object.values(
     locations.reduce((locs, location) => {
       const { host, path } = location;
@@ -88,6 +89,7 @@ const LocationComponent: React.FC<Props> = (props) => {
               scan={props.scan}
               host={location.host}
               confirmRemoval={props.confirmRemoval}
+              machines={machines}
             />
           </div>
         );

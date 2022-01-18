@@ -189,6 +189,7 @@ const ScanPage: React.FC<Props> = () => {
                         confirmRemoval={confirmScanRemoval}
                         scan={scan}
                         locations={scan.locations}
+                        machines={machines}
                       />
                     </TableCell>
                   </TableRow>
@@ -329,6 +330,7 @@ const ScanPage: React.FC<Props> = () => {
       <RemoveScanFilesConfirmDialog
         onConfirm={onScanFilesRemovalConfirm}
         scan={scanFilesToRemove}
+        machines={machines}
       />
 
       <JobOutputDialog

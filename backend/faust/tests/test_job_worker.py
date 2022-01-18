@@ -30,8 +30,6 @@ async def test_perlmutter_submission_script(
 
     dest_dir = "/tmp"
 
-    print(scan)
-
     perlmutter_submission_script = await job_worker.render_job_script(
         scan, job, perlmutter_machine, dest_dir, machine_names
     )

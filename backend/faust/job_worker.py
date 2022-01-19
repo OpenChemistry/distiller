@@ -416,7 +416,7 @@ async def monitor_jobs():
                 if response_json["status"] != "ok":
                     error = response_json["error"]
                     logger.warning(f"SFAPI request to fetch jobs failed with: {error}")
-                    return
+                    continue
 
                 logger.info(response_json)
 

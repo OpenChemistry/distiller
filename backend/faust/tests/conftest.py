@@ -67,6 +67,20 @@ def perlmutter_machine():
         "bbcp_dest_dir": "$PSCRATCH/ncem",
     }
 
+@pytest.fixture
+def perlmutter_reservation_machine():
+    return {
+        "name": "perlmutter",
+        "account": "staff",
+        "qos": "science",
+        "nodes": 8,
+        "constraint": "gpu",
+        "cpus_per_task": 128,
+        "ntasks_per_node": 1,
+        "bbcp_dest_dir": "$PSCRATCH/ncem",
+        "reservation": "test",
+    }
+
 
 @pytest.fixture
 def expected_cori_submission_script():
@@ -83,6 +97,16 @@ def expected_cori_submission_script():
 def expected_perlmutter_submission_script():
     excepted_perlmutter_submission_script_path = (
         Path(__file__).parent / "fixtures" / "perlmutter_submission_script"
+    )
+    with excepted_perlmutter_submission_script_path.open() as fp:
+        expected_perlmutter_submission_script = fp.read()
+
+    return expected_perlmutter_submission_script
+
+@pytest.fixture
+def expected_perlmutter_reservation_submission_script():
+    excepted_perlmutter_submission_script_path = (
+        Path(__file__).parent / "fixtures" / "perlmutter_reservation_submission_script"
     )
     with excepted_perlmutter_submission_script_path.open() as fp:
         expected_perlmutter_submission_script = fp.read()

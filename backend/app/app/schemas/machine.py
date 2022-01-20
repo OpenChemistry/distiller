@@ -13,3 +13,4 @@ class Machine(BaseModel):
     ntasks_per_node: Optional[int]
     cpus_per_task: int
     bbcp_dest_dir: str
+    reservation: Optional[str]

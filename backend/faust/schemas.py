@@ -66,3 +66,4 @@ class Machine(BaseModel):
     cpus_per_task: int
     cpu_bind: Optional[str]
     bbcp_dest_dir: str
+    reservation: Optional[str]

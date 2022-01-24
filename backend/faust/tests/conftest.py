@@ -48,6 +48,7 @@ def cori_machine():
         "account": "m3795",
         "qos": "realtime",
         "nodes": 20,
+        "ntasks": 20,
         "constraint": "haswell",
         "cpus_per_task": 64,
         "bbcp_dest_dir": "${DW_JOB_STRIPED}",
@@ -65,6 +66,7 @@ def perlmutter_machine():
         "constraint": "gpu",
         "cpus_per_task": 128,
         "ntasks_per_node": 1,
+        "ntasks": 16,
         "bbcp_dest_dir": "$PSCRATCH/ncem",
     }
 
@@ -79,6 +81,7 @@ def perlmutter_reservation_machine():
         "constraint": "gpu",
         "cpus_per_task": 128,
         "ntasks_per_node": 1,
+        "ntasks": 16,
         "bbcp_dest_dir": "$PSCRATCH/ncem",
         "reservation": "test",
     }
@@ -139,6 +142,7 @@ def expected_perlmutter_overridden():
         "constraint": "gpu",
         "cpus_per_task": 128,
         "ntasks_per_node": 1,
+        "ntasks": 16,
         "bbcp_dest_dir": "$PSCRATCH/ncem",
         "reservation": "test2",
     }

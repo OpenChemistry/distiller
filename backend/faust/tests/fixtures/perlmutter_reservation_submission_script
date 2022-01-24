@@ -34,7 +34,7 @@ list_files() {
   data_files=($(ssh changeme@$host ls $path/data_scan0*01_module*.data || error_exit "Error listing files: $host:$path."))
   number_of_files=${#data_files[@]}
   for ((i=0;i<$number_of_files;i++)); do
-    echo "changeme@$host:${data_files[$i]}" >> _ncem_files_0_$((i%8)).txt
+    echo "changeme@$host:${data_files[$i]}" >> _ncem_files_0_$((i%16)).txt
   done
 }
 
@@ -42,7 +42,7 @@ list_files localhost /mnt/nvmedata1
 list_files localhost /mnt/nvmedata4
 list_files localhost /mnt/nvmedata5
 
-srun -n 8 --cpus-per-task=2 --ntasks-per-node=1 --cpu-bind=cores bbcp.sh  || error_exit "Error bbcp srun command failed."
+srun -n 16 --cpus-per-task=2 --ntasks-per-node=1 --cpu-bind=cores bbcp.sh  || error_exit "Error bbcp srun command failed."
 
 rm _ncem_files_0_*.txt
 

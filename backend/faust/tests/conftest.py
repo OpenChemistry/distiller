@@ -68,6 +68,7 @@ def perlmutter_machine():
         "bbcp_dest_dir": "$PSCRATCH/ncem",
     }
 
+
 @pytest.fixture
 def perlmutter_reservation_machine():
     params = {
@@ -106,6 +107,7 @@ def expected_perlmutter_submission_script():
 
     return expected_perlmutter_submission_script
 
+
 @pytest.fixture
 def expected_perlmutter_reservation_submission_script():
     excepted_perlmutter_submission_script_path = (
@@ -116,13 +118,16 @@ def expected_perlmutter_reservation_submission_script():
 
     return expected_perlmutter_submission_script
 
+
 @pytest.fixture
 def overrides_path():
     return Path(__file__).parent / "fixtures"
 
+
 @pytest.fixture
 def machine_names():
     return ["cori", "perlmutter"]
+
 
 @pytest.fixture
 def expected_perlmutter_overridden():

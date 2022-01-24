@@ -3,3 +3,4 @@ httpx
 tenacity
 aiohttp
 aiopath
+python-dotenv

@@ -14,6 +14,7 @@ import tenacity
 from aiopath import AsyncPath
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
 from authlib.oauth2.rfc7523 import PrivateKeyJWT
+from dotenv import dotenv_values
 
 import faust
 from config import settings
@@ -103,8 +104,17 @@ async def get_machines(session: aiohttp.ClientSession) -> Dict[str, Machine]:
 
 async def get_machine(session: aiohttp.ClientSession, name: str) -> Machine:
     machines = await get_machines(session)
+    machine = machines[name]
 
-    return machines[name]
+    # Check if we have a override file
+    if settings.JOB_MACHINE_OVERRIDES_PATH is not None:
+        machine_override_path = AsyncPath(settings.JOB_MACHINE_OVERRIDES_PATH) / name
+
+        if await machine_override_path.exists():
+            overrides = dotenv_values(machine_override_path)
+            machine = machine.copy(update=overrides)
+
+    return machine
 
 
 async def render_job_script(

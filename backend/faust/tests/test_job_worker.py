@@ -54,6 +54,29 @@ async def test_perlmutter_reservation_submission_script(
         scan, job, perlmutter_reservation_machine, dest_dir, machine_names
     )
 
-    print(perlmutter_submission_script)
-
     assert perlmutter_submission_script == expected_perlmutter_reservation_submission_script
+
+
+@pytest.mark.asyncio
+async def test_machine_overrides(
+    mocker,
+    scan,
+    job,
+    perlmutter_reservation_machine,
+    overrides_path,
+    machine_names,
+    expected_perlmutter_overridden,
+):
+    mocker.patch("authlib.integrations.httpx_client.AsyncOAuth2Client", autospec=True)
+
+    dest_dir = "/tmp"
+
+    machines = {
+        "perlmutter": perlmutter_reservation_machine
+    }
+    mocker.patch.object(job_worker, 'get_machines', return_value=machines)
+    mocker.patch.object(job_worker.settings, "JOB_MACHINE_OVERRIDES_PATH", overrides_path)
+
+    perlmutter = await job_worker.get_machine(None, 'perlmutter')
+
+    assert perlmutter == expected_perlmutter_overridden

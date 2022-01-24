@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from faust_records import Location, Scan
+from schemas import Machine
 
 
 @pytest.fixture
@@ -69,7 +70,7 @@ def perlmutter_machine():
 
 @pytest.fixture
 def perlmutter_reservation_machine():
-    return {
+    params = {
         "name": "perlmutter",
         "account": "staff",
         "qos": "science",
@@ -80,6 +81,8 @@ def perlmutter_reservation_machine():
         "bbcp_dest_dir": "$PSCRATCH/ncem",
         "reservation": "test",
     }
+
+    return Machine(**params)
 
 
 @pytest.fixture
@@ -113,7 +116,26 @@ def expected_perlmutter_reservation_submission_script():
 
     return expected_perlmutter_submission_script
 
+@pytest.fixture
+def overrides_path():
+    return Path(__file__).parent / "fixtures"
 
 @pytest.fixture
 def machine_names():
     return ["cori", "perlmutter"]
+
+@pytest.fixture
+def expected_perlmutter_overridden():
+    params = {
+        "name": "perlmutter",
+        "account": "newaccount",
+        "qos": "science",
+        "nodes": 8,
+        "constraint": "gpu",
+        "cpus_per_task": 128,
+        "ntasks_per_node": 1,
+        "bbcp_dest_dir": "$PSCRATCH/ncem",
+        "reservation": "test2",
+    }
+
+    return Machine(**params)

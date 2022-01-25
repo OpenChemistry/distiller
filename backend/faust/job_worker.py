@@ -417,20 +417,36 @@ async def monitor_jobs():
                     "sacct": True,
                 }
 
-                logger.info(f"compute/jobs/{machine}")
-                r = await sfapi_get(f"compute/jobs/{machine}", params)
-                r.raise_for_status()
+                try:
+                    logger.info(f"compute/jobs/{machine}")
+                    r = await sfapi_get(f"status/{machine}")
+                    r.raise_for_status()
 
-                response_json = r.json()
+                    response_json = r.json()
+                    status = response_json["status"]
 
-                if response_json["status"] != "ok":
-                    error = response_json["error"]
-                    logger.warning(f"SFAPI request to fetch jobs failed with: {error}")
-                    continue
+                    logger.info(f"{machine} is '{status}'")
 
-                logger.info(response_json)
+                    if status != "active":
+                        logger.warning(f"Skipping {machine}")
+                        continue
 
-                jobs += extract_jobs(response_json)
+                    r = await sfapi_get(f"compute/jobs/{machine}", params)
+                    r.raise_for_status()
+
+                    response_json = r.json()
+
+                    if response_json["status"] != "ok":
+                        error = response_json["error"]
+                        logger.warning(f"SFAPI request to fetch jobs failed with: {error}")
+                        continue
+
+                    logger.info(response_json)
+
+                    jobs += extract_jobs(response_json)
+                except tenacity.RetryError:
+                    logger.exception('SF API timeout.')
+                    pass
 
             # Now process the jobs
             for job in jobs:

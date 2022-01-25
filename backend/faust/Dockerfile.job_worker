@@ -3,31 +3,8 @@ FROM openchemistry/distiller-faust-base:latest
 
 RUN ls -la /tmp
 
-RUN apt-get update -y --fix-missing \
-  && apt-get install -y \
-    curl
-
 RUN mkdir -p /app/distiller-data && \
   chmod a+xrw /app/distiller-data
-
-
-
-WORKDIR /tmp
-
-RUN cd /tmp && curl -L https://github.com/lepture/authlib/archive/refs/tags/v0.15.4.tar.gz -o v0.15.4.tar.gz && ls && \
-  tar zxf v0.15.4.tar.gz && ls
-
-COPY authlib.patch /tmp/authlib-0.15.4/
-
-RUN cd /tmp/authlib-0.15.4/ && \
-  patch -p1 < authlib.patch && \
-  pip install .
-
-# We are done these packages so remove.
-RUN apt-get remove -y \
-  build-essential \
-  curl \
-  && rm -rf /tmp/*
 
 WORKDIR /app
 

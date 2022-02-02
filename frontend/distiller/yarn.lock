@@ -1541,12 +1541,28 @@
     "@sentry/utils" "6.17.2"
     tslib "^1.9.3"
 
+"@sentry/hub@6.17.3":
+  version "6.17.3"
+  resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-6.17.3.tgz#9c75f0ce486cfed0635f48c875d92f655c1e5710"
+  dependencies:
+    "@sentry/types" "6.17.3"
+    "@sentry/utils" "6.17.3"
+    tslib "^1.9.3"
+
 "@sentry/minimal@6.17.2":
   version "6.17.2"
   resolved "https://registry.npmjs.org/@sentry/minimal/-/minimal-6.17.2.tgz"
   dependencies:
     "@sentry/hub" "6.17.2"
     "@sentry/types" "6.17.2"
+    tslib "^1.9.3"
+
+"@sentry/minimal@6.17.3":
+  version "6.17.3"
+  resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-6.17.3.tgz#3e9f0b017f639776c9eaa58694b9be3f03429c78"
+  dependencies:
+    "@sentry/hub" "6.17.3"
+    "@sentry/types" "6.17.3"
     tslib "^1.9.3"
 
 "@sentry/react@^6.16.2":
@@ -1560,25 +1576,36 @@
     hoist-non-react-statics "^3.3.2"
     tslib "^1.9.3"
 
-"@sentry/tracing@^6.16.2":
-  version "6.17.2"
-  resolved "https://registry.npmjs.org/@sentry/tracing/-/tracing-6.17.2.tgz"
+"@sentry/tracing@^6.17.3":
+  version "6.17.3"
+  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-6.17.3.tgz#b3841ad3fb1c7df1e21521da0d99c1496038a970"
   dependencies:
-    "@sentry/hub" "6.17.2"
-    "@sentry/minimal" "6.17.2"
-    "@sentry/types" "6.17.2"
-    "@sentry/utils" "6.17.2"
+    "@sentry/hub" "6.17.3"
+    "@sentry/minimal" "6.17.3"
+    "@sentry/types" "6.17.3"
+    "@sentry/utils" "6.17.3"
     tslib "^1.9.3"
 
 "@sentry/types@6.17.2":
   version "6.17.2"
   resolved "https://registry.npmjs.org/@sentry/types/-/types-6.17.2.tgz"
 
+"@sentry/types@6.17.3":
+  version "6.17.3"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.17.3.tgz#c5b9bba8111ff26b26c4a056e2a083905e03e7dd"
+
 "@sentry/utils@6.17.2":
   version "6.17.2"
   resolved "https://registry.npmjs.org/@sentry/utils/-/utils-6.17.2.tgz"
   dependencies:
     "@sentry/types" "6.17.2"
+    tslib "^1.9.3"
+
+"@sentry/utils@6.17.3":
+  version "6.17.3"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-6.17.3.tgz#a3c4c35e18ffb304356288213797c47c2bfdce08"
+  dependencies:
+    "@sentry/types" "6.17.3"
     tslib "^1.9.3"
 
 "@sinonjs/commons@^1.7.0":

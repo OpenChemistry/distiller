@@ -1514,31 +1514,23 @@
   version "1.1.0"
   resolved "https://registry.npmjs.org/@rushstack/eslint-patch/-/eslint-patch-1.1.0.tgz"
 
-"@sentry/browser@6.17.2":
-  version "6.17.2"
-  resolved "https://registry.npmjs.org/@sentry/browser/-/browser-6.17.2.tgz"
+"@sentry/browser@6.17.6":
+  version "6.17.6"
+  resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-6.17.6.tgz#146702ad9cb73bbccea9d08873a0abb04f6c99b9"
   dependencies:
-    "@sentry/core" "6.17.2"
-    "@sentry/types" "6.17.2"
-    "@sentry/utils" "6.17.2"
+    "@sentry/core" "6.17.6"
+    "@sentry/types" "6.17.6"
+    "@sentry/utils" "6.17.6"
     tslib "^1.9.3"
 
-"@sentry/core@6.17.2":
-  version "6.17.2"
-  resolved "https://registry.npmjs.org/@sentry/core/-/core-6.17.2.tgz"
+"@sentry/core@6.17.6":
+  version "6.17.6"
+  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-6.17.6.tgz#6ee2f2851b0bb2f2e967a10a8694d8bd98675aa5"
   dependencies:
-    "@sentry/hub" "6.17.2"
-    "@sentry/minimal" "6.17.2"
-    "@sentry/types" "6.17.2"
-    "@sentry/utils" "6.17.2"
-    tslib "^1.9.3"
-
-"@sentry/hub@6.17.2":
-  version "6.17.2"
-  resolved "https://registry.npmjs.org/@sentry/hub/-/hub-6.17.2.tgz"
-  dependencies:
-    "@sentry/types" "6.17.2"
-    "@sentry/utils" "6.17.2"
+    "@sentry/hub" "6.17.6"
+    "@sentry/minimal" "6.17.6"
+    "@sentry/types" "6.17.6"
+    "@sentry/utils" "6.17.6"
     tslib "^1.9.3"
 
 "@sentry/hub@6.17.4":
@@ -1549,12 +1541,12 @@
     "@sentry/utils" "6.17.4"
     tslib "^1.9.3"
 
-"@sentry/minimal@6.17.2":
-  version "6.17.2"
-  resolved "https://registry.npmjs.org/@sentry/minimal/-/minimal-6.17.2.tgz"
+"@sentry/hub@6.17.6":
+  version "6.17.6"
+  resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-6.17.6.tgz#af387ed1c180c05839610091de21ffb895b1403c"
   dependencies:
-    "@sentry/hub" "6.17.2"
-    "@sentry/types" "6.17.2"
+    "@sentry/types" "6.17.6"
+    "@sentry/utils" "6.17.6"
     tslib "^1.9.3"
 
 "@sentry/minimal@6.17.4":
@@ -1565,14 +1557,22 @@
     "@sentry/types" "6.17.4"
     tslib "^1.9.3"
 
-"@sentry/react@^6.16.2":
-  version "6.17.2"
-  resolved "https://registry.npmjs.org/@sentry/react/-/react-6.17.2.tgz"
+"@sentry/minimal@6.17.6":
+  version "6.17.6"
+  resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-6.17.6.tgz#9e6c37af869133834328889925500e0e76090cef"
   dependencies:
-    "@sentry/browser" "6.17.2"
-    "@sentry/minimal" "6.17.2"
-    "@sentry/types" "6.17.2"
-    "@sentry/utils" "6.17.2"
+    "@sentry/hub" "6.17.6"
+    "@sentry/types" "6.17.6"
+    tslib "^1.9.3"
+
+"@sentry/react@^6.17.6":
+  version "6.17.6"
+  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-6.17.6.tgz#25bc259874fecdfb57d1f3dd3ae8af8edc8299b4"
+  dependencies:
+    "@sentry/browser" "6.17.6"
+    "@sentry/minimal" "6.17.6"
+    "@sentry/types" "6.17.6"
+    "@sentry/utils" "6.17.6"
     hoist-non-react-statics "^3.3.2"
     tslib "^1.9.3"
 
@@ -1586,26 +1586,26 @@
     "@sentry/utils" "6.17.4"
     tslib "^1.9.3"
 
-"@sentry/types@6.17.2":
-  version "6.17.2"
-  resolved "https://registry.npmjs.org/@sentry/types/-/types-6.17.2.tgz"
-
 "@sentry/types@6.17.4":
   version "6.17.4"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.17.4.tgz#36b78d7c4a6de19b2bbc631bb34893bcad30c0ba"
 
-"@sentry/utils@6.17.2":
-  version "6.17.2"
-  resolved "https://registry.npmjs.org/@sentry/utils/-/utils-6.17.2.tgz"
-  dependencies:
-    "@sentry/types" "6.17.2"
-    tslib "^1.9.3"
+"@sentry/types@6.17.6":
+  version "6.17.6"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.17.6.tgz#7065df1433abfd8127462a6fe6f0538dbc307209"
 
 "@sentry/utils@6.17.4":
   version "6.17.4"
   resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-6.17.4.tgz#4f109629d2e7f16c5595b4367445ef47bfe96b61"
   dependencies:
     "@sentry/types" "6.17.4"
+    tslib "^1.9.3"
+
+"@sentry/utils@6.17.6":
+  version "6.17.6"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-6.17.6.tgz#900d75f04e126f9ccb73a68cec574038375dd33e"
+  dependencies:
+    "@sentry/types" "6.17.6"
     tslib "^1.9.3"
 
 "@sinonjs/commons@^1.7.0":

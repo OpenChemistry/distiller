@@ -427,7 +427,7 @@ async def monitor_jobs():
 
                     logger.info(f"{machine} is '{status}'")
 
-                    if status != "active":
+                    if status == "down":
                         logger.warning(f"Skipping {machine}")
                         continue
 

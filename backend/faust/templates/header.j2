@@ -19,3 +19,6 @@
 #SBATCH --balance_bridge={{machine.balance_bridge}}
 {%- endif %}
 #SBATCH --chdir={{settings.JOB_SCRIPT_DIRECTORY}}/{{job.id}}
+{%- if machine.reservation %}
+#SBATCH --reservation={{machine.reservation}}
+{%- endif %}

@@ -14,6 +14,7 @@ import tenacity
 from aiopath import AsyncPath
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
 from authlib.oauth2.rfc7523 import PrivateKeyJWT
+from dotenv import dotenv_values
 
 import faust
 from config import settings
@@ -103,8 +104,17 @@ async def get_machines(session: aiohttp.ClientSession) -> Dict[str, Machine]:
 
 async def get_machine(session: aiohttp.ClientSession, name: str) -> Machine:
     machines = await get_machines(session)
+    machine = machines[name]
 
-    return machines[name]
+    # Check if we have a override file
+    if settings.JOB_MACHINE_OVERRIDES_PATH is not None:
+        machine_override_path = AsyncPath(settings.JOB_MACHINE_OVERRIDES_PATH) / name
+
+        if await machine_override_path.exists():
+            overrides = dotenv_values(machine_override_path)
+            machine = machine.copy(update=overrides)
+
+    return machine
 
 
 async def render_job_script(
@@ -407,20 +417,36 @@ async def monitor_jobs():
                     "sacct": True,
                 }
 
-                logger.info(f"compute/jobs/{machine}")
-                r = await sfapi_get(f"compute/jobs/{machine}", params)
-                r.raise_for_status()
+                try:
+                    logger.info(f"compute/jobs/{machine}")
+                    r = await sfapi_get(f"status/{machine}")
+                    r.raise_for_status()
 
-                response_json = r.json()
+                    response_json = r.json()
+                    status = response_json["status"]
 
-                if response_json["status"] != "ok":
-                    error = response_json["error"]
-                    logger.warning(f"SFAPI request to fetch jobs failed with: {error}")
-                    continue
+                    logger.info(f"{machine} is '{status}'")
 
-                logger.info(response_json)
+                    if status == "down":
+                        logger.warning(f"Skipping {machine}")
+                        continue
 
-                jobs += extract_jobs(response_json)
+                    r = await sfapi_get(f"compute/jobs/{machine}", params)
+                    r.raise_for_status()
+
+                    response_json = r.json()
+
+                    if response_json["status"] != "ok":
+                        error = response_json["error"]
+                        logger.warning(f"SFAPI request to fetch jobs failed with: {error}")
+                        continue
+
+                    logger.info(response_json)
+
+                    jobs += extract_jobs(response_json)
+                except tenacity.RetryError:
+                    logger.exception('SF API timeout.')
+                    pass
 
             # Now process the jobs
             for job in jobs:

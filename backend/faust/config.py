@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import AnyHttpUrl, BaseSettings
 
@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     JOB_QOS: str
     JOB_QOS_FILTER: str
     JOB_BBCP_EXECUTABLE_PATH: str
+    JOB_MACHINE_OVERRIDES_PATH: Optional[str]
 
     HAADF_IMAGE_UPLOAD_DIR: str
     HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS: int

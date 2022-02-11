@@ -101,10 +101,18 @@ def read_scans(
     response_model=schemas.Scan,
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
-def read_scan(id: int, db: Session = Depends(get_db)):
+def read_scan(response: Response, id: int, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(status_code=404, detail="Scan not found")
+
+    (prev_scan, next_scan) = crud.get_prev_next_scan(db, id)
+
+    if prev_scan is not None:
+        response.headers["X-Previous-Scan"] = str(prev_scan)
+
+    if next_scan is not None:
+        response.headers["X-Next-Scan"] = str(next_scan)
 
     return db_scan
 

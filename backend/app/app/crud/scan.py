@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Tuple, Union
 
 from sqlalchemy import desc, or_, update
 from sqlalchemy.orm import Session
@@ -191,3 +191,24 @@ def delete_locations(db: Session, scan_id: int, host: str) -> None:
         models.Location.scan_id == scan_id, models.Location.host == host
     ).delete()
     db.commit()
+
+
+def get_prev_next_scan(
+    db: Session, id: int
+) -> Tuple[Union[int, None], Union[int, None]]:
+    prev_scan = (
+        db.query(models.Scan.id)
+        .order_by(models.Scan.id.desc())
+        .filter(models.Scan.id < id)
+        .limit(1)
+        .scalar()
+    )
+    next_scan = (
+        db.query(models.Scan.id)
+        .order_by(models.Scan.id.asc())
+        .filter(models.Scan.id > id)
+        .limit(1)
+        .scalar()
+    )
+
+    return (prev_scan, next_scan)

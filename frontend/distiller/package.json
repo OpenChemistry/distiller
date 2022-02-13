@@ -12,7 +12,7 @@
     "@mui/styles": "^5.4.1",
     "@reduxjs/toolkit": "^1.7.2",
     "@sentry/react": "^6.17.6",
-    "@sentry/tracing": "^6.17.6",
+    "@sentry/tracing": "^6.17.7",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",

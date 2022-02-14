@@ -9,22 +9,25 @@ import {
   DialogTitle,
   FormControl,
   InputLabel,
-  MenuItem,
   Select,
   Typography,
 } from '@mui/material';
+import { Machine } from '../types';
+import MachineOptionComponent from './machine-option';
 
 type Props = {
   open: boolean;
-  machines: string[];
+  machines: Machine[];
   machine: string;
   setMachine: (machine: string) => void;
+  canRun: () => boolean;
   onClose: () => void;
   onSubmit: (params: any) => Promise<any>;
 };
 
 const TransferDialog: React.FC<Props> = (props) => {
-  const { open, machines, machine, setMachine, onClose, onSubmit } = props;
+  const { open, machines, machine, setMachine, onClose, onSubmit, canRun } =
+    props;
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
 
@@ -59,11 +62,7 @@ const TransferDialog: React.FC<Props> = (props) => {
             onChange={(ev) => setMachine(ev.target.value)}
             placeholder="Machine"
           >
-            {machines.map((machine) => (
-              <MenuItem key={machine} value={machine}>
-                {machine}
-              </MenuItem>
-            ))}
+            {machines.map(MachineOptionComponent)}
           </Select>
         </FormControl>
         <Typography color="error" variant="caption">
@@ -71,7 +70,7 @@ const TransferDialog: React.FC<Props> = (props) => {
         </Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={submitClick} disabled={pending}>
+        <Button onClick={submitClick} disabled={!canRun() || pending}>
           Submit
         </Button>
         <Button onClick={onClose} disabled={pending}>

@@ -1,23 +1,46 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import {
+  createAsyncThunk,
+  createSlice,
+  createEntityAdapter,
+} from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import { getMachines as getMachinesAPI } from './api';
+import { Machine } from '../../types';
 
-export type MachinesState = {
+export const machinesAdapter = createEntityAdapter<Machine>({
+  selectId: (machine) => machine.name,
+  sortComparer: (a, b) => a.name.localeCompare(b.name),
+});
+
+export interface MachinesState
+  extends ReturnType<typeof machinesAdapter.getInitialState> {
   status: 'idle' | 'loading' | 'complete';
-  machines: string[];
-};
+}
 
-const initialState: MachinesState = {
+const initialState: MachinesState = machinesAdapter.getInitialState({
   status: 'idle',
-  machines: [],
-};
+});
 
-export const getMachines = createAsyncThunk<string[]>(
+export const getMachines = createAsyncThunk<Machine[]>(
   'machines/fetch',
   async (_payload, _thunkAPI) => {
     const result = await getMachinesAPI();
 
-    return result;
+    return result.map((machine) => ({
+      ...machine,
+      status: 'unknown',
+      notes: [],
+    }));
+  }
+);
+
+export const getMachineState = createAsyncThunk<Machine, Machine>(
+  'machines/machine_state',
+  async (payload, _thunkAPI) => {
+    const result = await fetch(payload.statusURL).then((res) => res.json());
+    const { status, notes } = result;
+
+    return { ...payload, status, notes };
   }
 );
 
@@ -39,11 +62,16 @@ export const machinesSlice = createSlice({
         const machines = action.payload;
 
         state.status = 'complete';
-        state.machines = machines;
+        machinesAdapter.setAll(state, machines);
+      })
+      .addCase(getMachineState.fulfilled, (state, action) => {
+        const machine = action.payload;
+        machinesAdapter.upsertOne(state, machine);
       });
   },
 });
 
-export const machinesSelector = (state: RootState) => state.machines;
+export const machineState = (rootState: RootState) => rootState.machines;
+export const machineSelectors = machinesAdapter.getSelectors();
 
 export default machinesSlice.reducer;

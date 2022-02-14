@@ -106,3 +106,10 @@ export type ScansRequestResult = {
   // The unfiltered number of scans, needed for pagination
   totalCount: number;
 };
+
+export type Machine = {
+  name: string;
+  status: string;
+  notes: string[];
+  statusURL: string;
+};

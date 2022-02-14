@@ -1,6 +1,7 @@
 import { apiClient } from '../../client';
+import { Machine } from '../../types';
 
-export function getMachines(): Promise<string[]> {
+export function getMachines(): Promise<Machine[]> {
   return apiClient
     .get({
       url: `machines`,

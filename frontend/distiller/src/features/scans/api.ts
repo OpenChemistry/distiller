@@ -1,5 +1,6 @@
 import { apiClient } from '../../client';
 import { IdType, Scan, ScansRequestResult } from '../../types';
+import { pickNil } from '../../utils';
 
 export function getScans(
   skip?: number,
@@ -44,7 +45,19 @@ export function getScan(id: IdType): Promise<Scan> {
     .get({
       url: `scans/${id}`,
     })
-    .then((res) => res.json());
+    .then((res) => {
+      return res.json().then((scan: Scan) => {
+        let prevScanId: any = pickNil(
+          res.headers.get('x-previous-scan'),
+          undefined
+        );
+        let nextScanId: any = pickNil(
+          res.headers.get('x-next-scan'),
+          undefined
+        );
+        return { ...scan, prevScanId, nextScanId };
+      });
+    });
 }
 
 export function patchScan(id: IdType, updates: Partial<Scan>): Promise<Scan> {

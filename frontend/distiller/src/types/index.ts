@@ -97,6 +97,8 @@ export type Scan = {
   notes?: string;
   haadf_path?: string;
   jobs: ScanJob[];
+  prevScanId?: IdType;
+  nextScanId?: IdType;
 };
 
 export type ScansRequestResult = {

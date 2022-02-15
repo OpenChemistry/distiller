@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { useParams as useUrlParams } from 'react-router-dom';
+import { useParams as useUrlParams, useNavigate } from 'react-router-dom';
 
 import useLocalStorageState from 'use-local-storage-state';
 
@@ -25,6 +25,8 @@ import ImageIcon from '@mui/icons-material/Image';
 import TransferIcon from '@mui/icons-material/CompareArrows';
 import CountIcon from '@mui/icons-material/BlurOn';
 import OutputIcon from '@mui/icons-material/Terminal';
+import LeftIcon from '@mui/icons-material/ArrowLeft';
+import RightIcon from '@mui/icons-material/ArrowRight';
 import { pink } from '@mui/material/colors';
 import Tooltip from '@mui/material/Tooltip';
 import humanizeDuration from 'humanize-duration';
@@ -44,6 +46,8 @@ import CountDialog from '../components/count-dialog';
 import { createJob } from '../features/jobs/api';
 import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
 import JobOutputDialog from '../components/job-output';
+import { isNil } from '../utils';
+import { SCANS_PATH } from '../routes';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -67,6 +71,9 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     alignItems: 'end',
   },
+  spacer: {
+    flexGrow: 1,
+  },
 }));
 
 type Props = {};
@@ -89,6 +96,7 @@ const ScanPage: React.FC<Props> = () => {
   const scanId = parseInt(scanIdParam as string);
 
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const [jobDialog, setJobDialog] = useState<JobType | undefined>();
   const [jobOutputDialog, setJobOutputDialog] = useState<ScanJob | undefined>();
@@ -151,6 +159,14 @@ const ScanPage: React.FC<Props> = () => {
   const scan = useAppSelector((state) =>
     scansSelector.selectById(state, scanId)
   );
+
+  const onNavigateNext = () => {
+    navigate(`${SCANS_PATH}/${scan?.nextScanId}`);
+  };
+
+  const onNavigatePrev = () => {
+    navigate(`${SCANS_PATH}/${scan?.prevScanId}`);
+  };
 
   if (scan === undefined) {
     return null;
@@ -242,8 +258,8 @@ const ScanPage: React.FC<Props> = () => {
             size="small"
             color="primary"
             variant="outlined"
+            startIcon={<TransferIcon />}
           >
-            <TransferIcon />
             Transfer
           </Button>
           <Button
@@ -251,9 +267,30 @@ const ScanPage: React.FC<Props> = () => {
             size="small"
             color="primary"
             variant="outlined"
+            startIcon={<CountIcon />}
           >
-            <CountIcon />
             Count
+          </Button>
+          <div className={classes.spacer}></div>
+          <Button
+            onClick={onNavigatePrev}
+            size="small"
+            color="primary"
+            variant="outlined"
+            startIcon={<LeftIcon />}
+            disabled={isNil(scan.prevScanId)}
+          >
+            Prev Scan
+          </Button>
+          <Button
+            onClick={onNavigateNext}
+            size="small"
+            color="primary"
+            variant="outlined"
+            endIcon={<RightIcon />}
+            disabled={isNil(scan.nextScanId)}
+          >
+            Next Scan
           </Button>
         </CardActions>
       </Card>

@@ -42,7 +42,7 @@ import {
   ScanDeleteConfirmDialog,
   RemoveScanFilesConfirmDialog,
 } from '../components/scan-confirm-dialog';
-import { machinesSelector } from '../features/machines';
+import { machineSelectors, machineState } from '../features/machines';
 
 const useStyles = makeStyles((theme) => ({
   headCell: {
@@ -88,7 +88,10 @@ const ScansPage: React.FC = () => {
   const navigate = useNavigate();
   const scans = useAppSelector(scansSelector.selectAll);
   const totalScans = useAppSelector(totalCount);
-  const machines = useAppSelector((state) => machinesSelector(state).machines);
+  const machines = useAppSelector((state) =>
+    machineSelectors.selectAll(machineState(state))
+  );
+  const machineNames = machines.map((machine) => machine.name);
 
   const [maximizeImg, setMaximizeImg] = useState(false);
   const [activeImg, setActiveImg] = useState('');
@@ -215,7 +218,7 @@ const ScansPage: React.FC = () => {
                       confirmRemoval={confirmScanFilesRemoval}
                       scan={scan}
                       locations={scan.locations}
-                      machines={machines}
+                      machines={machineNames}
                     />
                   </TableCell>
                   <TableCell>
@@ -270,12 +273,12 @@ const ScansPage: React.FC = () => {
       <RemoveScanFilesConfirmDialog
         onConfirm={onScanFilesRemovalConfirm}
         scan={scanFilesToRemove}
-        machines={machines}
+        machines={machineNames}
       />
       <ScanDeleteConfirmDialog
         onConfirm={onScanDeleteConfirm}
         scan={scanToDelete}
-        machines={machines}
+        machines={machineNames}
       />
     </React.Fragment>
   );

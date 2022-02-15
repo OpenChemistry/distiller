@@ -35,7 +35,11 @@ import { DateTime } from 'luxon';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
 import { getScan, scansSelector, patchScan } from '../features/scans';
-import { machinesSelector } from '../features/machines';
+import {
+  machineState,
+  machineSelectors,
+  getMachineState,
+} from '../features/machines';
 import LocationComponent from '../components/location';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
@@ -48,6 +52,7 @@ import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog'
 import JobOutputDialog from '../components/job-output';
 import { isNil } from '../utils';
 import { SCANS_PATH } from '../routes';
+import { canRunJobs } from '../utils/machine';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -106,10 +111,13 @@ const ScanPage: React.FC<Props> = () => {
   const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] =
     React.useState<(params: { [key: string]: any } | undefined) => void>();
 
-  const machines = useAppSelector((state) => machinesSelector(state).machines);
+  const machines = useAppSelector((state) =>
+    machineSelectors.selectAll(machineState(state))
+  );
+  const machineNames = machines.map((machine) => machine.name);
   const [machine, setMachine] = useLocalStorageState<string>(
     'machine',
-    machines.length > 0 ? machines[0] : ''
+    machines.length > 0 ? machines[0].name : ''
   );
 
   useEffect(() => {
@@ -120,11 +128,19 @@ const ScanPage: React.FC<Props> = () => {
     return dispatch(patchScan({ id, updates: { notes } }));
   };
 
+  const fetchMachineStates = () => {
+    machines.forEach((machine) => {
+      dispatch(getMachineState(machine));
+    });
+  };
+
   const onTransferClick = () => {
+    fetchMachineStates();
     setJobDialog(JobType.Transfer);
   };
 
   const onCountClick = () => {
+    fetchMachineStates();
     setJobDialog(JobType.Count);
   };
 
@@ -142,6 +158,19 @@ const ScanPage: React.FC<Props> = () => {
 
   const onJobOutputClose = () => {
     setJobOutputDialog(undefined);
+  };
+
+  const allowRunningJobs = () => {
+    let canRun = false;
+
+    for (let m of machines) {
+      if (m.name === machine) {
+        canRun = canRunJobs(m.status);
+        break;
+      }
+    }
+
+    return canRun;
   };
 
   const confirmScanRemoval = (scan: Scan) => {
@@ -205,7 +234,7 @@ const ScanPage: React.FC<Props> = () => {
                         confirmRemoval={confirmScanRemoval}
                         scan={scan}
                         locations={scan.locations}
-                        machines={machines}
+                        machines={machineNames}
                       />
                     </TableCell>
                   </TableRow>
@@ -353,6 +382,7 @@ const ScanPage: React.FC<Props> = () => {
         setMachine={setMachine}
         onClose={onJobClose}
         onSubmit={(params) => onJobSubmit(JobType.Transfer, machine, params)}
+        canRun={allowRunningJobs}
       />
 
       <CountDialog
@@ -362,12 +392,13 @@ const ScanPage: React.FC<Props> = () => {
         setMachine={setMachine}
         onClose={onJobClose}
         onSubmit={(params: any) => onJobSubmit(JobType.Count, machine, params)}
+        canRun={allowRunningJobs}
       />
 
       <RemoveScanFilesConfirmDialog
         onConfirm={onScanFilesRemovalConfirm}
         scan={scanFilesToRemove}
-        machines={machines}
+        machines={machineNames}
       />
 
       <JobOutputDialog

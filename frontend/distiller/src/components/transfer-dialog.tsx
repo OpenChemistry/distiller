@@ -33,6 +33,7 @@ const TransferDialog: React.FC<Props> = (props) => {
 
   const submitClick = () => {
     setPending(true);
+    setError('');
     onSubmit({})
       .then(() => {
         setPending(false);

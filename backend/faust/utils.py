@@ -230,7 +230,8 @@ async def get_machines(session: aiohttp.ClientSession) -> List[str]:
         r.raise_for_status()
         json = await r.json()
 
-        return json
+        # We only want the names
+        return [m["name"] for m in json]
 
 
 @tenacity.retry(

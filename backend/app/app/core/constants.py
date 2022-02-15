@@ -6,3 +6,5 @@ TOPIC_LOG_FILE_SYNC_EVENTS = "log_file_sync_events"
 TOPIC_HAADF_FILE_EVENTS = "haadf_file_events"
 TOPIC_JOB_EVENTS = "job_events"
 TOPIC_CUSTODIAN_EVENT = "custodian_events"
+
+NERSC_STATUS_URL_PREFIX = "https://api.nersc.gov/api/v1.2/status/"

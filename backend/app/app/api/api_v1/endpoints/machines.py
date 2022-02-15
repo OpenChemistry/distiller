@@ -1,21 +1,22 @@
-from typing import List
+from typing import Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from app import schemas
 from app.api.deps import get_api_key, oauth2_password_bearer_or_api_key
 from app.core.config import settings
+from app.core.constants import NERSC_STATUS_URL_PREFIX
 
 router = APIRouter()
 
 
 @router.get(
     "",
-    response_model=List[str],
+    response_model=List[Dict[str, str]],
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
 def read_machines():
-    machines = [m.name for m in settings.MACHINES]
+    machines = [{"name": m.name, "statusURL": f"{NERSC_STATUS_URL_PREFIX}{m.name}"} for m in settings.MACHINES]
 
     return machines
 

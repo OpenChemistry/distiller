@@ -9,7 +9,7 @@
     "@material-ui/icons": "^4.11.2",
     "@mui/icons-material": "^5.4.2",
     "@mui/material": "^5.4.1",
-    "@mui/styles": "^5.4.1",
+    "@mui/styles": "^5.4.2",
     "@reduxjs/toolkit": "^1.7.2",
     "@sentry/react": "^6.17.7",
     "@sentry/tracing": "^6.17.7",

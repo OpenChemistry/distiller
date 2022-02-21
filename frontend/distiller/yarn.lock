@@ -1312,13 +1312,13 @@
   dependencies:
     "@babel/runtime" "^7.17.0"
 
-"@mui/material@^5.4.2":
-  version "5.4.2"
-  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.4.2.tgz#04ea6632d7ca600a2ae528f6f140ef0af9c01434"
+"@mui/material@^5.4.3":
+  version "5.4.3"
+  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.4.3.tgz#cc0af7192a856796bd82955c5317722916d02bc1"
   dependencies:
     "@babel/runtime" "^7.17.0"
     "@mui/base" "5.0.0-alpha.69"
-    "@mui/system" "^5.4.2"
+    "@mui/system" "^5.4.3"
     "@mui/types" "^7.1.2"
     "@mui/utils" "^5.4.2"
     "@types/react-transition-group" "^4.4.4"
@@ -1367,9 +1367,9 @@
     jss-plugin-vendor-prefixer "^10.8.2"
     prop-types "^15.7.2"
 
-"@mui/system@^5.4.2":
-  version "5.4.2"
-  resolved "https://registry.yarnpkg.com/@mui/system/-/system-5.4.2.tgz#8166e406ba4628950bd79cec8159de25d5aef162"
+"@mui/system@^5.4.3":
+  version "5.4.3"
+  resolved "https://registry.yarnpkg.com/@mui/system/-/system-5.4.3.tgz#3bc2547183b8d09b04df1c835cfeb1259f7ec3fd"
   dependencies:
     "@babel/runtime" "^7.17.0"
     "@mui/private-theming" "^5.4.2"

@@ -5501,9 +5501,9 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-luxon@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.npmjs.org/luxon/-/luxon-2.3.0.tgz"
+luxon@^2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-2.3.1.tgz#f276b1b53fd9a740a60e666a541a7f6dbed4155a"
 
 lz-string@^1.4.4:
   version "1.4.4"

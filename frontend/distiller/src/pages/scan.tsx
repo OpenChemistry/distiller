@@ -115,10 +115,9 @@ const ScanPage: React.FC<Props> = () => {
     machineSelectors.selectAll(machineState(state))
   );
   const machineNames = machines.map((machine) => machine.name);
-  const [machine, setMachine] = useLocalStorageState<string>(
-    'machine',
-    machines.length > 0 ? machines[0].name : ''
-  );
+  const [machine, setMachine] = useLocalStorageState<string>('machine', {
+    defaultValue: machines.length > 0 ? machines[0].name : '',
+  });
 
   useEffect(() => {
     dispatch(getScan({ id: scanId }));

@@ -38,7 +38,9 @@ const CountDialog: React.FC<Props> = (props) => {
   const classes = useStyles();
   const { open, machines, machine, setMachine, onClose, onSubmit, canRun } =
     props;
-  const [threshold, setThreshold] = useLocalStorageState('threshold', 4);
+  const [threshold, setThreshold] = useLocalStorageState('threshold', {
+    defaultValue: 4,
+  });
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
 

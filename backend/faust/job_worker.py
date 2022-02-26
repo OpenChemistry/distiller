@@ -185,7 +185,8 @@ def before_retry_client(retry_state) -> None:
     ),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
-    before=before_retry_client
+    before=before_retry_client,
+    before_sleep=tenacity.before_sleep_log(logger, logging.INFO)
 )
 async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
     client = await get_oauth2_client()
@@ -214,7 +215,8 @@ async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
     ),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
-    before=before_retry_client
+    before=before_retry_client,
+    before_sleep=tenacity.before_sleep_log(logger, logging.INFO)
 )
 async def sfapi_post(url: str, data: Dict[str, Any]) -> httpx.Response:
     client = await get_oauth2_client()

@@ -1307,11 +1307,11 @@
     prop-types "^15.7.2"
     react-is "^17.0.2"
 
-"@mui/icons-material@^5.4.2":
-  version "5.4.2"
-  resolved "https://registry.npmjs.org/@mui/icons-material/-/icons-material-5.4.2.tgz"
+"@mui/icons-material@^5.4.4":
+  version "5.4.4"
+  resolved "https://registry.yarnpkg.com/@mui/icons-material/-/icons-material-5.4.4.tgz#0dc7b4e68cbbdfc675f09f0763be1100aad910af"
   dependencies:
-    "@babel/runtime" "^7.17.0"
+    "@babel/runtime" "^7.17.2"
 
 "@mui/material@^5.4.4":
   version "5.4.4"

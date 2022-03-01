@@ -1330,14 +1330,6 @@
     react-is "^17.0.2"
     react-transition-group "^4.4.2"
 
-"@mui/private-theming@^5.4.2":
-  version "5.4.2"
-  resolved "https://registry.npmjs.org/@mui/private-theming/-/private-theming-5.4.2.tgz"
-  dependencies:
-    "@babel/runtime" "^7.17.0"
-    "@mui/utils" "^5.4.2"
-    prop-types "^15.7.2"
-
 "@mui/private-theming@^5.4.4":
   version "5.4.4"
   resolved "https://registry.yarnpkg.com/@mui/private-theming/-/private-theming-5.4.4.tgz#cc2b2d897888ce5d1c319adfa2c50c0063a649ab"
@@ -1354,15 +1346,15 @@
     "@emotion/cache" "^11.7.1"
     prop-types "^15.7.2"
 
-"@mui/styles@^5.4.2":
-  version "5.4.2"
-  resolved "https://registry.npmjs.org/@mui/styles/-/styles-5.4.2.tgz"
+"@mui/styles@^5.4.4":
+  version "5.4.4"
+  resolved "https://registry.yarnpkg.com/@mui/styles/-/styles-5.4.4.tgz#e6a18f3528a494d782fd80e7feb01bd75a3570dd"
   dependencies:
-    "@babel/runtime" "^7.17.0"
+    "@babel/runtime" "^7.17.2"
     "@emotion/hash" "^0.8.0"
-    "@mui/private-theming" "^5.4.2"
+    "@mui/private-theming" "^5.4.4"
     "@mui/types" "^7.1.2"
-    "@mui/utils" "^5.4.2"
+    "@mui/utils" "^5.4.4"
     clsx "^1.1.1"
     csstype "^3.0.10"
     hoist-non-react-statics "^3.3.2"
@@ -1393,7 +1385,7 @@
   version "7.1.2"
   resolved "https://registry.npmjs.org/@mui/types/-/types-7.1.2.tgz"
 
-"@mui/utils@^5.4.2", "@mui/utils@^5.4.4":
+"@mui/utils@^5.4.4":
   version "5.4.4"
   resolved "https://registry.yarnpkg.com/@mui/utils/-/utils-5.4.4.tgz#bd7dde4f48f60c02b6debf976bd74f3505b188fe"
   dependencies:

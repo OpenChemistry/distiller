@@ -898,7 +898,7 @@
     core-js-pure "^3.0.0"
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.10.2", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.15.4", "@babel/runtime@^7.16.3", "@babel/runtime@^7.17.0", "@babel/runtime@^7.17.2", "@babel/runtime@^7.3.1", "@babel/runtime@^7.4.4", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.7.6", "@babel/runtime@^7.8.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.2":
+"@babel/runtime@^7.10.2", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.15.4", "@babel/runtime@^7.16.3", "@babel/runtime@^7.17.2", "@babel/runtime@^7.3.1", "@babel/runtime@^7.4.4", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.7.6", "@babel/runtime@^7.8.3", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.2":
   version "7.17.2"
   resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.17.2.tgz"
   dependencies:
@@ -1534,28 +1534,12 @@
     "@sentry/utils" "6.18.1"
     tslib "^1.9.3"
 
-"@sentry/hub@6.18.0":
-  version "6.18.0"
-  resolved "https://registry.npmjs.org/@sentry/hub/-/hub-6.18.0.tgz"
-  dependencies:
-    "@sentry/types" "6.18.0"
-    "@sentry/utils" "6.18.0"
-    tslib "^1.9.3"
-
 "@sentry/hub@6.18.1":
   version "6.18.1"
   resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-6.18.1.tgz#fcfb8cb84515efefaf4e48472305ea5a71455abb"
   dependencies:
     "@sentry/types" "6.18.1"
     "@sentry/utils" "6.18.1"
-    tslib "^1.9.3"
-
-"@sentry/minimal@6.18.0":
-  version "6.18.0"
-  resolved "https://registry.npmjs.org/@sentry/minimal/-/minimal-6.18.0.tgz"
-  dependencies:
-    "@sentry/hub" "6.18.0"
-    "@sentry/types" "6.18.0"
     tslib "^1.9.3"
 
 "@sentry/minimal@6.18.1":
@@ -1577,30 +1561,19 @@
     hoist-non-react-statics "^3.3.2"
     tslib "^1.9.3"
 
-"@sentry/tracing@^6.18.0":
-  version "6.18.0"
-  resolved "https://registry.npmjs.org/@sentry/tracing/-/tracing-6.18.0.tgz"
+"@sentry/tracing@^6.18.1":
+  version "6.18.1"
+  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-6.18.1.tgz#7cc54b328dd051102900ade53e907e7441426f83"
   dependencies:
-    "@sentry/hub" "6.18.0"
-    "@sentry/minimal" "6.18.0"
-    "@sentry/types" "6.18.0"
-    "@sentry/utils" "6.18.0"
+    "@sentry/hub" "6.18.1"
+    "@sentry/minimal" "6.18.1"
+    "@sentry/types" "6.18.1"
+    "@sentry/utils" "6.18.1"
     tslib "^1.9.3"
-
-"@sentry/types@6.18.0":
-  version "6.18.0"
-  resolved "https://registry.npmjs.org/@sentry/types/-/types-6.18.0.tgz"
 
 "@sentry/types@6.18.1":
   version "6.18.1"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.18.1.tgz#e2de38dd0da8096a5d22f8effc6756c919266ede"
-
-"@sentry/utils@6.18.0":
-  version "6.18.0"
-  resolved "https://registry.npmjs.org/@sentry/utils/-/utils-6.18.0.tgz"
-  dependencies:
-    "@sentry/types" "6.18.0"
-    tslib "^1.9.3"
 
 "@sentry/utils@6.18.1":
   version "6.18.1"

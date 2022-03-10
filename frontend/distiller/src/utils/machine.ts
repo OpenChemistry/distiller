@@ -7,7 +7,7 @@ const STATUSES: { [key: string]: { canRun: boolean; color: any } } = {
     canRun: true,
     color: 'warning',
   },
-  down: {
+  unavailable: {
     canRun: false,
     color: 'error',
   },

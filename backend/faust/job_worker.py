@@ -454,7 +454,7 @@ async def monitor_jobs():
 
                     logger.info(f"{machine} is '{status}'")
 
-                    if status == "down":
+                    if status == "unavailable":
                         logger.warning(f"Skipping {machine}")
                         continue
 

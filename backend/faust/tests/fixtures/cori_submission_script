@@ -18,7 +18,7 @@
 #SBATCH --balance_bridge=ncem
 #SBATCH --chdir=/tmp/jobs/0
 #DW jobdw capacity=1000GB access_mode=striped type=scratch
-#SBATCH --image=openchemistry/stempy:multi-mpi
+#SBATCH --image=openchemistry/stempy-mpi:latest
 
 export HDF5_USE_FILE_LOCKING=FALSE
 

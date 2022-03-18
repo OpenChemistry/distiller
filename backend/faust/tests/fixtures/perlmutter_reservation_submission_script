@@ -17,7 +17,7 @@
 #SBATCH --account=staff
 #SBATCH --chdir=/tmp/jobs/0
 #SBATCH --reservation=test
-#SBATCH --image=openchemistry/stempy:multi-mpi
+#SBATCH --image=openchemistry/stempy-mpi:latest
 
 export HDF5_USE_FILE_LOCKING=FALSE
 

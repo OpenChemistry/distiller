@@ -1541,12 +1541,28 @@
     "@sentry/utils" "6.18.1"
     tslib "^1.9.3"
 
+"@sentry/hub@6.19.0":
+  version "6.19.0"
+  resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-6.19.0.tgz#28b2dcf52a14b1459e3e17686aa6f7325637bc7e"
+  dependencies:
+    "@sentry/types" "6.19.0"
+    "@sentry/utils" "6.19.0"
+    tslib "^1.9.3"
+
 "@sentry/minimal@6.18.1":
   version "6.18.1"
   resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-6.18.1.tgz#eac73d2262589930aa0bb33e0e12380ac5b766a9"
   dependencies:
     "@sentry/hub" "6.18.1"
     "@sentry/types" "6.18.1"
+    tslib "^1.9.3"
+
+"@sentry/minimal@6.19.0":
+  version "6.19.0"
+  resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-6.19.0.tgz#34ce462822b9dbc0838d9c2690512bb128a07e1e"
+  dependencies:
+    "@sentry/hub" "6.19.0"
+    "@sentry/types" "6.19.0"
     tslib "^1.9.3"
 
 "@sentry/react@^6.18.1":
@@ -1560,25 +1576,36 @@
     hoist-non-react-statics "^3.3.2"
     tslib "^1.9.3"
 
-"@sentry/tracing@^6.18.1":
-  version "6.18.1"
-  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-6.18.1.tgz#7cc54b328dd051102900ade53e907e7441426f83"
+"@sentry/tracing@^6.19.0":
+  version "6.19.0"
+  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-6.19.0.tgz#d7f0b2c8dc149bf72283a8b5ae78ae0b8a4f2926"
   dependencies:
-    "@sentry/hub" "6.18.1"
-    "@sentry/minimal" "6.18.1"
-    "@sentry/types" "6.18.1"
-    "@sentry/utils" "6.18.1"
+    "@sentry/hub" "6.19.0"
+    "@sentry/minimal" "6.19.0"
+    "@sentry/types" "6.19.0"
+    "@sentry/utils" "6.19.0"
     tslib "^1.9.3"
 
 "@sentry/types@6.18.1":
   version "6.18.1"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.18.1.tgz#e2de38dd0da8096a5d22f8effc6756c919266ede"
 
+"@sentry/types@6.19.0":
+  version "6.19.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.19.0.tgz#0c81da174005f8d1bc4aa141e9190686ba22ec6a"
+
 "@sentry/utils@6.18.1":
   version "6.18.1"
   resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-6.18.1.tgz#1aa819502b042540612f4db7bcb86c7b176f5a6b"
   dependencies:
     "@sentry/types" "6.18.1"
+    tslib "^1.9.3"
+
+"@sentry/utils@6.19.0":
+  version "6.19.0"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-6.19.0.tgz#8b61c77edd3b32c9a7d8a4c82e4ad7537ea6754c"
+  dependencies:
+    "@sentry/types" "6.19.0"
     tslib "^1.9.3"
 
 "@sinonjs/commons@^1.7.0":
@@ -7758,9 +7785,9 @@ url@^0.11.0:
     punycode "1.3.2"
     querystring "0.2.0"
 
-use-local-storage-state@^15.0.0:
-  version "15.0.0"
-  resolved "https://registry.npmjs.org/use-local-storage-state/-/use-local-storage-state-15.0.0.tgz"
+use-local-storage-state@^16.0.1:
+  version "16.0.1"
+  resolved "https://registry.yarnpkg.com/use-local-storage-state/-/use-local-storage-state-16.0.1.tgz#464bc038fe6b08146c789735a27d54199703b00c"
 
 util-deprecate@^1.0.1, util-deprecate@^1.0.2, util-deprecate@~1.0.1:
   version "1.0.2"

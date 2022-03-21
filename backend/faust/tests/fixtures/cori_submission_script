@@ -52,4 +52,4 @@ BBCP_DEST_DIR=`echo "${DW_JOB_STRIPED}/0" |  sed 's/\/\//\//g'`
 
 srun --exclusive -c 64 -n 20 shifter python3 /script --pad -l $BBCP_DEST_DIR -t 4.0 -s 1 --multi-pass || error_exit "Error shifter execution failed."
 
-cp ${BBCP_DEST_DIR}/data_scan*.h5  /tmp/data_scan1_id0_th4.0_electrons.h5 || error_exit "Failed to copy counted data to ncemhub."
+cp ${BBCP_DEST_DIR}/data_scan*.h5  /tmp/data_scan1_id0_electrons.h5 || error_exit "Failed to copy counted data to ncemhub."

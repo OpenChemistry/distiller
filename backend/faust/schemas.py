@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -22,12 +22,14 @@ class ScanCreate(BaseModel):
     scan_id: int
     created: datetime
     locations: List[Location]
+    metadata: Dict[str, Any]
 
 
 class ScanUpdate(BaseModel):
     id: int
     log_files: Optional[int]
     locations: Optional[List[Location]]
+    metadata: Optional[Dict[str, Any]]
 
 
 class JobUpdate(BaseModel):

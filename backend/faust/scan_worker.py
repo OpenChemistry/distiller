@@ -1,20 +1,22 @@
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import aiohttp
+import pytz
 
 import faust
 from config import settings
 from constants import (FILE_EVENT_TYPE_CREATED, FILE_EVENT_TYPE_DELETED,
                        LOG_PREFIX, PRIMARY_LOG_FILE_REGEX,
-                       TOPIC_LOG_FILE_EVENTS, TOPIC_LOG_FILE_SYNC_EVENTS)
+                       TOPIC_LOG_FILE_EVENTS, TOPIC_LOG_FILE_SYNC_EVENTS,
+                       TOPIC_SCAN_METADATA_EVENTS)
 from schemas import Location, ScanCreate, ScanUpdate
-from utils import (create_scan, delete_locations, extract_scan_id, get_scans,
-                   update_scan)
+from utils import (create_scan, delete_locations, extract_scan_id, get_scan,
+                   get_scans, update_scan)
 
 # Setup logger
 logger = logging.getLogger("scan_worker")
@@ -73,6 +75,9 @@ scan_id_to_id = app.Table("scan_id_to_id", default=int)
 # scan id to list of processed log files paths
 scan_id_to_log_files = app.Table("scan_id_to_log_files", default=list)
 
+# scan id to metadata
+scan_id_to_metadata = app.Table("scan_id_to_meta", default=None)
+
 
 def scan_complete(scan_log_files: List[str]):
     return len(scan_log_files) == 72
@@ -100,6 +105,8 @@ async def process_delete_event(session: aiohttp.ClientSession, path: str) -> Non
         id = scan_id_to_id[scan_id]
         del scan_id_to_id[scan_id]
         del scan_id_to_log_files[scan_id]
+        if scan_id in scan_id_to_metadata:
+            del scan_id_to_metadata[scan_id]
         logger.info(f"Scan {scan_id} removed.")
         if host is not None:
             logger.info(f"Delete all '{host}' locations for scan {id}")
@@ -135,6 +142,11 @@ async def process_log_file(
                 paths.add(str(Path(log_file).parent))
 
             locations = [Location(host=event.host, path=p) for p in paths]
+
+            metadata = {}
+            if scan_id in scan_id_to_metadata:
+                metadata = scan_id_to_metadata[scan_id]
+
             scan = await create_scan(
                 session,
                 ScanCreate(
@@ -142,9 +154,11 @@ async def process_log_file(
                     created=event.created,
                     logs_files=len(scan_id_to_log_files[scan_id]),
                     locations=locations,
+                    metadata=metadata,
                 ),
             )
             scan_id_to_id[scan_id] = scan.id
+            del scan_id_to_metadata[scan_id]
 
             # Faust version
             locations = [Location(host=event.host, path=str(Path(path).parent))]
@@ -175,6 +189,8 @@ async def process_override(event: FileSystemEvent) -> None:
     scan_id = extract_scan_id(event.src_path)
     del scan_id_to_id[scan_id]
     del scan_id_to_log_files[scan_id]
+    if scan_id in scan_id_to_metadata:
+        del scan_id_to_metadata[scan_id]
     for p in log_files.keys():
         if scan_id == extract_scan_id(p):
             del log_files[p]
@@ -278,3 +294,48 @@ async def watch_for_sync_event(sync_events):
     async with aiohttp.ClientSession() as session:
         async for event in sync_events:
             await process_sync_event(session, event)
+
+
+class ScanMetadata(faust.Record):
+    scan_id: int
+    metadata: Dict[str, Any]
+
+
+scan_metadata_events_topic = app.topic(
+    TOPIC_SCAN_METADATA_EVENTS, value_type=ScanMetadata
+)
+
+TOPIC_SCAN_METADATA_EVENTS
+
+
+@app.agent(scan_metadata_events_topic)
+async def watch_for_metadata_event(metadata_events):
+    async with aiohttp.ClientSession() as session:
+        async for event in metadata_events:
+            scan_id = event.scan_id
+            metadata = event.metadata
+
+            # If we already have scan for this metadata we can attach it to this
+            # scan.
+            if scan_id in scan_id_to_id:
+                id = scan_id_to_id[scan_id]
+                scan = await get_scan(session, id)
+
+                current_time = datetime.utcnow()
+                created_since = current_time - timedelta(
+                    hours=settings.HAADF_METADATA_SCAN_AGE_LIMIT
+                )
+
+                # Get created time in UTC without timezone info so we can compare
+                created_utc = scan.created.astimezone(pytz.utc).replace(tzinfo=None)
+                if created_utc > created_since:
+                    # Update the scans metadata
+                    await update_scan(session, ScanUpdate(id=id, metadata=metadata))
+                else:
+                    logger.warn(
+                        f"Skipping associated metadata with scan {id} at the scan was created outside the window."
+                    )
+                    continue
+            # Save the metadata so we can used it when we create a scan
+            else:
+                scan_id_to_metadata[scan_id] = metadata

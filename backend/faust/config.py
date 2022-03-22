@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS: int
     HAADF_NCEMHUB_DM4_DATA_PATH: str
 
+    # Max age a scan can be to still have a HAADF metadata associated with it (hours)
+    # This is need to avoid associate a metadata with a old scan if the scan ids
+    # have been reset in the detector software.
+    HAADF_METADATA_SCAN_AGE_LIMIT: int = 1
+
     CUSTODIAN_USER: str
     CUSTODIAN_PRIVATE_KEY: str
     CUSTODIAN_VALID_HOSTS: List[str] = []

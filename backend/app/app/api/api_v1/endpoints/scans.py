@@ -136,6 +136,7 @@ async def update_scan(
         log_files=payload.log_files,
         locations=payload.locations,
         notes=payload.notes,
+        metadata=payload.metadata,
     )
 
     if updated:

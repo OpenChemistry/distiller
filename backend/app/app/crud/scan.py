@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 from sqlalchemy import desc, or_, update
 from sqlalchemy.orm import Session
@@ -87,7 +87,8 @@ def create_scan(db: Session, scan: schemas.ScanCreate, haadf_path: str = None):
     locations = scan.locations
     scan.locations = []
 
-    db_scan = models.Scan(**scan.dict(), haadf_path=haadf_path)
+    # Note: We have to pass metadata as metadata_ as metadata is reserved!
+    db_scan = models.Scan(**scan.dict(), haadf_path=haadf_path, metadata_=scan.metadata)
     db.add(db_scan)
     for l in locations:
         l = models.Location(**l.dict())
@@ -106,6 +107,7 @@ def update_scan(
     locations: List[schemas.Location] = None,
     haadf_path: str = None,
     notes: str = None,
+    metadata: Dict[str, Any] = None,
 ):
     updated = False
 
@@ -162,6 +164,19 @@ def update_scan(
         resultsproxy = db.execute(statement)
         notes_updated = resultsproxy.rowcount == 1
         updated = updated or notes_updated
+
+    if metadata is not None:
+        statement = (
+            update(models.Scan)
+            .where(models.Scan.id == id)
+            .where(
+                or_(models.Scan.metadata_ != metadata, models.Scan.metadata_ == None)
+            )
+            .values(metadata_=metadata)
+        )
+        resultsproxy = db.execute(statement)
+        metadata_updated = resultsproxy.rowcount == 1
+        updated = updated or metadata_updated
 
     db.commit()
 

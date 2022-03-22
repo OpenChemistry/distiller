@@ -1,8 +1,8 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.schemas.job import Job
 
@@ -35,6 +35,7 @@ class Scan(BaseModel):
     haadf_path: Optional[str]
     notes: Optional[str]
     jobs: List[Job]
+    metadata: Optional[Dict[str, Any]] = Field(alias="metadata_")
 
     class Config:
         orm_mode = True
@@ -44,6 +45,7 @@ class ScanCreate(BaseModel):
     scan_id: int
     created: datetime
     locations: List[LocationCreate]
+    metadata: Optional[Dict[str, Any]]
 
 
 class ScanUpdate(BaseModel):
@@ -51,6 +53,7 @@ class ScanUpdate(BaseModel):
     locations: Optional[List[LocationCreate]] = None
     notes: Optional[str]
     haadf_path: Optional[str]
+    metadata: Optional[Dict[str, Any]]
 
 
 class ScanEventType(str, Enum):

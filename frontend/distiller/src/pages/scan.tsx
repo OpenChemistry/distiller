@@ -53,6 +53,7 @@ import JobOutputDialog from '../components/job-output';
 import { isNil } from '../utils';
 import { SCANS_PATH } from '../routes';
 import { canRunJobs } from '../utils/machine';
+import MetadataComponent from '../components/metadata';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -266,6 +267,7 @@ const ScanPage: React.FC<Props> = () => {
               </Table>
             </Grid>
           </Grid>
+          <MetadataComponent scan={scan} />
           <Table>
             <TableBody>
               <TableRow>

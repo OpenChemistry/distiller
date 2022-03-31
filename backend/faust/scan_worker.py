@@ -143,7 +143,7 @@ async def process_log_file(
 
             locations = [Location(host=event.host, path=p) for p in paths]
 
-            metadata = {}
+            metadata = None
             if scan_id in scan_id_to_metadata:
                 metadata = scan_id_to_metadata[scan_id]
 

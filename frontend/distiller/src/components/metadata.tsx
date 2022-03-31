@@ -6,20 +6,15 @@ import {
   TableRow,
   TableBody,
   TableCell,
-  IconButton,
   Collapse,
-  TableContainer,
-  Paper,
   Button,
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
-import Typography from '@mui/material/Typography';
 
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 import { Metadata, Scan } from '../types';
-import { ReadMoreTwoTone } from '@mui/icons-material';
 
 // Search for patterns of the form <prefix><number><suffix> or <prefix><X or Y><suffix>
 const groupingPatterns = [

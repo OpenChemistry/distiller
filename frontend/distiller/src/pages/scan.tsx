@@ -224,7 +224,9 @@ const ScanPage: React.FC<Props> = () => {
               <Table>
                 <TableBody>
                   <TableRow>
-                    <TableCell className={classes.headCell}>Scan ID</TableCell>
+                    <TableCell className={classes.headCell}>
+                      Detector Scan ID
+                    </TableCell>
                     <TableCell align="right">{scan.scan_id}</TableCell>
                   </TableRow>
                   <TableRow>

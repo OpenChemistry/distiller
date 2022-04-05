@@ -16,7 +16,10 @@ router = APIRouter()
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
 def read_machines():
-    machines = [{"name": m.name, "statusURL": f"{NERSC_STATUS_URL_PREFIX}{m.name}"} for m in settings.MACHINES]
+    machines = [
+        {"name": m.name, "statusURL": f"{NERSC_STATUS_URL_PREFIX}{m.name}"}
+        for m in settings.MACHINES
+    ]
 
     return machines
 

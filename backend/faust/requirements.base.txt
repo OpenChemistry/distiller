@@ -1,3 +1,4 @@
 faust-streaming
 python-rocksdb
 pydantic[dotenv]
+numpy

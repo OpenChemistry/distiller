@@ -88,6 +88,8 @@ export type ScanJob = {
   machine?: string;
 };
 
+export type Metadata = { [name: string]: string | number };
+
 export type Scan = {
   id: IdType;
   scan_id: IdType;
@@ -99,6 +101,7 @@ export type Scan = {
   jobs: ScanJob[];
   prevScanId?: IdType;
   nextScanId?: IdType;
+  metadata?: Metadata;
 };
 
 export type ScansRequestResult = {

@@ -23,7 +23,7 @@ from app.schemas.scan import ScanCreatedEvent
 router = APIRouter()
 
 
-@router.post("", response_model=schemas.Scan)
+@router.post("", response_model=schemas.Scan, response_model_by_alias=False)
 async def create_scan(
     scan: schemas.ScanCreate,
     db: Session = Depends(get_db),
@@ -59,6 +59,7 @@ async def create_scan(
 @router.get(
     "",
     response_model=List[schemas.Scan],
+    response_model_by_alias=False,
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
 def read_scans(
@@ -99,6 +100,7 @@ def read_scans(
 @router.get(
     "/{id}",
     response_model=schemas.Scan,
+    response_model_by_alias=False,
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
 def read_scan(response: Response, id: int, db: Session = Depends(get_db)):
@@ -120,6 +122,7 @@ def read_scan(response: Response, id: int, db: Session = Depends(get_db)):
 @router.patch(
     "/{id}",
     response_model=schemas.Scan,
+    response_model_by_alias=False,
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
 async def update_scan(
@@ -136,6 +139,7 @@ async def update_scan(
         log_files=payload.log_files,
         locations=payload.locations,
         notes=payload.notes,
+        metadata=payload.metadata,
     )
 
     if updated:

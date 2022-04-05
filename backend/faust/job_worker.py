@@ -61,10 +61,12 @@ async def get_oauth2_client() -> AsyncOAuth2Client:
 
     return _client
 
+
 def reset_oauth2_client():
     global _client
 
     _client = None
+
 
 class JobType(str, Enum):
     COUNT = "count"
@@ -167,6 +169,7 @@ async def render_bbcp_script(job: Job, dest_dir: str) -> str:
 
     return output
 
+
 # Reset the oauth2 client before retrying
 def before_retry_client(retry_state) -> None:
     if retry_state.attempt_number > 1:
@@ -175,18 +178,15 @@ def before_retry_client(retry_state) -> None:
         logger.info("Resetting OAuth2 client before retry.")
         reset_oauth2_client()
 
+
 @tenacity.retry(
-    retry=tenacity.retry_if_exception_type(
-        httpx.TimeoutException
-    ) | tenacity.retry_if_exception_type(
-        httpx.ConnectError
-    ) | tenacity.retry_if_exception_type(
-        httpx.HTTPStatusError
-    ),
+    retry=tenacity.retry_if_exception_type(httpx.TimeoutException)
+    | tenacity.retry_if_exception_type(httpx.ConnectError)
+    | tenacity.retry_if_exception_type(httpx.HTTPStatusError),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
     before=before_retry_client,
-    before_sleep=tenacity.before_sleep_log(logger, logging.INFO)
+    before_sleep=tenacity.before_sleep_log(logger, logging.INFO),
 )
 async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
     client = await get_oauth2_client()
@@ -206,17 +206,13 @@ async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
 
 
 @tenacity.retry(
-    retry=tenacity.retry_if_exception_type(
-        httpx.TimeoutException
-    ) | tenacity.retry_if_exception_type(
-        httpx.ConnectError
-    ) | tenacity.retry_if_exception_type(
-        httpx.HTTPStatusError
-    ),
+    retry=tenacity.retry_if_exception_type(httpx.TimeoutException)
+    | tenacity.retry_if_exception_type(httpx.ConnectError)
+    | tenacity.retry_if_exception_type(httpx.HTTPStatusError),
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
     before=before_retry_client,
-    before_sleep=tenacity.before_sleep_log(logger, logging.INFO)
+    before_sleep=tenacity.before_sleep_log(logger, logging.INFO),
 )
 async def sfapi_post(url: str, data: Dict[str, Any]) -> httpx.Response:
     client = await get_oauth2_client()
@@ -465,15 +461,16 @@ async def monitor_jobs():
 
                     if response_json["status"] != "ok":
                         error = response_json["error"]
-                        logger.warning(f"SFAPI request to fetch jobs failed with: {error}")
+                        logger.warning(
+                            f"SFAPI request to fetch jobs failed with: {error}"
+                        )
                         continue
 
                     logger.info(response_json)
 
                     jobs += extract_jobs(response_json)
                 except tenacity.RetryError:
-                    logger.exception('SF API timeout.')
-                    pass
+                    logger.exception("SF API timeout.")
 
             # Now process the jobs
             for job in jobs:

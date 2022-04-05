@@ -53,6 +53,7 @@ import JobOutputDialog from '../components/job-output';
 import { isNil } from '../utils';
 import { SCANS_PATH } from '../routes';
 import { canRunJobs } from '../utils/machine';
+import MetadataComponent from '../components/metadata';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -223,7 +224,9 @@ const ScanPage: React.FC<Props> = () => {
               <Table>
                 <TableBody>
                   <TableRow>
-                    <TableCell className={classes.headCell}>Scan ID</TableCell>
+                    <TableCell className={classes.headCell}>
+                      Detector Scan ID
+                    </TableCell>
                     <TableCell align="right">{scan.scan_id}</TableCell>
                   </TableRow>
                   <TableRow>
@@ -266,6 +269,7 @@ const ScanPage: React.FC<Props> = () => {
               </Table>
             </Grid>
           </Grid>
+          <MetadataComponent scan={scan} />
           <Table>
             <TableBody>
               <TableRow>

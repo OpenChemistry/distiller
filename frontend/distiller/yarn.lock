@@ -1523,23 +1523,23 @@
   version "1.1.0"
   resolved "https://registry.npmjs.org/@rushstack/eslint-patch/-/eslint-patch-1.1.0.tgz"
 
-"@sentry/browser@6.18.1":
-  version "6.18.1"
-  resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-6.18.1.tgz#7c61d53260a6cd8999a46a0bd3159773b93fd1ea"
+"@sentry/browser@6.19.4":
+  version "6.19.4"
+  resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-6.19.4.tgz#3eb8b74484856963c3a9870895be7fda01a85050"
   dependencies:
-    "@sentry/core" "6.18.1"
-    "@sentry/types" "6.18.1"
-    "@sentry/utils" "6.18.1"
+    "@sentry/core" "6.19.4"
+    "@sentry/types" "6.19.4"
+    "@sentry/utils" "6.19.4"
     tslib "^1.9.3"
 
-"@sentry/core@6.18.1":
-  version "6.18.1"
-  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-6.18.1.tgz#6d09c4f59b30b62d5d288b5f3f3af56f1f7e6336"
+"@sentry/core@6.19.4":
+  version "6.19.4"
+  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-6.19.4.tgz#832d65ae32b4e2a63b9eccd6732b6dd6461620ae"
   dependencies:
-    "@sentry/hub" "6.18.1"
-    "@sentry/minimal" "6.18.1"
-    "@sentry/types" "6.18.1"
-    "@sentry/utils" "6.18.1"
+    "@sentry/hub" "6.19.4"
+    "@sentry/minimal" "6.19.4"
+    "@sentry/types" "6.19.4"
+    "@sentry/utils" "6.19.4"
     tslib "^1.9.3"
 
 "@sentry/hub@6.18.1":
@@ -1550,6 +1550,14 @@
     "@sentry/utils" "6.18.1"
     tslib "^1.9.3"
 
+"@sentry/hub@6.19.4":
+  version "6.19.4"
+  resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-6.19.4.tgz#81aeadceddcddc36fb4f5bb40cf6900f79e3e111"
+  dependencies:
+    "@sentry/types" "6.19.4"
+    "@sentry/utils" "6.19.4"
+    tslib "^1.9.3"
+
 "@sentry/minimal@6.18.1":
   version "6.18.1"
   resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-6.18.1.tgz#eac73d2262589930aa0bb33e0e12380ac5b766a9"
@@ -1558,14 +1566,22 @@
     "@sentry/types" "6.18.1"
     tslib "^1.9.3"
 
-"@sentry/react@^6.18.1":
-  version "6.18.1"
-  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-6.18.1.tgz#fc84772d688064b38b48a101b72805fcf5911d9e"
+"@sentry/minimal@6.19.4":
+  version "6.19.4"
+  resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-6.19.4.tgz#c98e5405eeaac1b4f6b6fdbc36abc3cf2c09a4ac"
   dependencies:
-    "@sentry/browser" "6.18.1"
-    "@sentry/minimal" "6.18.1"
-    "@sentry/types" "6.18.1"
-    "@sentry/utils" "6.18.1"
+    "@sentry/hub" "6.19.4"
+    "@sentry/types" "6.19.4"
+    tslib "^1.9.3"
+
+"@sentry/react@^6.19.4":
+  version "6.19.4"
+  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-6.19.4.tgz#96b9ba94146cb4d18615667d5947bfb51d2678c9"
+  dependencies:
+    "@sentry/browser" "6.19.4"
+    "@sentry/minimal" "6.19.4"
+    "@sentry/types" "6.19.4"
+    "@sentry/utils" "6.19.4"
     hoist-non-react-statics "^3.3.2"
     tslib "^1.9.3"
 
@@ -1583,11 +1599,22 @@
   version "6.18.1"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.18.1.tgz#e2de38dd0da8096a5d22f8effc6756c919266ede"
 
+"@sentry/types@6.19.4":
+  version "6.19.4"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.19.4.tgz#4e13269daaba2edfeaa4b18a5a14fa8f4d7a85a8"
+
 "@sentry/utils@6.18.1":
   version "6.18.1"
   resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-6.18.1.tgz#1aa819502b042540612f4db7bcb86c7b176f5a6b"
   dependencies:
     "@sentry/types" "6.18.1"
+    tslib "^1.9.3"
+
+"@sentry/utils@6.19.4":
+  version "6.19.4"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-6.19.4.tgz#a104e7e9a21555190da68dbbfb925f887423ef85"
+  dependencies:
+    "@sentry/types" "6.19.4"
     tslib "^1.9.3"
 
 "@sinonjs/commons@^1.7.0":

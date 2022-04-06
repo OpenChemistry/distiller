@@ -15,7 +15,7 @@
     "@sentry/tracing": "^6.18.1",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^12.1.4",
-    "@testing-library/user-event": "^13.5.0",
+    "@testing-library/user-event": "^14.0.4",
     "@types/humanize-duration": "^3.27.1",
     "@types/jest": "^27.4.1",
     "@types/luxon": "^2.3.1",

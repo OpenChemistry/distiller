@@ -243,7 +243,7 @@ async def submit_job(machine: str, batch_submit_file: str) -> int:
     r.raise_for_status()
 
     sfapi_response = r.json()
-    if sfapi_response["status"] != "ok":
+    if sfapi_response["status"].lower() != "ok":
         raise SfApiError(sfapi_response["error"])
 
     task_id = sfapi_response["task_id"]
@@ -255,7 +255,7 @@ async def submit_job(machine: str, batch_submit_file: str) -> int:
 
         sfapi_response = r.json()
 
-        if sfapi_response["status"] == "error":
+        if sfapi_response["status"].lower() == "error":
             raise SfApiError(sfapi_response["error"])
 
         logger.info(sfapi_response)
@@ -266,7 +266,7 @@ async def submit_job(machine: str, batch_submit_file: str) -> int:
 
         results = json.loads(sfapi_response["result"])
 
-        if results["status"] == "error":
+        if results["status"].lower() == "error":
             raise SfApiError(results["error"])
 
         slurm_id = results.get("jobid")
@@ -446,7 +446,7 @@ async def monitor_jobs():
                     r.raise_for_status()
 
                     response_json = r.json()
-                    status = response_json["status"]
+                    status = response_json["status"].lower()
 
                     logger.info(f"{machine} is '{status}'")
 
@@ -459,7 +459,7 @@ async def monitor_jobs():
 
                     response_json = r.json()
 
-                    if response_json["status"] != "ok":
+                    if response_json["status"].lower() != "ok":
                         error = response_json["error"]
                         logger.warning(
                             f"SFAPI request to fetch jobs failed with: {error}"

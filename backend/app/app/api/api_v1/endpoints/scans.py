@@ -70,6 +70,8 @@ def read_scans(
     state: schemas.ScanState = None,
     created: datetime = None,
     has_haadf: bool = None,
+    start: datetime = None,
+    end: datetime = None,
     db: Session = Depends(get_db),
 ):
     scans = crud.get_scans(
@@ -80,6 +82,8 @@ def read_scans(
         state=state,
         created=created,
         has_haadf=has_haadf,
+        start=start,
+        end=end,
     )
 
     count = crud.get_scans_count(
@@ -90,6 +94,8 @@ def read_scans(
         state=state,
         created=created,
         has_haadf=has_haadf,
+        start=start,
+        end=end,
     )
 
     response.headers["X-Total-Count"] = str(count)

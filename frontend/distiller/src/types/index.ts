@@ -116,3 +116,8 @@ export type Machine = {
   notes: string[];
   statusURL: string;
 };
+
+export enum ExportFormat {
+  JSON = "json",
+  CSV = "csv"
+}

@@ -1,13 +1,21 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {
+  createAsyncThunk,
+  createSlice,
+  PayloadAction,
+  ThunkDispatch,
+  AnyAction,
+} from '@reduxjs/toolkit';
 
-import { AppDispatch, RootState } from '../../app/store';
 import { apiClient } from '../../client';
 import { startMockNotifications } from './mock';
 import { isCreatedEvent, isUpdatedEvent } from './events';
 import { setScan, updateScan } from '../scans';
 
 class NotificationHub {
-  constructor(ws: WebSocket, getState: () => RootState, dispatch: AppDispatch) {
+  constructor(
+    ws: WebSocket,
+    dispatch: ThunkDispatch<unknown, unknown, AnyAction>
+  ) {
     const messageListener = (ev: MessageEvent<string>) => {
       let msg: any = undefined;
       try {
@@ -43,11 +51,11 @@ const initialState: NotificationsState = {
 export const connectNotifications = createAsyncThunk(
   'notifications/connect',
   async (_payload, thunkAPI) => {
-    const { dispatch, getState } = thunkAPI;
+    const { dispatch } = thunkAPI;
 
     let ws: WebSocket = await apiClient.ws({ url: 'notifications' });
 
-    notificationHub = new NotificationHub(ws, getState as any, dispatch);
+    notificationHub = new NotificationHub(ws, dispatch);
 
     const mock = process.env.NODE_ENV === 'development';
 

@@ -79,7 +79,7 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
     )
 
     scans = scan_crud.get_scans(
-        db, scan_id=scan_id, has_haadf=False, created_since=created_since
+        db, scan_id=scan_id, has_haadf=False, start=created_since
     )
 
     if len(scans) > 0:

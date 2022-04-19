@@ -254,7 +254,7 @@ const ScansPage: React.FC = () => {
         notes: scan.notes ? scan.notes : '',
       };
 
-      Array.from(metadataHeaders).map((header: string) => {
+      Array.from(metadataHeaders).forEach((header: string) => {
         if (!isNil(scan.metadata) && !isNil(scan.metadata[header])) {
           exportScan[header] = scan.metadata[header];
         } else {

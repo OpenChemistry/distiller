@@ -31,9 +31,9 @@ const initialState: ScansState = scansAdapter.getInitialState({
 
 export const getScans = createAsyncThunk<
   ScansRequestResult,
-  { skip: number; limit: number, start?: DateTime, end?: DateTime }
+  { skip: number; limit: number; start?: DateTime; end?: DateTime }
 >('scans/fetch', async (_payload, _thunkAPI) => {
-  const { skip, limit, start, end} = _payload;
+  const { skip, limit, start, end } = _payload;
   const result = await getScansAPI(skip, limit, start, end);
 
   return result;

@@ -118,6 +118,6 @@ export type Machine = {
 };
 
 export enum ExportFormat {
-  JSON = "json",
-  CSV = "csv"
+  JSON = 'json',
+  CSV = 'csv',
 }

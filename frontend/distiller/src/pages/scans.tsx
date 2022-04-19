@@ -13,7 +13,7 @@ import {
   Paper,
   LinearProgress,
   IconButton,
-  Checkbox
+  Checkbox,
 } from '@mui/material';
 import makeStyles from '@mui/styles/makeStyles';
 import CompleteIcon from '@mui/icons-material/CheckCircle';
@@ -47,7 +47,7 @@ import {
 import { machineSelectors, machineState } from '../features/machines';
 import { ExportFormat } from '../types';
 
-import { isNil, isNull} from 'lodash';
+import { isNil, isNull } from 'lodash';
 import { ScansToolbar, FilterCriteria } from '../components/scans-toolbar';
 
 const useStyles = makeStyles((theme) => ({
@@ -109,12 +109,22 @@ const ScansPage: React.FC = () => {
   );
   const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] =
     React.useState<(params: { [key: string]: any }) => void | undefined>();
-  const [filterCriteria, setFilterCriteria] = useState<FilterCriteria|null>(null);
-  const [selectedScanIDs, setSelectedScanIDs]  = useState<Set<IdType>>(new Set<IdType>());
+  const [filterCriteria, setFilterCriteria] = useState<FilterCriteria | null>(
+    null
+  );
+  const [selectedScanIDs, setSelectedScanIDs] = useState<Set<IdType>>(
+    new Set<IdType>()
+  );
 
   useEffect(() => {
-    dispatch(getScans({ skip: page * rowsPerPage, limit: rowsPerPage,
-                        start: filterCriteria?.start, end: filterCriteria?.end }));
+    dispatch(
+      getScans({
+        skip: page * rowsPerPage,
+        limit: rowsPerPage,
+        start: filterCriteria?.start,
+        end: filterCriteria?.end,
+      })
+    );
   }, [dispatch, page, rowsPerPage, filterCriteria]);
 
   useEffect(() => {
@@ -178,7 +188,7 @@ const ScansPage: React.FC = () => {
     setScanToDelete(null);
   };
 
-  const onFilter = (criteria: FilterCriteria|null) => {
+  const onFilter = (criteria: FilterCriteria | null) => {
     setPage(0);
     setFilterCriteria(criteria);
   };
@@ -189,136 +199,151 @@ const ScansPage: React.FC = () => {
     }
 
     return scans;
-  }
-
+  };
 
   const exportScans = async (data: string, mimetype: string) => {
-    const blob = new Blob([data],{type: mimetype});
+    const blob = new Blob([data], { type: mimetype });
     const href = await URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = href;
-    const fileSuffix = mimetype.split("/")[1]
-    link.download = `scans.${fileSuffix}`
+    const fileSuffix = mimetype.split('/')[1];
+    link.download = `scans.${fileSuffix}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-  }
+  };
 
   const onExportJSON = async () => {
-     const filteredScans = selectedScans().map((scan: Scan) => {
+    const filteredScans = selectedScans().map((scan: Scan) => {
       return {
         distiller_scan_id: scan.id,
         detector_scan_id: scan.scan_id,
         created: scan.created,
         notes: scan.notes,
-        metadata: scan.metadata
-      }
-    })
+        metadata: scan.metadata,
+      };
+    });
     const json = JSON.stringify(filteredScans, null, 2);
 
-    exportScans(json, "application/json");
-  }
+    exportScans(json, 'application/json');
+  };
 
   const onExportCSV = async () => {
-    const headers = ["distiller_scan_id", "detector_scan_id", "created", "notes"]
+    const headers = [
+      'distiller_scan_id',
+      'detector_scan_id',
+      'created',
+      'notes',
+    ];
 
     // Generate metadata headers
     const metadataHeaders = new Set<string>();
-    for(let scan of selectedScans()) {
+    for (let scan of selectedScans()) {
       if (!isNil(scan.metadata)) {
-        const keys = Object.keys(scan.metadata)
-        keys.forEach(key => metadataHeaders.add(key))
+        const keys = Object.keys(scan.metadata);
+        keys.forEach((key) => metadataHeaders.add(key));
       }
     }
-    headers.push(...Array.from(metadataHeaders))
+    headers.push(...Array.from(metadataHeaders));
 
     const filteredScans = selectedScans().map((scan: Scan) => {
-      const exportScan:  { [key: string]: string|number }  = {
+      const exportScan: { [key: string]: string | number } = {
         distiller_scan_id: scan.id,
         detector_scan_id: scan.scan_id,
         created: scan.created,
-        notes: scan.notes ? scan.notes : ''
-      }
+        notes: scan.notes ? scan.notes : '',
+      };
 
       Array.from(metadataHeaders).map((header: string) => {
         if (!isNil(scan.metadata) && !isNil(scan.metadata[header])) {
           exportScan[header] = scan.metadata[header];
-        }
-        else {
+        } else {
           exportScan[header] = '';
         }
-
-
-        });
+      });
 
       return exportScan;
-    })
+    });
 
     const csvHeaders = headers.map((header: string) => header.toUpperCase());
-    const csvContent = csvHeaders.join(',')  + '\n' + filteredScans.map(scan => {
+    const csvContent =
+      csvHeaders.join(',') +
+      '\n' +
+      filteredScans
+        .map((scan) => {
+          let columns: any[] = [];
+          headers.forEach((header: string) => {
+            if (header in scan) {
+              let key = header as keyof typeof scan;
+              if (!isNil(scan[key])) {
+                columns.push(scan[key]);
+              } else {
+                columns.push('');
+              }
+            }
+          });
 
-        let columns: any[] = []
-        headers.forEach((header: string) => {
-          if (header in scan) {
-            let key = header as keyof typeof scan;
-            if (!isNil(scan[key])) {
-              columns.push(scan[key]);
-            }
-            else {
-              columns.push('');
-            }
-          }
+          return columns.join(',');
         })
+        .join('\n');
 
-        return columns.join(',')
+    console.log(csvContent);
 
-      }).join('\n');
-
-      console.log(csvContent)
-
-      exportScans(csvContent, 'text/csv');
-    }
+    exportScans(csvContent, 'text/csv');
+  };
 
   const onExport = async (format: ExportFormat) => {
     if (format === ExportFormat.JSON) {
       onExportJSON();
-    }
-    else if (format === ExportFormat.CSV) {
+    } else if (format === ExportFormat.CSV) {
       onExportCSV();
     }
-  }
+  };
 
   const onSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      setSelectedScanIDs(new Set<IdType>(scans.map(s => s.id)));
-    }
-    else {
+      setSelectedScanIDs(new Set<IdType>(scans.map((s) => s.id)));
+    } else {
       setSelectedScanIDs(new Set<IdType>());
     }
   };
 
-  const onSelectRowClick = (event:  React.MouseEvent<HTMLButtonElement>, id: IdType) => {
+  const onSelectRowClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    id: IdType
+  ) => {
     event.stopPropagation();
 
     if (!selectedScanIDs.has(id)) {
-      setSelectedScanIDs((new  Set<IdType>(selectedScanIDs)).add(id));
-    }
-    else {
-      setSelectedScanIDs(new Set<IdType>(Array.from(selectedScanIDs).filter((selectedId: IdType) => selectedId !== id)));
+      setSelectedScanIDs(new Set<IdType>(selectedScanIDs).add(id));
+    } else {
+      setSelectedScanIDs(
+        new Set<IdType>(
+          Array.from(selectedScanIDs).filter(
+            (selectedId: IdType) => selectedId !== id
+          )
+        )
+      );
     }
   };
 
   return (
     <React.Fragment>
-      <ScansToolbar onFilter={onFilter} onExport={onExport} showFilterBadge={!isNull(filterCriteria)}/>
+      <ScansToolbar
+        onFilter={onFilter}
+        onExport={onExport}
+        showFilterBadge={!isNull(filterCriteria)}
+      />
       <TableContainer component={Paper}>
         <Table aria-label="scans table">
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
                 <Checkbox
-                  indeterminate={selectedScanIDs.size > 0 && selectedScanIDs.size < scans.length}
+                  indeterminate={
+                    selectedScanIDs.size > 0 &&
+                    selectedScanIDs.size < scans.length
+                  }
                   checked={selectedScanIDs.size === scans.length}
                   onChange={onSelectAllClick}
                 />
@@ -346,14 +371,12 @@ const ScansPage: React.FC = () => {
                   onClick={() => onScanClick(scan)}
                 >
                   <TableCell className="selectCheckbox" padding="checkbox">
-                        <Checkbox
-                          onClick={event =>
-                            onSelectRowClick(event, scan.id)
-                          }
-                          className="selectCheckbox"
-                          checked={selectedScanIDs.has(scan.id)}
-                        />
-                      </TableCell>
+                    <Checkbox
+                      onClick={(event) => onSelectRowClick(event, scan.id)}
+                      className="selectCheckbox"
+                      checked={selectedScanIDs.has(scan.id)}
+                    />
+                  </TableCell>
                   <TableCell className={classes.imgCell}>
                     {scan.haadf_path ? (
                       <img

@@ -6705,9 +6705,9 @@ react-is@^18.0.0:
   version "18.0.0"
   resolved "https://registry.npmjs.org/react-is/-/react-is-18.0.0.tgz"
 
-react-redux@^8.0.0:
-  version "8.0.0"
-  resolved "https://registry.npmjs.org/react-redux/-/react-redux-8.0.0.tgz"
+react-redux@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/react-redux/-/react-redux-8.0.1.tgz#2bc029f5ada9b443107914c373a2750f6bc0f40c"
   dependencies:
     "@babel/runtime" "^7.12.1"
     "@types/hoist-non-react-statics" "^3.3.1"

@@ -22,7 +22,7 @@ class ScanCreate(BaseModel):
     scan_id: int
     created: datetime
     locations: List[Location]
-    metadata: Dict[str, Any]
+    metadata: Optional[Dict[str, Any]]
 
 
 class ScanUpdate(BaseModel):

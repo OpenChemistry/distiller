@@ -265,7 +265,11 @@ const ScansPage: React.FC = () => {
       return exportScan;
     });
 
-    const csvHeaders = headers.map((header: string) => header.toUpperCase());
+    const csvHeaders = headers.map((header: string) =>
+      metadataHeaders.has(header)
+        ? `METADATA.${header.toUpperCase()}`
+        : header.toUpperCase()
+    );
     const csvContent =
       csvHeaders.join(',') +
       '\n' +

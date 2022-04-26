@@ -104,7 +104,7 @@ const FilterPopover: React.FC<FilterPopoverProps> = (props) => {
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <DatePicker
-                  label="Start Date Range"
+                  label="Start Date"
                   inputFormat="MM/dd/yy"
                   value={startDate}
                   onChange={onStartDateChange}
@@ -113,7 +113,7 @@ const FilterPopover: React.FC<FilterPopoverProps> = (props) => {
               </Grid>
               <Grid item xs={6}>
                 <DatePicker
-                  label="End Date Range"
+                  label="End Date"
                   inputFormat="MM/dd/yy"
                   value={endDate}
                   onChange={onEndDateChange}

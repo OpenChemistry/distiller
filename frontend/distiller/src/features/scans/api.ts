@@ -1,10 +1,13 @@
 import { apiClient } from '../../client';
 import { IdType, Scan, ScansRequestResult } from '../../types';
 import { pickNil } from '../../utils';
+import { DateTime } from 'luxon';
 
 export function getScans(
   skip?: number,
-  limit?: number
+  limit?: number,
+  start?: DateTime,
+  end?: DateTime
 ): Promise<ScansRequestResult> {
   const params: any = {};
   if (skip !== undefined) {
@@ -12,6 +15,13 @@ export function getScans(
   }
   if (limit !== undefined) {
     params['limit'] = limit;
+  }
+  if (start !== undefined) {
+    params['start'] = start;
+    console.log(start);
+  }
+  if (end !== undefined) {
+    params['end'] = end;
   }
 
   return apiClient

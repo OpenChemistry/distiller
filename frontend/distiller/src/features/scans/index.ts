@@ -14,6 +14,7 @@ import {
   removeScan as removeScanAPI,
 } from './api';
 import { Scan, IdType, ScansRequestResult } from '../../types';
+import { DateTime } from 'luxon';
 
 export const scansAdapter = createEntityAdapter<Scan>();
 
@@ -30,10 +31,10 @@ const initialState: ScansState = scansAdapter.getInitialState({
 
 export const getScans = createAsyncThunk<
   ScansRequestResult,
-  { skip: number; limit: number }
+  { skip: number; limit: number; start?: DateTime; end?: DateTime }
 >('scans/fetch', async (_payload, _thunkAPI) => {
-  const { skip, limit } = _payload;
-  const result = await getScansAPI(skip, limit);
+  const { skip, limit, start, end } = _payload;
+  const result = await getScansAPI(skip, limit, start, end);
 
   return result;
 });

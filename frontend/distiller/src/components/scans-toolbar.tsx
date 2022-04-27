@@ -43,45 +43,44 @@ const FilterPopover: React.FC<FilterPopoverProps> = (props) => {
     null
   );
 
-  useEffect(() => {
-    onFilter(filterCriteria);
-  }, [onFilter, filterCriteria]);
-
-  useEffect(() => {
-    if (
-      (!isNull(startDate) && !startDate.isValid) ||
-      (!isNull(endDate) && !endDate.isValid)
-    ) {
+  const applyFilterCriteria = (
+    start: DateTime | null,
+    end: DateTime | null
+  ) => {
+    if ((!isNull(start) && !start.isValid) || (!isNull(end) && !end.isValid)) {
       return;
     }
 
     let criteria: FilterCriteria | null = null;
-    if (!isNull(startDate)) {
+    if (!isNull(start)) {
       criteria = {};
-      criteria.start = startDate;
+      criteria.start = start;
     }
 
-    if (!isNull(endDate)) {
+    if (!isNull(end)) {
       if (criteria === null) {
         criteria = {};
       }
-      criteria.end = endDate;
+      criteria.end = end;
     }
 
-    setFilterCriteria(criteria);
-  }, [startDate, endDate]);
+    onFilter(criteria);
+  };
 
   const onStartDateChange = (date: DateTime | null) => {
     setStartDate(date);
+    applyFilterCriteria(date, endDate);
   };
 
   const onEndDateChange = (date: DateTime | null) => {
     setEndDate(date);
+    applyFilterCriteria(startDate, date);
   };
 
   const onResetFiltersClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setStartDate(null);
     setEndDate(null);
+    applyFilterCriteria(null, null);
   };
 
   return (

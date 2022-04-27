@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -188,10 +188,10 @@ const ScansPage: React.FC = () => {
     setScanToDelete(null);
   };
 
-  const onFilter = (criteria: FilterCriteria | null) => {
+  const onFilter = useCallback((criteria: FilterCriteria | null) => {
     setPage(0);
     setFilterCriteria(criteria);
-  };
+  }, []);
 
   const selectedScans = () => {
     if (selectedScanIDs.size > 0) {

@@ -18,7 +18,6 @@ export function getScans(
   }
   if (start !== undefined) {
     params['start'] = start;
-    console.log(start);
   }
   if (end !== undefined) {
     params['end'] = end;

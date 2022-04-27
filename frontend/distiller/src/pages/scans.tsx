@@ -291,8 +291,6 @@ const ScansPage: React.FC = () => {
         })
         .join('\n');
 
-    console.log(csvContent);
-
     exportScans(csvContent, 'text/csv');
   };
 

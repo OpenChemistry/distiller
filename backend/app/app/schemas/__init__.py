@@ -7,3 +7,4 @@ from .machine import Machine
 from .scan import (Location, Scan, ScanCreate, ScanState, ScanUpdate,
                    ScanUpdateEvent)
 from .user import User, UserCreate, UserResponse
+from .microscope import Microscope

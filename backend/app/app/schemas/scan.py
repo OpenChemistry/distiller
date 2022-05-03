@@ -36,6 +36,7 @@ class Scan(BaseModel):
     notes: Optional[str]
     jobs: List[Job]
     metadata: Optional[Dict[str, Any]] = Field(alias="metadata_")
+    microscope_id: int
 
     class Config:
         orm_mode = True

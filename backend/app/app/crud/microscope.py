@@ -8,6 +8,6 @@ def get_microscopes(
     db: Session
 ):
 
-    return db.query(models.Microscope).order_by(desc(models.Job.id).all())
+    return db.query(models.Microscope).order_by(desc(models.Microscope.id)).all()
 
 

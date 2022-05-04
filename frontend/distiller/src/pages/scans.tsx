@@ -153,9 +153,6 @@ const ScansPage: React.FC = () => {
     }
   }
 
-  console.log('id');
-  console.log(microscopeId);
-
   useEffect(() => {
     if (microscopeId === undefined) {
       return;

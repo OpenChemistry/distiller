@@ -8,6 +8,7 @@ function makeCreatedEvent(id: IdType): ScanCreatedEvent {
     scan_id: id,
     created: new Date().toISOString(),
     log_files: 0,
+    microscope_id: 1,
     locations: [
       {
         id: 0,

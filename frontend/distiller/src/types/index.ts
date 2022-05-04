@@ -102,6 +102,7 @@ export type Scan = {
   prevScanId?: IdType;
   nextScanId?: IdType;
   metadata?: Metadata;
+  microscope_id: IdType;
 };
 
 export type ScansRequestResult = {
@@ -121,3 +122,9 @@ export enum ExportFormat {
   JSON = 'json',
   CSV = 'csv',
 }
+
+export type Microscope = {
+  id: number;
+  name: string;
+  config: { [name: string]: any };
+};

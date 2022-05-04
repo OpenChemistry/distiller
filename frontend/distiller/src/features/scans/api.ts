@@ -4,12 +4,13 @@ import { pickNil } from '../../utils';
 import { DateTime } from 'luxon';
 
 export function getScans(
+  microscopeId: IdType,
   skip?: number,
   limit?: number,
   start?: DateTime,
   end?: DateTime
 ): Promise<ScansRequestResult> {
-  const params: any = {};
+  const params: any = { microscope_id: microscopeId };
   if (skip !== undefined) {
     params['skip'] = skip;
   }

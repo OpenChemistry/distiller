@@ -64,6 +64,14 @@ function App() {
                       </PrivateRoute>
                     }
                   />
+                  <Route
+                    path={`${HOME_PATH}/:microscope`}
+                    element={
+                      <PrivateRoute>
+                        <ScansPage />
+                      </PrivateRoute>
+                    }
+                  />
                 </Routes>
               </div>
             </div>

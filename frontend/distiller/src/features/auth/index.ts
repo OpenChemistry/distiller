@@ -15,6 +15,7 @@ import { User } from '../../types';
 import { apiClient } from '../../client';
 import { connectNotifications } from '../notifications';
 import { getMachines } from '../machines';
+import { getMicroscopes } from '../microscopes';
 
 export interface AuthState {
   user?: User;
@@ -50,6 +51,7 @@ export const login = createAsyncThunk<User, AuthenticatePayload>(
 
     dispatch(connectNotifications());
     dispatch(getMachines());
+    dispatch(getMicroscopes());
 
     const user = await getUserAPI();
 
@@ -94,6 +96,7 @@ export const restoreSession = createAsyncThunk<User, void>(
 
     dispatch(connectNotifications());
     dispatch(getMachines());
+    dispatch(getMicroscopes());
 
     const user = await getUserAPI();
 

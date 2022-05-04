@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import {
   Table,
@@ -34,7 +34,7 @@ import {
 } from '../features/scans';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
-import { IdType, Scan } from '../types';
+import { IdType, Microscope, Scan } from '../types';
 import { staticURL } from '../client';
 import ImageDialog from '../components/image-dialog';
 import LocationComponent from '../components/location';
@@ -49,6 +49,11 @@ import { ExportFormat } from '../types';
 
 import { isNil, isNull } from 'lodash';
 import { ScansToolbar, FilterCriteria } from '../components/scans-toolbar';
+import {
+  microscopesSelectors,
+  microscopesState,
+} from '../features/microscopes';
+import { markChanged } from 'immer/dist/internal';
 
 const useStyles = makeStyles((theme) => ({
   headCell: {
@@ -116,16 +121,56 @@ const ScansPage: React.FC = () => {
     new Set<IdType>()
   );
 
+  const canonicalMicroscopeName = (name: string) =>
+    name.toLowerCase().replace(' ', '');
+
+  const microscopes = useAppSelector((state) =>
+    microscopesSelectors.selectAll(microscopesState(state))
+  );
+
+  const microscopesByCanonicalName = microscopes.reduce(
+    (obj: { [key: string]: Microscope }, microscope) => {
+      obj[canonicalMicroscopeName(microscope.name)] = microscope;
+
+      return obj;
+    },
+    {}
+  );
+
+  // Default to 4D Camera
+  let microscopeId: IdType | undefined;
+
+  if (microscopes.length > 0) {
+    microscopeId = microscopes[0].id;
+  }
+
+  const microscopeParam = useParams().microscope;
+  if (microscopeParam !== undefined) {
+    const canonicalName = canonicalMicroscopeName(microscopeParam as string);
+
+    if (canonicalName in microscopesByCanonicalName) {
+      microscopeId = microscopesByCanonicalName[canonicalName].id;
+    }
+  }
+
+  console.log('id');
+  console.log(microscopeId);
+
   useEffect(() => {
+    if (microscopeId === undefined) {
+      return;
+    }
+
     dispatch(
       getScans({
         skip: page * rowsPerPage,
         limit: rowsPerPage,
         start: filterCriteria?.start,
         end: filterCriteria?.end,
+        microscopeId: microscopeId,
       })
     );
-  }, [dispatch, page, rowsPerPage, filterCriteria]);
+  }, [dispatch, page, rowsPerPage, filterCriteria, microscopeId]);
 
   useEffect(() => {
     setSelectedScanIDs(new Set<IdType>());

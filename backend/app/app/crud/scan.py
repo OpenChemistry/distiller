@@ -26,6 +26,7 @@ def _get_scans_query(
     has_haadf: bool = None,
     start: datetime = None,
     end: datetime = None,
+    microscope_id = None,
 ):
     query = db.query(models.Scan)
     if scan_id > -1:
@@ -53,6 +54,9 @@ def _get_scans_query(
     if end is not None:
         query = query.filter(models.Scan.created < end)
 
+    if microscope_id is not None:
+        query = query.filter(models.Scan.microscope_id == microscope_id)
+
     return query
 
 
@@ -67,9 +71,10 @@ def get_scans(
     has_haadf: bool = None,
     start: datetime = None,
     end: datetime = None,
+    microscope_id = None,
 ):
     query = _get_scans_query(
-        db, skip, limit, scan_id, state, created, has_haadf, start, end
+        db, skip, limit, scan_id, state, created, has_haadf, start, end, microscope_id
     )
 
     return query.order_by(desc(models.Scan.created)).offset(skip).limit(limit).all()
@@ -85,9 +90,10 @@ def get_scans_count(
     has_haadf: bool = None,
     start: datetime = None,
     end: datetime = None,
+    microscope_id: int = None,
 ):
     query = _get_scans_query(
-        db, skip, limit, scan_id, state, created, has_haadf, start, end
+        db, skip, limit, scan_id, state, created, has_haadf, start, end, microscope_id
     )
 
     return query.count()

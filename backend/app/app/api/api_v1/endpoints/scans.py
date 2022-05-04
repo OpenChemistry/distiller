@@ -72,6 +72,7 @@ def read_scans(
     has_haadf: bool = None,
     start: datetime = None,
     end: datetime = None,
+    microscope_id: int = None,
     db: Session = Depends(get_db),
 ):
     scans = crud.get_scans(
@@ -84,6 +85,7 @@ def read_scans(
         has_haadf=has_haadf,
         start=start,
         end=end,
+        microscope_id=microscope_id
     )
 
     count = crud.get_scans_count(
@@ -96,6 +98,7 @@ def read_scans(
         has_haadf=has_haadf,
         start=start,
         end=end,
+        microscope_id=microscope_id,
     )
 
     response.headers["X-Total-Count"] = str(count)

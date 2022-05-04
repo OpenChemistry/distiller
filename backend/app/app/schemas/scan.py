@@ -77,6 +77,7 @@ class ScanEvent(BaseModel):
 
 
 class ScanCreatedEvent(ScanEvent):
+    microscope_id: int
     scan_id: int
     created: datetime
     event_type = ScanEventType.CREATED

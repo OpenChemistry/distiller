@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.core import constants
-
+from app.crud import microscope
 
 def get_scan(db: Session, id: int):
     return db.query(models.Scan).filter(models.Scan.id == id).first()
@@ -56,6 +56,7 @@ def _get_scans_query(
     return query
 
 
+
 def get_scans(
     db: Session,
     skip: int = 0,
@@ -95,6 +96,11 @@ def get_scans_count(
 def create_scan(db: Session, scan: schemas.ScanCreate, haadf_path: str = None):
     locations = scan.locations
     scan.locations = []
+
+    if scan.microscope_id is None:
+        microscope_ids = [m.id for m in microscope.get_microscopes(db)]
+        # We default to the first ( 4D Camera )
+        scan.microscope_id = microscope_ids[0]
 
     # Note: We have to pass metadata as metadata_ as metadata is reserved!
     db_scan = models.Scan(**scan.dict(), haadf_path=haadf_path, metadata_=scan.metadata)

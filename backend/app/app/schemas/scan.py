@@ -47,6 +47,7 @@ class ScanCreate(BaseModel):
     created: datetime
     locations: List[LocationCreate]
     metadata: Optional[Dict[str, Any]]
+    microscope_id: Optional[int]
 
 
 class ScanUpdate(BaseModel):

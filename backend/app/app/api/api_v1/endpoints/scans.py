@@ -29,7 +29,6 @@ async def create_scan(
     db: Session = Depends(get_db),
     api_key: APIKey = Depends(get_api_key),
 ):
-
     scan = crud.create_scan(db=db, scan=scan)
 
     # See if we have HAADF image for this scan
@@ -85,7 +84,7 @@ def read_scans(
         has_haadf=has_haadf,
         start=start,
         end=end,
-        microscope_id=microscope_id
+        microscope_id=microscope_id,
     )
 
     count = crud.get_scans_count(

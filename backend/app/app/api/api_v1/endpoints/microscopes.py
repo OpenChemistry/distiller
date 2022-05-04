@@ -9,6 +9,7 @@ from app.crud import microscope as crud
 
 router = APIRouter()
 
+
 @router.get(
     "",
     response_model=List[schemas.Microscope],

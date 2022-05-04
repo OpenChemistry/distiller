@@ -1,6 +1,6 @@
-from sqlalchemy import (JSON, Column, Enum, ForeignKey, Integer, Interval,
-                        String)
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
+
 from app.db.base_class import Base
 
 

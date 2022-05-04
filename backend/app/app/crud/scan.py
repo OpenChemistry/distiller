@@ -8,6 +8,7 @@ from app import models, schemas
 from app.core import constants
 from app.crud import microscope
 
+
 def get_scan(db: Session, id: int):
     return db.query(models.Scan).filter(models.Scan.id == id).first()
 
@@ -26,7 +27,7 @@ def _get_scans_query(
     has_haadf: bool = None,
     start: datetime = None,
     end: datetime = None,
-    microscope_id = None,
+    microscope_id=None,
 ):
     query = db.query(models.Scan)
     if scan_id > -1:
@@ -60,7 +61,6 @@ def _get_scans_query(
     return query
 
 
-
 def get_scans(
     db: Session,
     skip: int = 0,
@@ -71,7 +71,7 @@ def get_scans(
     has_haadf: bool = None,
     start: datetime = None,
     end: datetime = None,
-    microscope_id = None,
+    microscope_id=None,
 ):
     query = _get_scans_query(
         db, skip, limit, scan_id, state, created, has_haadf, start, end, microscope_id

@@ -11,7 +11,7 @@ class Scan(Base):
     scan_id = Column(Integer, index=True)
     log_files = Column(Integer, default=0)
     created = Column(DateTime(timezone=True), nullable=False, index=True)
-    haadf_path = Column(String, nullable=True, default=None, index=True)
+    image_path = Column(String, nullable=True, default=None, index=True)
     notes = Column(String, nullable=True)
     metadata_ = Column("metadata", JSONB, nullable=True)
     microscope_id = Column(

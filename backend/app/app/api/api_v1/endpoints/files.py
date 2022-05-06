@@ -68,7 +68,7 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
         raise HTTPException(status_code=400, detail="Can't extract scan id.")
 
     scan_id = int(match.group(1))
-    upload_path = Path(settings.HAADF_IMAGE_UPLOAD_DIR) / f"scan{scan_id}.png"
+    upload_path = Path(settings.IMAGE_UPLOAD_DIR) / f"scan{scan_id}.png"
     async with aiofiles.open(upload_path, "wb") as fp:
         contents = await file.read()
         await fp.write(contents)
@@ -79,7 +79,7 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
     )
 
     scans = scan_crud.get_scans(
-        db, scan_id=scan_id, has_haadf=False, start=created_since
+        db, scan_id=scan_id, has_image=False, start=created_since
     )
 
     if len(scans) > 0:
@@ -91,15 +91,15 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
             None,
             shutil.move,
             upload_path,
-            Path(settings.HAADF_IMAGE_STATIC_DIR) / f"{scan.id}.png",
+            Path(settings.IMAGE_STATIC_DIR) / f"{scan.id}.png",
         )
 
-        haaf_path = f"{settings.HAADF_IMAGE_URL_PREFIX}/{scan.id}.png"
-        (updated, _) = scan_crud.update_scan(db, scan.id, haadf_path=haaf_path)
+        image_path = f"{settings.IMAGE_URL_PREFIX}/{scan.id}.png"
+        (updated, _) = scan_crud.update_scan(db, scan.id, image_path=image_path)
 
         if updated:
             await send_scan_event_to_kafka(
-                schemas.ScanUpdateEvent(haadf_path=haaf_path, id=scan.id)
+                schemas.ScanUpdateEvent(image_path=image_path, id=scan.id)
             )
 
 

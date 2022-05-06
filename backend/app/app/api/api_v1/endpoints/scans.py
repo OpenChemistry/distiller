@@ -45,7 +45,7 @@ async def create_scan(
 
         # Finally update the haadf path
         (_, scan) = crud.update_scan(
-            db, scan.id, haadf_path=f"{settings.HAADF_IMAGE_URL_PREFIX}/{scan.id}.png"
+            db, scan.id, image_path=f"{settings.IMAGE_URL_PREFIX}/{scan.id}.png"
         )
 
     await send_scan_event_to_kafka(
@@ -199,13 +199,13 @@ async def delete_scan(id: int, remove_scan_files: bool, db: Session = Depends(ge
 
     crud.delete_scan(db, id)
 
-    haadf_path = Path(settings.HAADF_IMAGE_STATIC_DIR) / f"{id}.png"
-    logger.info(f"Checking if HAADF image exists: {haadf_path}")
-    if haadf_path.exists():
-        logger.info(f"Removing HAADF image: {haadf_path}")
+    image_path = Path(settings.IMAGE_STATIC_DIR) / f"{id}.png"
+    logger.info(f"Checking if image exists: {image_path}")
+    if image_path.exists():
+        logger.info(f"Removing image: {image_path}")
         # Remove it
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, os.remove, haadf_path)
+        await loop.run_in_executor(None, os.remove, image_path)
 
 
 @router.put(

@@ -32,7 +32,7 @@ class Scan(BaseModel):
     log_files: int
     created: datetime
     locations: List[Location]
-    haadf_path: Optional[str]
+    image_path: Optional[str]
     notes: Optional[str]
     jobs: List[Job]
     metadata: Optional[Dict[str, Any]] = Field(alias="metadata_")
@@ -54,7 +54,7 @@ class ScanUpdate(BaseModel):
     log_files: Optional[int] = None
     locations: Optional[List[LocationCreate]] = None
     notes: Optional[str]
-    haadf_path: Optional[str]
+    image_path: Optional[str]
     metadata: Optional[Dict[str, Any]]
 
 
@@ -81,11 +81,11 @@ class ScanCreatedEvent(ScanEvent):
     scan_id: int
     created: datetime
     event_type = ScanEventType.CREATED
-    haadf_path: Optional[str] = None
+    image_path: Optional[str] = None
 
 
 class ScanUpdateEvent(ScanEvent):
     event_type = ScanEventType.UPDATED
     jobs: Optional[List[Job]]
-    haadf_path: Optional[str]
+    image_path: Optional[str]
     notes: Optional[str]

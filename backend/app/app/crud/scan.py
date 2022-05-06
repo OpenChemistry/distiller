@@ -24,7 +24,7 @@ def _get_scans_query(
     scan_id: int = -1,
     state: schemas.ScanState = None,
     created: datetime = None,
-    has_haadf: bool = None,
+    has_image: bool = None,
     start: datetime = None,
     end: datetime = None,
     microscope_id=None,
@@ -43,11 +43,11 @@ def _get_scans_query(
     if created is not None:
         query = query.filter(models.Scan.created == created)
 
-    if has_haadf is not None:
-        if has_haadf:
-            query = query.filter(models.Scan.haadf_path != None)
+    if has_image is not None:
+        if has_image:
+            query = query.filter(models.Scan.image_path != None)
         else:
-            query = query.filter(models.Scan.haadf_path == None)
+            query = query.filter(models.Scan.image_path == None)
 
     if start is not None:
         query = query.filter(models.Scan.created > start)
@@ -99,7 +99,7 @@ def get_scans_count(
     return query.count()
 
 
-def create_scan(db: Session, scan: schemas.ScanCreate, haadf_path: str = None):
+def create_scan(db: Session, scan: schemas.ScanCreate, image_path: str = None):
     locations = scan.locations
     scan.locations = []
 
@@ -109,7 +109,7 @@ def create_scan(db: Session, scan: schemas.ScanCreate, haadf_path: str = None):
         scan.microscope_id = microscope_ids[0]
 
     # Note: We have to pass metadata as metadata_ as metadata is reserved!
-    db_scan = models.Scan(**scan.dict(), haadf_path=haadf_path, metadata_=scan.metadata)
+    db_scan = models.Scan(**scan.dict(), image_path=image_path, metadata_=scan.metadata)
     db.add(db_scan)
     for l in locations:
         l = models.Location(**l.dict())
@@ -126,7 +126,7 @@ def update_scan(
     id: int,
     log_files: int = None,
     locations: List[schemas.Location] = None,
-    haadf_path: str = None,
+    image_path: str = None,
     notes: str = None,
     metadata: Dict[str, Any] = None,
 ):
@@ -160,20 +160,20 @@ def update_scan(
 
         updated = updated or locations_updated
 
-    if haadf_path is not None:
+    if image_path is not None:
         statement = (
             update(models.Scan)
             .where(models.Scan.id == id)
             .where(
                 or_(
-                    models.Scan.haadf_path != haadf_path, models.Scan.haadf_path == None
+                    models.Scan.image_path != image_path, models.Scan.image_path == None
                 )
             )
-            .values(haadf_path=haadf_path)
+            .values(image_path=image_path)
         )
         resultsproxy = db.execute(statement)
-        haadf_path_updated = resultsproxy.rowcount == 1
-        updated = updated or haadf_path_updated
+        image_path_updated = resultsproxy.rowcount == 1
+        updated = updated or image_path_updated
 
     if notes is not None:
         statement = (

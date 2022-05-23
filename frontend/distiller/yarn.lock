@@ -1318,17 +1318,17 @@
     prop-types "^15.7.2"
     react-is "^16.8.0 || ^17.0.0"
 
-"@mui/base@5.0.0-alpha.78":
-  version "5.0.0-alpha.78"
-  resolved "https://registry.npmjs.org/@mui/base/-/base-5.0.0-alpha.78.tgz"
+"@mui/base@5.0.0-alpha.82":
+  version "5.0.0-alpha.82"
+  resolved "https://registry.yarnpkg.com/@mui/base/-/base-5.0.0-alpha.82.tgz#19645af6790a79587517a5782ee32bf9ab7f7ac8"
   dependencies:
     "@babel/runtime" "^7.17.2"
     "@emotion/is-prop-valid" "^1.1.2"
     "@mui/types" "^7.1.3"
-    "@mui/utils" "^5.6.1"
+    "@mui/utils" "^5.8.0"
     "@popperjs/core" "^2.11.5"
     clsx "^1.1.1"
-    prop-types "^15.7.2"
+    prop-types "^15.8.1"
     react-is "^17.0.2"
 
 "@mui/icons-material@^5.6.2":
@@ -1337,20 +1337,20 @@
   dependencies:
     "@babel/runtime" "^7.17.2"
 
-"@mui/material@^5.6.3":
-  version "5.6.3"
-  resolved "https://registry.npmjs.org/@mui/material/-/material-5.6.3.tgz"
+"@mui/material@^5.8.1":
+  version "5.8.1"
+  resolved "https://registry.yarnpkg.com/@mui/material/-/material-5.8.1.tgz#ff3c0dc65cf975362f8b141d4713a6d88b9f08e9"
   dependencies:
     "@babel/runtime" "^7.17.2"
-    "@mui/base" "5.0.0-alpha.78"
-    "@mui/system" "^5.6.3"
+    "@mui/base" "5.0.0-alpha.82"
+    "@mui/system" "^5.8.1"
     "@mui/types" "^7.1.3"
-    "@mui/utils" "^5.6.1"
+    "@mui/utils" "^5.8.0"
     "@types/react-transition-group" "^4.4.4"
     clsx "^1.1.1"
     csstype "^3.0.11"
     hoist-non-react-statics "^3.3.2"
-    prop-types "^15.7.2"
+    prop-types "^15.8.1"
     react-is "^17.0.2"
     react-transition-group "^4.4.2"
 
@@ -1362,13 +1362,21 @@
     "@mui/utils" "^5.6.1"
     prop-types "^15.7.2"
 
-"@mui/styled-engine@^5.6.1":
-  version "5.6.1"
-  resolved "https://registry.npmjs.org/@mui/styled-engine/-/styled-engine-5.6.1.tgz"
+"@mui/private-theming@^5.8.0":
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/@mui/private-theming/-/private-theming-5.8.0.tgz#7d927e7e12616dc10b0dcbe665df2c00ed859796"
+  dependencies:
+    "@babel/runtime" "^7.17.2"
+    "@mui/utils" "^5.8.0"
+    prop-types "^15.8.1"
+
+"@mui/styled-engine@^5.8.0":
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/@mui/styled-engine/-/styled-engine-5.8.0.tgz#89ed42efe7c8749e5a60af035bc5d3a6bea362bf"
   dependencies:
     "@babel/runtime" "^7.17.2"
     "@emotion/cache" "^11.7.1"
-    prop-types "^15.7.2"
+    prop-types "^15.8.1"
 
 "@mui/styles@^5.6.2":
   version "5.6.2"
@@ -1392,31 +1400,31 @@
     jss-plugin-vendor-prefixer "^10.8.2"
     prop-types "^15.7.2"
 
-"@mui/system@^5.6.3":
-  version "5.6.3"
-  resolved "https://registry.npmjs.org/@mui/system/-/system-5.6.3.tgz"
+"@mui/system@^5.8.1":
+  version "5.8.1"
+  resolved "https://registry.yarnpkg.com/@mui/system/-/system-5.8.1.tgz#57863657c5dc3edb6b2b11836dede3e0c4871ae9"
   dependencies:
     "@babel/runtime" "^7.17.2"
-    "@mui/private-theming" "^5.6.2"
-    "@mui/styled-engine" "^5.6.1"
+    "@mui/private-theming" "^5.8.0"
+    "@mui/styled-engine" "^5.8.0"
     "@mui/types" "^7.1.3"
-    "@mui/utils" "^5.6.1"
+    "@mui/utils" "^5.8.0"
     clsx "^1.1.1"
     csstype "^3.0.11"
-    prop-types "^15.7.2"
+    prop-types "^15.8.1"
 
 "@mui/types@^7.1.3":
   version "7.1.3"
   resolved "https://registry.npmjs.org/@mui/types/-/types-7.1.3.tgz"
 
-"@mui/utils@^5.2.3", "@mui/utils@^5.6.1":
-  version "5.6.1"
-  resolved "https://registry.npmjs.org/@mui/utils/-/utils-5.6.1.tgz"
+"@mui/utils@^5.2.3", "@mui/utils@^5.6.1", "@mui/utils@^5.8.0":
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/@mui/utils/-/utils-5.8.0.tgz#4b1d19cbcf70773283375e763b7b3552b84cb58f"
   dependencies:
     "@babel/runtime" "^7.17.2"
-    "@types/prop-types" "^15.7.4"
+    "@types/prop-types" "^15.7.5"
     "@types/react-is" "^16.7.1 || ^17.0.0"
-    prop-types "^15.7.2"
+    prop-types "^15.8.1"
     react-is "^17.0.2"
 
 "@mui/x-date-pickers@^5.0.0-alpha.0":
@@ -1951,9 +1959,13 @@
   version "2.4.2"
   resolved "https://registry.npmjs.org/@types/prettier/-/prettier-2.4.2.tgz"
 
-"@types/prop-types@*", "@types/prop-types@^15.7.4":
+"@types/prop-types@*":
   version "15.7.4"
   resolved "https://registry.npmjs.org/@types/prop-types/-/prop-types-15.7.4.tgz"
+
+"@types/prop-types@^15.7.5":
+  version "15.7.5"
+  resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.7.5.tgz#5f19d2b85a98e9558036f6a3cacc8819420f05cf"
 
 "@types/q@^1.5.1":
   version "1.5.4"
@@ -3303,13 +3315,9 @@ csstype@^2.5.2:
   version "2.6.20"
   resolved "https://registry.npmjs.org/csstype/-/csstype-2.6.20.tgz"
 
-csstype@^3.0.11:
+csstype@^3.0.11, csstype@^3.0.2:
   version "3.0.11"
   resolved "https://registry.npmjs.org/csstype/-/csstype-3.0.11.tgz"
-
-csstype@^3.0.2:
-  version "3.0.9"
-  resolved "https://registry.npmjs.org/csstype/-/csstype-3.0.9.tgz"
 
 damerau-levenshtein@^1.0.7:
   version "1.0.8"

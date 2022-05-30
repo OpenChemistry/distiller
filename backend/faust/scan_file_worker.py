@@ -194,6 +194,8 @@ def extract_ser_metadata(ser_path: str):
 
     # Store the X and Y pixel size, offset and unit
     try:
+        metadata["Dimensions.1"] = metadata['ArrayShape'][0]
+        metadata["Dimensions.2"] = metadata['ArrayShape'][1]
         metadata['PhysicalSizeX'] = metadata['Calibration'][0]['CalibrationDelta']
         metadata['PhysicalSizeXOrigin'] = metadata['Calibration'][0]['CalibrationOffset']
         metadata['PhysicalSizeXUnit'] = 'm'  # always meters

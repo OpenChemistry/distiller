@@ -110,7 +110,12 @@ const AdvancedMetadata: React.FC<AdvancedMetadataProps> = (props) => {
                       className={classes.advancedValueCell}
                       align="right"
                     >
-                      {metadata[key]}
+                      {
+                        JSON.stringify(metadata[key]).replace(
+                          /^"(.*)"$/,
+                          '$1'
+                        ) /* strip outer quotes */
+                      }
                     </TableCell>
                   </TableRow>
                 ))}

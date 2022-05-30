@@ -88,7 +88,7 @@ export type ScanJob = {
   machine?: string;
 };
 
-export type Metadata = { [name: string]: string | number };
+export type Metadata = { [name: string]: any };
 
 export type Scan = {
   id: IdType;

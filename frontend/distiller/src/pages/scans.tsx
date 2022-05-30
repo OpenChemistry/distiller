@@ -141,9 +141,9 @@ const ScansPage: React.FC = () => {
     microscopeId = microscopes[0].id;
   }
 
-  const microscopeParam = useParams().microscope;
-  if (microscopeParam !== undefined) {
-    const canonicalName = canonicalMicroscopeName(microscopeParam as string);
+  const microscope = useParams().microscope;
+  if (microscope !== undefined) {
+    const canonicalName = canonicalMicroscopeName(microscope as string);
 
     if (canonicalName in microscopesByCanonicalName) {
       microscopeId = microscopesByCanonicalName[canonicalName].id;
@@ -184,7 +184,7 @@ const ScansPage: React.FC = () => {
   };
 
   const onScanClick = (scan: Scan) => {
-    navigate(`${SCANS_PATH}/${scan.id}`);
+    navigate(`scans/${scan.id}`);
   };
   const onChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -457,7 +457,7 @@ const ScansPage: React.FC = () => {
                     </Tooltip>
                   </TableCell>
                   <TableCell align="right" className={classes.progressCell}>
-                    {scan.log_files < MAX_LOG_FILES ? (
+                    {scan.scan_id && scan.log_files < MAX_LOG_FILES ? (
                       <LinearProgress
                         variant="determinate"
                         value={(100 * scan.log_files) / MAX_LOG_FILES}

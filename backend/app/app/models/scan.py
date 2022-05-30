@@ -9,6 +9,7 @@ from app.db.base_class import Base
 class Scan(Base):
     id = Column(Integer, primary_key=True, index=True)
     scan_id = Column(Integer, index=True)
+    sha = Column(String(length=64), nullable=True, index=True, unique=True)
     log_files = Column(Integer, default=0)
     created = Column(DateTime(timezone=True), nullable=False, index=True)
     image_path = Column(String, nullable=True, default=None, index=True)

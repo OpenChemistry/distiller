@@ -207,9 +207,9 @@ const ScanPage: React.FC<Props> = () => {
         <CardContent>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={4} md={3}>
-              {scan.haadf_path ? (
+              {scan.image_path ? (
                 <img
-                  src={`${staticURL}${scan.haadf_path}`}
+                  src={`${staticURL}${scan.image_path}`}
                   alt="scan thumbnail"
                   className={classes.image}
                 />
@@ -223,12 +223,14 @@ const ScanPage: React.FC<Props> = () => {
             <Grid item xs={12} sm={8} md={9}>
               <Table>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className={classes.headCell}>
-                      Detector Scan ID
-                    </TableCell>
-                    <TableCell align="right">{scan.scan_id}</TableCell>
-                  </TableRow>
+                  {scan.scan_id && (
+                    <TableRow>
+                      <TableCell className={classes.headCell}>
+                        Detector Scan ID
+                      </TableCell>
+                      <TableCell align="right">{scan.scan_id}</TableCell>
+                    </TableRow>
+                  )}
                   <TableRow>
                     <TableCell className={classes.headCell}>Location</TableCell>
                     <TableCell align="right">
@@ -252,19 +254,23 @@ const ScanPage: React.FC<Props> = () => {
                       </Tooltip>
                     </TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.headCell}>Progress</TableCell>
-                    <TableCell align="right">
-                      {scan.log_files < MAX_LOG_FILES ? (
-                        <LinearProgress
-                          variant="determinate"
-                          value={(100 * scan.log_files) / MAX_LOG_FILES}
-                        />
-                      ) : (
-                        <CompleteIcon color="primary" />
-                      )}
-                    </TableCell>
-                  </TableRow>
+                  {scan.scan_id && (
+                    <TableRow>
+                      <TableCell className={classes.headCell}>
+                        Progress
+                      </TableCell>
+                      <TableCell align="right">
+                        {scan.log_files < MAX_LOG_FILES ? (
+                          <LinearProgress
+                            variant="determinate"
+                            value={(100 * scan.log_files) / MAX_LOG_FILES}
+                          />
+                        ) : (
+                          <CompleteIcon color="primary" />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </Grid>

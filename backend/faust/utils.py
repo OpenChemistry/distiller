@@ -1,4 +1,6 @@
 import re
+import json
+import numpy as np
 from datetime import datetime
 from pathlib import Path
 from typing import List, Union
@@ -7,7 +9,7 @@ import aiohttp
 import tenacity
 
 from config import settings
-from schemas import Job, JobUpdate, Machine, Scan, ScanCreate, ScanUpdate
+from schemas import Job, JobUpdate, Machine, Scan, ScanCreate, ScanUpdate, Microscope
 
 pattern = re.compile(r"^log_scan([0-9]*)_.*\.data")
 
@@ -78,6 +80,7 @@ async def get_scans(
     scan_id: int,
     state: str = None,
     created: datetime = None,
+    sha: str = None,
 ) -> Union[Scan, None]:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,
@@ -91,6 +94,10 @@ async def get_scans(
 
     if created is not None:
         params["created"] = created
+
+    if sha is not None:
+        params["sha"] = sha
+
 
     async with session.get(
         f"{settings.API_URL}/scans", headers=headers, params=params
@@ -252,3 +259,31 @@ async def get_machine(session: aiohttp.ClientSession, name: str) -> Machine:
         json = await r.json()
 
         return Machine(**json)
+
+
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    ) | tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ClientConnectionError
+    ),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
+async def get_microscope(session: aiohttp.ClientSession, name: str) -> Microscope:
+    headers = {
+        settings.API_KEY_NAME: settings.API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    async with session.get(
+        f"{settings.API_URL}/microscopes", headers=headers, params={"name": name}
+    ) as r:
+        r.raise_for_status()
+
+        json = await r.json()
+
+        if len(json) != 1:
+            raise Exception("Unable to fetch microscopy")
+
+        return Microscope(**json[0])

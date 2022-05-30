@@ -97,7 +97,7 @@ export type Scan = {
   created: string;
   locations: ScanLocation[];
   notes?: string;
-  haadf_path?: string;
+  image_path?: string;
   jobs: ScanJob[];
   prevScanId?: IdType;
   nextScanId?: IdType;

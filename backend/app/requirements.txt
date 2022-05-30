@@ -11,3 +11,4 @@ alembic
 aiofiles
 sentry-sdk
 coloredlogs
+python-dateutil

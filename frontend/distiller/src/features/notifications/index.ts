@@ -48,12 +48,17 @@ const initialState: NotificationsState = {
   status: 'disconnected',
 };
 
-export const connectNotifications = createAsyncThunk(
+type ConnectPayload = { microscopeID: number };
+export const connectNotifications = createAsyncThunk<void, ConnectPayload>(
   'notifications/connect',
-  async (_payload, thunkAPI) => {
+  async (payload, thunkAPI) => {
     const { dispatch } = thunkAPI;
+    const { microscopeID } = payload;
 
-    let ws: WebSocket = await apiClient.ws({ url: 'notifications' });
+    let ws: WebSocket = await apiClient.ws({
+      url: 'notifications',
+      params: { microscope_id: microscopeID },
+    });
 
     notificationHub = new NotificationHub(ws, dispatch);
 

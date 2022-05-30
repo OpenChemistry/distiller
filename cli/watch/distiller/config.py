@@ -1,6 +1,7 @@
 from typing import List
 
 from pydantic import AnyHttpUrl, BaseSettings
+from schemas import WatchMode
 
 
 class Settings(BaseSettings):
@@ -11,6 +12,9 @@ class Settings(BaseSettings):
     HOST: str = None
     LOG_FILE_PATH: str = None
     SYNC: bool = True
+    MODE: WatchMode = WatchMode.SCAN_4D_FILES
+    MICROSCOPE: str
+    POLL: bool = False
 
     class Config:
         case_sensitive = True

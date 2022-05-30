@@ -53,7 +53,7 @@ import {
   microscopesSelectors,
   microscopesState,
 } from '../features/microscopes';
-import { markChanged } from 'immer/dist/internal';
+import { canonicalMicroscopeName } from '../utils/microscopes';
 
 const useStyles = makeStyles((theme) => ({
   headCell: {
@@ -121,9 +121,6 @@ const ScansPage: React.FC = () => {
     new Set<IdType>()
   );
 
-  const canonicalMicroscopeName = (name: string) =>
-    name.toLowerCase().replace(' ', '');
-
   const microscopes = useAppSelector((state) =>
     microscopesSelectors.selectAll(microscopesState(state))
   );
@@ -178,7 +175,7 @@ const ScansPage: React.FC = () => {
   };
 
   const onImgClick = (scan: Scan) => {
-    setActiveImg(`${staticURL}${scan.haadf_path!}`);
+    setActiveImg(`${staticURL}${scan.image_path!}`);
     setMaximizeImg(true);
   };
 
@@ -422,9 +419,9 @@ const ScansPage: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell className={classes.imgCell}>
-                    {scan.haadf_path ? (
+                    {scan.image_path ? (
                       <img
-                        src={`${staticURL}${scan.haadf_path}`}
+                        src={`${staticURL}${scan.image_path}`}
                         alt="scan thumbnail"
                         className={classes.thumbnail}
                         onClick={stopPropagation(() => onImgClick(scan))}

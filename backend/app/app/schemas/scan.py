@@ -28,7 +28,7 @@ class ScanState(str, Enum):
 
 class Scan(BaseModel):
     id: int
-    scan_id: int
+    scan_id: Optional[int]
     log_files: int
     created: datetime
     locations: List[Location]
@@ -42,13 +42,25 @@ class Scan(BaseModel):
         orm_mode = True
 
 
-class ScanCreate(BaseModel):
+class Scan4DCreate(BaseModel):
     scan_id: int
     created: datetime
     locations: List[LocationCreate]
     metadata: Optional[Dict[str, Any]]
     microscope_id: Optional[int]
 
+
+class ScanFromFileMetadata(BaseModel):
+    created: datetime
+    locations: List[LocationCreate]
+    microscope_id: int
+
+class ScanFromFile(BaseModel):
+    sha: str
+    created: datetime
+    locations: List[LocationCreate]
+    metadata: Optional[Dict[str, Any]]
+    microscope_id: int
 
 class ScanUpdate(BaseModel):
     log_files: Optional[int] = None
@@ -78,7 +90,7 @@ class ScanEvent(BaseModel):
 
 class ScanCreatedEvent(ScanEvent):
     microscope_id: int
-    scan_id: int
+    scan_id: Optional[int]
     created: datetime
     event_type = ScanEventType.CREATED
     image_path: Optional[str] = None

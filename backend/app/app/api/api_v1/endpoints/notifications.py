@@ -1,18 +1,34 @@
 import asyncio
 from contextlib import contextmanager
 from typing import Any
+from cachetools import LRUCache
 
 from fastapi import APIRouter, status
 from fastapi.exceptions import HTTPException
 from starlette.endpoints import WebSocketEndpoint
+from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.core.logging import logger
 from app.kafka import consumer
+from app.crud import scan as scan_crud
+from app.api.deps import get_db
 
 router = APIRouter()
 
 from fastapi import WebSocket
+
+# Cache map of scan ids to microscope ids for filtering
+scan_id_to_microscope_id = LRUCache(maxsize=1000)
+
+def get_microscope_id(db: Session, scan_id: int):
+    if scan_id in scan_id_to_microscope_id:
+        return scan_id_to_microscope_id[scan_id]
+
+    scan = scan_crud.get_scan(db, scan_id)
+    scan_id_to_microscope_id[scan_id] = scan.microscope_id
+
+    return scan.microscope_id
 
 
 @router.websocket_route("/notifications")
@@ -24,6 +40,9 @@ class WebsocketConsumer(WebSocketEndpoint):
         try:
             self.websocket = websocket
             await self.websocket.accept()
+
+            self.microscope_id = int(websocket.query_params.get("microscope_id"))
+            print(self.microscope_id)
 
             with contextmanager(get_db)() as db:
                 await get_current_user(db, websocket.query_params.get("token"))
@@ -50,12 +69,26 @@ class WebsocketConsumer(WebSocketEndpoint):
     async def relay_events(self) -> None:
         try:
             async for msg in self.consumer:
+                print(msg)
                 event = msg.value
                 try:
                     del event["__faust"]
                 except KeyError:
                     pass
-                await self.websocket.send_json(event)
+
+                microscope_id = None
+                if 'microscope_id' in event:
+                    microscope_id = event['microscope_id']
+                elif 'id' in event:
+                    with contextmanager(get_db)() as db:
+                        microscope_id = get_microscope_id(db, event['id'])
+
+                print(microscope_id)
+
+                # Only send the message for the associated microscope
+                if microscope_id is None or microscope_id == self.microscope_id:
+                    print('sending')
+                    await self.websocket.send_json(event)
         except:
             logger.exception("Exception relaying kafka message.")
         finally:

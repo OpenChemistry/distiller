@@ -88,7 +88,7 @@ async def create_scan_from_file(
 
     scan = crud.create_scan(db=db, scan=scan_from_file)
     ext = Path(file_upload.filename).suffix
-    upload_path = Path(settings.SCAN_FILE_UPLOAD_DIR) / f"{scan.id}.{ext}"
+    upload_path = Path(settings.SCAN_FILE_UPLOAD_DIR) / f"{scan.id}{ext}"
     async with aiofiles.open(upload_path, "wb") as fp:
         bytes = file_upload.file.read(BLOCKSIZE)
 
@@ -103,7 +103,7 @@ async def create_scan_from_file(
 
     if ser_file_upload is not None:
         ext = Path(ser_file_upload.filename).suffix
-        upload_path = Path(settings.SCAN_FILE_UPLOAD_DIR) / f"{scan.id}.{ext}"
+        upload_path = Path(settings.SCAN_FILE_UPLOAD_DIR) / f"{scan.id}{ext}"
         async with aiofiles.open(upload_path, "wb") as fp:
             bytes = ser_file_upload.file.read(BLOCKSIZE)
 

@@ -138,7 +138,7 @@ const ScanPage: React.FC<Props> = () => {
     {}
   );
 
-  let microscope = null;
+  let microscope: Microscope | null = null;
   const microscopeParam = useUrlParams().microscope;
   if (microscopeParam !== undefined) {
     const canonicalName = canonicalMicroscopeName(microscopeParam as string);
@@ -218,11 +218,21 @@ const ScanPage: React.FC<Props> = () => {
   );
 
   const onNavigateNext = () => {
-    navigate(`${SCANS_PATH}/${scan?.nextScanId}`);
+    if (microscope === null) {
+      return;
+    }
+    const microscopeName = canonicalMicroscopeName(microscope.name);
+
+    navigate(`/${microscopeName}${SCANS_PATH}/${scan?.nextScanId}`);
   };
 
   const onNavigatePrev = () => {
-    navigate(`${SCANS_PATH}/${scan?.prevScanId}`);
+    if (microscope === null) {
+      return;
+    }
+    const microscopeName = canonicalMicroscopeName(microscope.name);
+
+    navigate(`/${microscopeName}${SCANS_PATH}/${scan?.prevScanId}`);
   };
 
   if (scan === undefined || microscope === null) {

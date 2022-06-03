@@ -12,3 +12,4 @@ aiofiles
 sentry-sdk
 coloredlogs
 python-dateutil
+cachetools

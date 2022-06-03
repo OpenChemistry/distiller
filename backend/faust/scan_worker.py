@@ -305,6 +305,7 @@ scan_metadata_events_topic = app.topic(
     TOPIC_SCAN_METADATA_EVENTS, value_type=ScanMetadata
 )
 
+
 @app.agent(scan_metadata_events_topic)
 async def watch_for_metadata_event(metadata_events):
     async with aiohttp.ClientSession() as session:

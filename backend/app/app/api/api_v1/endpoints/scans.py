@@ -1,13 +1,18 @@
 import asyncio
+import hashlib
 import os
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+import aiofiles
+from fastapi import (APIRouter, Depends, File, HTTPException, Response,
+                     UploadFile, status)
 from fastapi.security.api_key import APIKey
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
+from starlette.requests import Request
 
 from app import schemas
 from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
@@ -15,24 +20,22 @@ from app.core.config import settings
 from app.core.logging import logger
 from app.crud import scan as crud
 from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
-                                send_scan_event_to_kafka)
+                                send_scan_event_to_kafka,
+                                send_scan_file_event_to_kafka)
 from app.models import Scan
 from app.schemas.events import RemoveScanFilesEvent
-from app.schemas.scan import ScanCreatedEvent
+from app.schemas.scan import Scan4DCreate, ScanCreatedEvent
+
+BLOCKSIZE = 1024 * 1024  # 1M
 
 router = APIRouter()
 
 
-@router.post("", response_model=schemas.Scan, response_model_by_alias=False)
-async def create_scan(
-    scan: schemas.ScanCreate,
-    db: Session = Depends(get_db),
-    api_key: APIKey = Depends(get_api_key),
-):
+async def create_4d_scan(db: Session, scan: Scan4DCreate):
     scan = crud.create_scan(db=db, scan=scan)
 
     # See if we have HAADF image for this scan
-    upload_path = Path(settings.HAADF_IMAGE_UPLOAD_DIR) / f"scan{scan.scan_id}.png"
+    upload_path = Path(settings.IMAGE_UPLOAD_DIR) / f"scan{scan.scan_id}.png"
     if upload_path.exists():
         # Move it to the right location to be served statically
         loop = asyncio.get_event_loop()
@@ -46,6 +49,129 @@ async def create_scan(
         # Finally update the haadf path
         (_, scan) = crud.update_scan(
             db, scan.id, image_path=f"{settings.IMAGE_URL_PREFIX}/{scan.id}.png"
+        )
+
+    return scan
+
+
+def generate_sha256(form_data: schemas.ScanFromFileMetadata):
+    sha = hashlib.sha256()
+    if len(form_data.locations) > 0:
+        sha.update(form_data.locations[0].host.encode())
+        sha.update(form_data.locations[0].path.encode())
+    else:
+        logger.warn(
+            f"No location available for scan. Using only created time and microscopy."
+        )
+
+    sha.update(form_data.created.isoformat().encode())
+    sha.update(str(form_data.microscope_id).encode())
+
+    return sha.hexdigest()
+
+
+async def create_scan_from_file(
+    db,
+    meta: schemas.ScanFromFileMetadata,
+    file_upload: UploadFile,
+    ser_file_upload: Optional[UploadFile],
+):
+    sha = generate_sha256(meta)
+
+    # Check for existing scan with this sha
+    if crud.get_scans_count(db, sha=sha) != 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Scan in SHA already exists"
+        )
+
+    scan_from_file = schemas.ScanFromFile(sha=sha, **meta.dict())
+
+    scan = crud.create_scan(db=db, scan=scan_from_file)
+    ext = Path(file_upload.filename).suffix
+    upload_path = Path(settings.SCAN_FILE_UPLOAD_DIR) / f"{scan.id}.{ext}"
+    async with aiofiles.open(upload_path, "wb") as fp:
+        bytes = file_upload.file.read(BLOCKSIZE)
+
+        while len(bytes) > 0:
+            await fp.write(bytes)
+            bytes = file_upload.file.read(BLOCKSIZE)
+
+    # Send event so the metadata get extracted etc.
+    await send_scan_file_event_to_kafka(
+        schemas.ScanFileUploaded(path=str(upload_path), id=scan.id)
+    )
+
+    if ser_file_upload is not None:
+        ext = Path(ser_file_upload.filename).suffix
+        upload_path = Path(settings.SCAN_FILE_UPLOAD_DIR) / f"{scan.id}.{ext}"
+        async with aiofiles.open(upload_path, "wb") as fp:
+            bytes = ser_file_upload.file.read(BLOCKSIZE)
+
+            while len(bytes) > 0:
+                await fp.write(bytes)
+                bytes = ser_file_upload.file.read(BLOCKSIZE)
+
+        # Send event so the metadata get extracted etc.
+        await send_scan_file_event_to_kafka(
+            schemas.ScanFileUploaded(path=str(upload_path), id=scan.id)
+        )
+
+    return scan
+
+
+# For this endpoint we are on our own! As we want to support two request types
+# we have to the parsing ourself, the OpenAPI doc will not be correct!
+@router.post(
+    "",
+    summary="Note: This API either take a JSON body for creating a 4D scan or a scan files. We are parsing the request manually, the OpenAPI documentation is not correct.",
+    response_model=schemas.Scan,
+    response_model_by_alias=False,
+)
+async def create_scan(
+    request: Request,
+    # Because we can only have "simple" form fields with a file upload
+    # we encode the metadata in another str field.
+    # file_metadata: Optional[schemas.ScanFromFileFormData] = Depends(to_file_meta),
+    db: Session = Depends(get_db),
+    api_key: APIKey = Depends(get_api_key),
+):
+    try:
+        content_type = request.headers["content-type"]
+        if content_type == "application/json":
+            scan = schemas.Scan4DCreate.parse_obj(await request.json())
+            scan = await create_4d_scan(db, scan)
+        elif content_type.startswith("multipart/form-data"):
+            form_data = await request.form()
+
+            file = form_data.get("file")
+            if file is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid request, scan file is required",
+                )
+            scan_metadata_str = form_data.get("scan_metadata")
+            if scan_metadata_str is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid request, scan metadata is required",
+                )
+
+            scan_metadata = schemas.ScanFromFileMetadata.parse_raw(scan_metadata_str)
+
+            # See if we have an associated ser file
+            file_stem = Path(file.filename).stem.replace("%20", "\\ ")
+            ser_file = form_data.get(f"{file_stem}.ser")
+            scan = await create_scan_from_file(
+                db, scan_metadata, file_upload=file, ser_file_upload=ser_file
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request type"
+            )
+    except ValidationError as e:
+        logger.exception(e)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request"
         )
 
     await send_scan_event_to_kafka(
@@ -66,12 +192,13 @@ def read_scans(
     skip: int = 0,
     limit: int = 100,
     scan_id: int = -1,
-    state: schemas.ScanState = None,
-    created: datetime = None,
-    has_haadf: bool = None,
-    start: datetime = None,
-    end: datetime = None,
-    microscope_id: int = None,
+    state: Optional[schemas.ScanState] = None,
+    created: Optional[datetime] = None,
+    has_image: Optional[bool] = None,
+    start: Optional[datetime] = None,
+    end: Optional[datetime] = None,
+    microscope_id: Optional[int] = None,
+    sha: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
     scans = crud.get_scans(
@@ -81,10 +208,11 @@ def read_scans(
         scan_id=scan_id,
         state=state,
         created=created,
-        has_haadf=has_haadf,
+        has_image=has_image,
         start=start,
         end=end,
         microscope_id=microscope_id,
+        sha=sha,
     )
 
     count = crud.get_scans_count(
@@ -94,7 +222,7 @@ def read_scans(
         scan_id=scan_id,
         state=state,
         created=created,
-        has_haadf=has_haadf,
+        has_image=has_image,
         start=start,
         end=end,
         microscope_id=microscope_id,
@@ -114,7 +242,9 @@ def read_scans(
 def read_scan(response: Response, id: int, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
-        raise HTTPException(status_code=404, detail="Scan not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found"
+        )
 
     (prev_scan, next_scan) = crud.get_prev_next_scan(db, id)
 
@@ -139,7 +269,9 @@ async def update_scan(
 
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
-        raise HTTPException(status_code=404, detail="Scan not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found"
+        )
 
     (updated, scan) = crud.update_scan(
         db,
@@ -178,7 +310,9 @@ async def _remove_scan_files(db_scan: Scan, host: str = None):
         # Verify that we have scan files on this host
         locations = [l for l in db_scan.locations if l.host == host]
         if len(locations) == 0:
-            raise HTTPException(status_code=400, detail="Invalid request")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request"
+            )
 
         scan = schemas.Scan.from_orm(db_scan)
         await send_remove_scan_files_event_to_kafka(
@@ -191,7 +325,9 @@ async def delete_scan(id: int, remove_scan_files: bool, db: Session = Depends(ge
 
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
-        raise HTTPException(status_code=404, detail="Scan not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found"
+        )
 
     if remove_scan_files:
         logger.info("Removing scan files.")
@@ -215,7 +351,9 @@ async def delete_scan(id: int, remove_scan_files: bool, db: Session = Depends(ge
 async def remove_scan_files(id: int, host: str, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
-        raise HTTPException(status_code=404, detail="Scan not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found"
+        )
 
     await _remove_scan_files(db_scan, host)
 
@@ -227,11 +365,15 @@ async def remove_scan_files(id: int, host: str, db: Session = Depends(get_db)):
 def delete_location(id: int, location_id: int, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
-        raise HTTPException(status_code=404, detail="Scan not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found"
+        )
 
     location = crud.get_location(db, id=location_id)
     if location is None:
-        raise HTTPException(status_code=404, detail="Location not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Location not found"
+        )
 
     crud.delete_location(db, location_id)
 
@@ -243,7 +385,9 @@ def delete_location(id: int, location_id: int, db: Session = Depends(get_db)):
 async def remove_scan(id: int, host: str, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
-        raise HTTPException(status_code=404, detail="Scan not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found"
+        )
 
     crud.delete_locations(db, scan_id=id, host=host)
 
@@ -252,3 +396,62 @@ async def remove_scan(id: int, host: str, db: Session = Depends(get_db)):
     if db_scan is not None:
         scan_updated_event.locations = db_scan.locations
         await send_scan_event_to_kafka(scan_updated_event)
+
+
+async def upload_png(db: Session, file: UploadFile) -> None:
+    scan_regex = re.compile(r"^([0-9]*)\.png")
+
+    # Extract out the scan ids
+    match = scan_regex.match(file.filename)
+    if not match:
+        raise HTTPException(status_code=400, detail="Can't extract scan id.")
+
+    scan_id = int(match.group(1))
+    upload_path = Path(settings.IMAGE_UPLOAD_DIR) / f"scan{scan_id}.png"
+    async with aiofiles.open(upload_path, "wb") as fp:
+        contents = await file.read()
+        await fp.write(contents)
+
+    current_time = datetime.datetime.utcnow()
+    created_since = current_time - datetime.timedelta(
+        hours=settings.HAADF_SCAN_AGE_LIMIT
+    )
+
+    scans = scan_crud.get_scans(
+        db, scan_id=scan_id, has_image=False, start=created_since
+    )
+
+    if len(scans) > 0:
+        scan = scans[0]
+        logger.info(f"Adding HAADF image '{upload_path}' to scan {scan.id}")
+        # Move the file to the right location
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(
+            None,
+            shutil.move,
+            upload_path,
+            Path(settings.IMAGE_STATIC_DIR) / f"{scan.id}.png",
+        )
+
+        image_path = f"{settings.IMAGE_URL_PREFIX}/{scan.id}.png"
+        (updated, _) = scan_crud.update_scan(db, scan.id, image_path=image_path)
+
+        if updated:
+            await send_scan_event_to_kafka(
+                schemas.ScanUpdateEvent(image_path=image_path, id=scan.id)
+            )
+
+
+@router.put("/{id}/image")
+async def upload_haadf(
+    id: int,
+    file: UploadFile = File(...),
+    api_key: APIKey = Depends(get_api_key),
+) -> None:
+    upload_path = Path(settings.IMAGE_STATIC_DIR) / f"{id}.png"
+    async with aiofiles.open(upload_path, "wb") as fp:
+        bytes = file.file.read(BLOCKSIZE)
+
+        while len(bytes) > 0:
+            await fp.write(bytes)
+            bytes = file.file.read(BLOCKSIZE)

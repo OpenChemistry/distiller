@@ -43,7 +43,7 @@ if settings.BACKEND_CORS_ORIGINS:
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 app.mount(
-    settings.HAADF_IMAGE_URL_PREFIX,
-    StaticFiles(directory=settings.HAADF_IMAGE_STATIC_DIR),
-    name="haadf",
+    settings.IMAGE_URL_PREFIX,
+    StaticFiles(directory=settings.IMAGE_STATIC_DIR),
+    name="image",
 )

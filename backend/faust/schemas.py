@@ -3,6 +3,8 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
+from json_utils import numpy_dumps
+
 
 class Location(BaseModel):
     host: str
@@ -11,11 +13,12 @@ class Location(BaseModel):
 
 class Scan(BaseModel):
     id: int
-    scan_id: int
+    scan_id: Optional[int]
     log_files: int
     locations: List[Location]
     created: datetime
     image_path: Optional[str] = None
+    metadata: Optional[Dict[str, Any]]
 
 
 class ScanCreate(BaseModel):
@@ -30,6 +33,9 @@ class ScanUpdate(BaseModel):
     log_files: Optional[int]
     locations: Optional[List[Location]]
     metadata: Optional[Dict[str, Any]]
+
+    class Config:
+        json_dumps = numpy_dumps
 
 
 class JobUpdate(BaseModel):
@@ -70,3 +76,9 @@ class Machine(BaseModel):
     cpu_bind: Optional[str]
     bbcp_dest_dir: str
     reservation: Optional[str]
+
+
+class Microscope(BaseModel):
+    id: int
+    name: str
+    config: Optional[Dict[str, Any]]

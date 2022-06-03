@@ -1,9 +1,16 @@
-from sqlalchemy import desc
+from typing import Optional
+
+from sqlalchemy import asc
 from sqlalchemy.orm import Session
 
 from app import models
 
 
-def get_microscopes(db: Session):
+def get_microscopes(db: Session, name: Optional[str] = None):
 
-    return db.query(models.Microscope).order_by(desc(models.Microscope.id)).all()
+    query = db.query(models.Microscope)
+
+    if name is not None:
+        query = query.filter(models.Microscope.name == name)
+
+    return query.order_by(asc(models.Microscope.id)).all()

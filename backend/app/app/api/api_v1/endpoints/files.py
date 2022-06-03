@@ -16,8 +16,9 @@ from app.core.logging import logger
 from app.crud import scan as scan_crud
 from app.kafka.producer import (send_filesystem_event_to_kafka,
                                 send_haadf_event_to_kafka,
+                                send_log_file_sync_event_to_kafka,
                                 send_scan_event_to_kafka,
-                                send_sync_event_to_kafka)
+                                send_scan_file_sync_event_to_kafka)
 
 router = APIRouter()
 
@@ -35,7 +36,11 @@ async def file_events(
 async def sync_events(
     event: schemas.SyncEvent, api_key: APIKey = Depends(deps.get_api_key)
 ):
-    await send_sync_event_to_kafka(event)
+    # The 4D camera doesn't see an id ( for now! )
+    if event.microscope_id is None:
+        await send_log_file_sync_event_to_kafka(event)
+    else:
+        await send_scan_file_sync_event_to_kafka(event)
 
     return event
 
@@ -49,7 +54,7 @@ async def upload_haadf_dm4(file: UploadFile) -> None:
         raise HTTPException(status_code=400, detail="Can't extract scan id.")
 
     scan_id = match.group(1)
-    upload_path = Path(settings.HAADF_DM4_UPLOAD_DIR) / f"scan{scan_id}.dm4"
+    upload_path = Path(settings.SCAN_FILE_UPLOAD_DIR) / f"scan{scan_id}.dm4"
     async with aiofiles.open(upload_path, "wb") as fp:
         contents = await file.read()
         await fp.write(contents)

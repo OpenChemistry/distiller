@@ -25,9 +25,10 @@ class Settings(BaseSettings):
     JOB_BBCP_EXECUTABLE_PATH: str
     JOB_MACHINE_OVERRIDES_PATH: Optional[str]
 
-    HAADF_IMAGE_UPLOAD_DIR: str
+    IMAGE_UPLOAD_DIR: str
     HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS: int
     HAADF_NCEMHUB_DM4_DATA_PATH: str
+    NCEMHUB_DATA_PATH: str
 
     # Max age a scan can be to still have a HAADF metadata associated with it (hours)
     # This is need to avoid associate a metadata with a old scan if the scan ids

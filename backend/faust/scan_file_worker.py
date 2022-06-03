@@ -83,12 +83,11 @@ async def copy_to_ncemhub(src_path: AsyncPath, dest_path: AsyncPath):
     created_datetime = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
 
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
-    dest_path = (
-        AsyncPath(settings.HAADF_NCEMHUB_DM4_DATA_PATH) / date_dir / src_path.name
-    )
+    dest_path =  dest_path / date_dir / src_path.name
+
     await dest_path.parent.mkdir(parents=True, exist_ok=True)
     loop = asyncio.get_event_loop()
-    loop.run_in_executor(None, shutil.copy, src_path, dest_path)
+    await loop.run_in_executor(None, shutil.copy, src_path, dest_path)
 
 
 @tenacity.retry(

@@ -46,7 +46,6 @@ const getMicroscopeID = (state: RootState, pathName: string) => {
     {}
   );
 
-  const pathname = window.location.pathname;
   const pathMatch = matchPath({ path: '/:microscopeName/*' }, pathName);
   if (pathMatch === null) {
     throw new Error('Unable to extract microscope');
@@ -73,7 +72,7 @@ export const login = createAsyncThunk<User, AuthenticatePayload>(
   'auth/authenticate',
   async (payload, thunkAPI) => {
     const { username, password, from } = payload;
-    const { dispatch, getState } = thunkAPI;
+    const { dispatch } = thunkAPI;
 
     const auth = await authenticateAPI(username, password);
 

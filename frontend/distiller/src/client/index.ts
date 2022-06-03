@@ -1,5 +1,3 @@
-import internal from 'stream';
-
 export interface IRequestOptions {
   url: string;
   method?: string;

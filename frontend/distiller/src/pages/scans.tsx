@@ -38,7 +38,6 @@ import { IdType, Microscope, Scan } from '../types';
 import { staticURL } from '../client';
 import ImageDialog from '../components/image-dialog';
 import LocationComponent from '../components/location';
-import { SCANS_PATH } from '../routes';
 import { stopPropagation } from '../utils';
 import {
   ScanDeleteConfirmDialog,

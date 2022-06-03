@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import {
-  useParams as useUrlParams,
-  useNavigate,
-  useParams,
-} from 'react-router-dom';
+import { useParams as useUrlParams, useNavigate } from 'react-router-dom';
 
 import useLocalStorageState from 'use-local-storage-state';
 

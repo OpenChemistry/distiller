@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
 
 import AppBar from '@mui/material/AppBar';
@@ -10,7 +10,7 @@ import UserIcon from '@mui/icons-material/AccountCircle';
 import makeStyles from '@mui/styles/makeStyles';
 
 import { isAuthenticated } from '../features/auth';
-import { HOME_PATH, AUTH_PATH } from '../routes';
+import { AUTH_PATH } from '../routes';
 
 import logo from '../logo.png';
 

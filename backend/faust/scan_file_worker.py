@@ -128,7 +128,9 @@ def clean_metadata(md):
 
 def extract_dm_metadata(dm_path: str):
     metadata = {}
-    with dm.fileDM(dm_path, on_memory=True) as dm_file:
+
+    # Use on_memory=False for now as it doesn't seem to work on spin
+    with dm.fileDM(dm_path, on_memory=False) as dm_file:
         # Save most useful metadata
 
         # Only keep the most useful tags as meta data

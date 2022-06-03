@@ -23,7 +23,7 @@ from constants import (DATE_DIR_FORMAT, TOPIC_HAADF_FILE_EVENTS,
 from faust_records import ScanMetadata
 from utils import ScanUpdate, get_scan, update_scan
 
-DATA_FILE_FORMATS = ["dm3", "dm4", "ser", "emd"]
+DATA_FILE_FORMATS = [".dm3", ".dm4", ".ser", ".emd"]
 
 # Setup logger
 logger = logging.getLogger("haadf_worker")
@@ -51,7 +51,12 @@ haadf_events_topic = app.topic(TOPIC_HAADF_FILE_EVENTS, value_type=HaadfEvent)
 async def generate_image_from_data(
     tmp_dir: str, data_path: str, image_filename: str
 ) -> AsyncPath:
-    file = nio.read(data_path)
+    # Hack to get around problem with memory mapping in spin!
+    if (Path(data_path).suffix in [".dm3", ".dm4"]):
+        file = dm.dmReader(data_path, on_memory=False)
+    else:
+        file = nio.read(data_path)
+
     img = file["data"]
     # TODO push to scan
     # haadf['pixelSize'] # this contains the real space pixel size (most important meta data)

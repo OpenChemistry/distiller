@@ -397,56 +397,12 @@ async def remove_scan(id: int, host: str, db: Session = Depends(get_db)):
         scan_updated_event.locations = db_scan.locations
         await send_scan_event_to_kafka(scan_updated_event)
 
-
-async def upload_png(db: Session, file: UploadFile) -> None:
-    scan_regex = re.compile(r"^([0-9]*)\.png")
-
-    # Extract out the scan ids
-    match = scan_regex.match(file.filename)
-    if not match:
-        raise HTTPException(status_code=400, detail="Can't extract scan id.")
-
-    scan_id = int(match.group(1))
-    upload_path = Path(settings.IMAGE_UPLOAD_DIR) / f"scan{scan_id}.png"
-    async with aiofiles.open(upload_path, "wb") as fp:
-        contents = await file.read()
-        await fp.write(contents)
-
-    current_time = datetime.datetime.utcnow()
-    created_since = current_time - datetime.timedelta(
-        hours=settings.HAADF_SCAN_AGE_LIMIT
-    )
-
-    scans = scan_crud.get_scans(
-        db, scan_id=scan_id, has_image=False, start=created_since
-    )
-
-    if len(scans) > 0:
-        scan = scans[0]
-        logger.info(f"Adding HAADF image '{upload_path}' to scan {scan.id}")
-        # Move the file to the right location
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
-            None,
-            shutil.move,
-            upload_path,
-            Path(settings.IMAGE_STATIC_DIR) / f"{scan.id}.png",
-        )
-
-        image_path = f"{settings.IMAGE_URL_PREFIX}/{scan.id}.png"
-        (updated, _) = scan_crud.update_scan(db, scan.id, image_path=image_path)
-
-        if updated:
-            await send_scan_event_to_kafka(
-                schemas.ScanUpdateEvent(image_path=image_path, id=scan.id)
-            )
-
-
 @router.put("/{id}/image")
-async def upload_haadf(
+async def upload_image(
     id: int,
     file: UploadFile = File(...),
     api_key: APIKey = Depends(get_api_key),
+     db: Session = Depends(get_db),
 ) -> None:
     upload_path = Path(settings.IMAGE_STATIC_DIR) / f"{id}.png"
     async with aiofiles.open(upload_path, "wb") as fp:
@@ -455,3 +411,10 @@ async def upload_haadf(
         while len(bytes) > 0:
             await fp.write(bytes)
             bytes = file.file.read(BLOCKSIZE)
+
+    image_path = f"{settings.IMAGE_URL_PREFIX}/{id}.png"
+    (updated, _) = crud.update_scan(db, id, image_path=str(image_path))
+    if updated:
+        await send_scan_event_to_kafka(
+            schemas.ScanUpdateEvent(image_path=image_path, id=id)
+        )

@@ -16,6 +16,11 @@ import { apiClient } from '../../client';
 import { connectNotifications } from '../notifications';
 import { getMachines } from '../machines';
 import { getMicroscopes } from '../microscopes';
+import { canonicalMicroscopeName } from '../../utils/microscopes';
+import { Microscope } from '../../types';
+import { microscopesSelectors, microscopesState } from '../microscopes';
+import { matchPath, Path } from 'react-router';
+import { isNil } from 'lodash';
 
 export interface AuthState {
   user?: User;
@@ -29,12 +34,46 @@ const initialState: AuthState = {
 
 let refreshController = new AbortController();
 
-type AuthenticatePayload = { username: string; password: string };
+const getMicroscopeID = (state: RootState, pathName: string) => {
+  // Get microscopes by canonical name
+  const microscopes = microscopesSelectors.selectAll(microscopesState(state));
+  const microscopesByCanonicalName = microscopes.reduce(
+    (obj: { [key: string]: Microscope }, microscope) => {
+      obj[canonicalMicroscopeName(microscope.name)] = microscope;
+
+      return obj;
+    },
+    {}
+  );
+
+  const pathname = window.location.pathname;
+  const pathMatch = matchPath({ path: '/:microscopeName/*' }, pathName);
+  if (pathMatch === null) {
+    throw new Error('Unable to extract microscope');
+  }
+
+  const { microscopeName } = pathMatch.params;
+  if (isNil(microscopeName)) {
+    throw new Error('Unable to extract microscope');
+  }
+  const canonicalName = canonicalMicroscopeName(microscopeName);
+  // Look up the microscope id
+  if (!(canonicalName in microscopesByCanonicalName)) {
+    throw new Error('Unable to find microscope ID');
+  }
+
+  const microscope = microscopesByCanonicalName[canonicalName];
+  const microscopeID = microscope.id;
+
+  return microscopeID;
+};
+
+type AuthenticatePayload = { username: string; password: string; from: Path };
 export const login = createAsyncThunk<User, AuthenticatePayload>(
   'auth/authenticate',
   async (payload, thunkAPI) => {
-    const { username, password } = payload;
-    const { dispatch } = thunkAPI;
+    const { username, password, from } = payload;
+    const { dispatch, getState } = thunkAPI;
 
     const auth = await authenticateAPI(username, password);
 
@@ -49,9 +88,14 @@ export const login = createAsyncThunk<User, AuthenticatePayload>(
       refreshToken(true, thunkAPI.dispatch, controller.signal);
     }, (exp - 30) * 1000); // Refresh 30 seconds before actual expiration
 
-    dispatch(connectNotifications());
+    await dispatch(getMicroscopes());
+
+    const microscopeID = getMicroscopeID(
+      thunkAPI.getState() as RootState,
+      from.pathname
+    );
+    dispatch(connectNotifications({ microscopeID }));
     dispatch(getMachines());
-    dispatch(getMicroscopes());
 
     const user = await getUserAPI();
 
@@ -94,7 +138,11 @@ export const restoreSession = createAsyncThunk<User, void>(
 
     await refreshToken(true, thunkAPI.dispatch, controller.signal);
 
-    dispatch(connectNotifications());
+    const microscopeID = getMicroscopeID(
+      thunkAPI.getState() as RootState,
+      window.location.pathname
+    );
+    dispatch(connectNotifications({ microscopeID }));
     dispatch(getMachines());
     dispatch(getMicroscopes());
 

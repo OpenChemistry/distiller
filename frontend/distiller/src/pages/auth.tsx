@@ -54,7 +54,7 @@ const AuthPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    dispatch(login({ username, password })).then((res) => {
+    dispatch(login({ username, password, from })).then((res) => {
       if (res.type === login.fulfilled.toString()) {
         navigate(from, { replace: true });
       } else {

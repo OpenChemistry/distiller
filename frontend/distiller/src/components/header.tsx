@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
 
 import AppBar from '@mui/material/AppBar';
@@ -28,10 +28,14 @@ const HeaderComponent: React.FC = () => {
 
   const authenticated = useAppSelector(isAuthenticated);
 
+  const location = useLocation();
+
   const navigate = useNavigate();
 
   const onLogoClick = () => {
-    navigate(HOME_PATH);
+    const microscope = location.pathname.split('/')[1];
+
+    navigate(`/${microscope}`);
   };
 
   const onUserClick = () => {

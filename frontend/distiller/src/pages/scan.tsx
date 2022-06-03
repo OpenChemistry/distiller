@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
-import { useParams as useUrlParams, useNavigate } from 'react-router-dom';
+import {
+  useParams as useUrlParams,
+  useNavigate,
+  useParams,
+} from 'react-router-dom';
 
 import useLocalStorageState from 'use-local-storage-state';
 
@@ -43,7 +47,7 @@ import {
 import LocationComponent from '../components/location';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
-import { IdType, JobType, Scan, ScanJob } from '../types';
+import { IdType, JobType, Scan, ScanJob, Microscope } from '../types';
 import JobStateComponent from '../components/job-state';
 import TransferDialog from '../components/transfer-dialog';
 import CountDialog from '../components/count-dialog';
@@ -54,6 +58,11 @@ import { isNil } from '../utils';
 import { SCANS_PATH } from '../routes';
 import { canRunJobs } from '../utils/machine';
 import MetadataComponent from '../components/metadata';
+import {
+  microscopesSelectors,
+  microscopesState,
+} from '../features/microscopes';
+import { canonicalMicroscopeName } from '../utils/microscopes';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -119,6 +128,29 @@ const ScanPage: React.FC<Props> = () => {
   const [machine, setMachine] = useLocalStorageState<string>('machine', {
     defaultValue: machines.length > 0 ? machines[0].name : '',
   });
+
+  const microscopes = useAppSelector((state) =>
+    microscopesSelectors.selectAll(microscopesState(state))
+  );
+
+  const microscopesByCanonicalName = microscopes.reduce(
+    (obj: { [key: string]: Microscope }, microscope) => {
+      obj[canonicalMicroscopeName(microscope.name)] = microscope;
+
+      return obj;
+    },
+    {}
+  );
+
+  let microscope = null;
+  const microscopeParam = useUrlParams().microscope;
+  if (microscopeParam !== undefined) {
+    const canonicalName = canonicalMicroscopeName(microscopeParam as string);
+
+    if (canonicalName in microscopesByCanonicalName) {
+      microscope = microscopesByCanonicalName[canonicalName];
+    }
+  }
 
   useEffect(() => {
     dispatch(getScan({ id: scanId }));
@@ -197,9 +229,11 @@ const ScanPage: React.FC<Props> = () => {
     navigate(`${SCANS_PATH}/${scan?.prevScanId}`);
   };
 
-  if (scan === undefined) {
+  if (scan === undefined || microscope === null) {
     return null;
   }
+
+  const actions = microscope.config['actions'];
 
   return (
     <React.Fragment>
@@ -207,9 +241,9 @@ const ScanPage: React.FC<Props> = () => {
         <CardContent>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={4} md={3}>
-              {scan.haadf_path ? (
+              {scan.image_path ? (
                 <img
-                  src={`${staticURL}${scan.haadf_path}`}
+                  src={`${staticURL}${scan.image_path}`}
                   alt="scan thumbnail"
                   className={classes.image}
                 />
@@ -223,12 +257,14 @@ const ScanPage: React.FC<Props> = () => {
             <Grid item xs={12} sm={8} md={9}>
               <Table>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className={classes.headCell}>
-                      Detector Scan ID
-                    </TableCell>
-                    <TableCell align="right">{scan.scan_id}</TableCell>
-                  </TableRow>
+                  {scan.scan_id && (
+                    <TableRow>
+                      <TableCell className={classes.headCell}>
+                        Detector Scan ID
+                      </TableCell>
+                      <TableCell align="right">{scan.scan_id}</TableCell>
+                    </TableRow>
+                  )}
                   <TableRow>
                     <TableCell className={classes.headCell}>Location</TableCell>
                     <TableCell align="right">
@@ -252,19 +288,23 @@ const ScanPage: React.FC<Props> = () => {
                       </Tooltip>
                     </TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.headCell}>Progress</TableCell>
-                    <TableCell align="right">
-                      {scan.log_files < MAX_LOG_FILES ? (
-                        <LinearProgress
-                          variant="determinate"
-                          value={(100 * scan.log_files) / MAX_LOG_FILES}
-                        />
-                      ) : (
-                        <CompleteIcon color="primary" />
-                      )}
-                    </TableCell>
-                  </TableRow>
+                  {scan.scan_id && (
+                    <TableRow>
+                      <TableCell className={classes.headCell}>
+                        Progress
+                      </TableCell>
+                      <TableCell align="right">
+                        {scan.log_files < MAX_LOG_FILES ? (
+                          <LinearProgress
+                            variant="determinate"
+                            value={(100 * scan.log_files) / MAX_LOG_FILES}
+                          />
+                        ) : (
+                          <CompleteIcon color="primary" />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </Grid>
@@ -285,24 +325,28 @@ const ScanPage: React.FC<Props> = () => {
           </Table>
         </CardContent>
         <CardActions>
-          <Button
-            onClick={onTransferClick}
-            size="small"
-            color="primary"
-            variant="outlined"
-            startIcon={<TransferIcon />}
-          >
-            Transfer
-          </Button>
-          <Button
-            onClick={onCountClick}
-            size="small"
-            color="primary"
-            variant="outlined"
-            startIcon={<CountIcon />}
-          >
-            Count
-          </Button>
+          {actions.indexOf('transfer') !== -1 && (
+            <Button
+              onClick={onTransferClick}
+              size="small"
+              color="primary"
+              variant="outlined"
+              startIcon={<TransferIcon />}
+            >
+              Transfer
+            </Button>
+          )}
+          {actions.indexOf('count') !== -1 && (
+            <Button
+              onClick={onCountClick}
+              size="small"
+              color="primary"
+              variant="outlined"
+              startIcon={<CountIcon />}
+            >
+              Count
+            </Button>
+          )}
           <div className={classes.spacer}></div>
           <Button
             onClick={onNavigatePrev}

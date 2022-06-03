@@ -88,7 +88,7 @@ export type ScanJob = {
   machine?: string;
 };
 
-export type Metadata = { [name: string]: string | number };
+export type Metadata = { [name: string]: any };
 
 export type Scan = {
   id: IdType;
@@ -97,7 +97,7 @@ export type Scan = {
   created: string;
   locations: ScanLocation[];
   notes?: string;
-  haadf_path?: string;
+  image_path?: string;
   jobs: ScanJob[];
   prevScanId?: IdType;
   nextScanId?: IdType;

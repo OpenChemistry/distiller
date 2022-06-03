@@ -53,7 +53,7 @@ import {
   microscopesSelectors,
   microscopesState,
 } from '../features/microscopes';
-import { markChanged } from 'immer/dist/internal';
+import { canonicalMicroscopeName } from '../utils/microscopes';
 
 const useStyles = makeStyles((theme) => ({
   headCell: {
@@ -121,9 +121,6 @@ const ScansPage: React.FC = () => {
     new Set<IdType>()
   );
 
-  const canonicalMicroscopeName = (name: string) =>
-    name.toLowerCase().replace(' ', '');
-
   const microscopes = useAppSelector((state) =>
     microscopesSelectors.selectAll(microscopesState(state))
   );
@@ -144,9 +141,9 @@ const ScansPage: React.FC = () => {
     microscopeId = microscopes[0].id;
   }
 
-  const microscopeParam = useParams().microscope;
-  if (microscopeParam !== undefined) {
-    const canonicalName = canonicalMicroscopeName(microscopeParam as string);
+  const microscope = useParams().microscope;
+  if (microscope !== undefined) {
+    const canonicalName = canonicalMicroscopeName(microscope as string);
 
     if (canonicalName in microscopesByCanonicalName) {
       microscopeId = microscopesByCanonicalName[canonicalName].id;
@@ -178,7 +175,7 @@ const ScansPage: React.FC = () => {
   };
 
   const onImgClick = (scan: Scan) => {
-    setActiveImg(`${staticURL}${scan.haadf_path!}`);
+    setActiveImg(`${staticURL}${scan.image_path!}`);
     setMaximizeImg(true);
   };
 
@@ -187,7 +184,7 @@ const ScansPage: React.FC = () => {
   };
 
   const onScanClick = (scan: Scan) => {
-    navigate(`${SCANS_PATH}/${scan.id}`);
+    navigate(`scans/${scan.id}`);
   };
   const onChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -422,9 +419,9 @@ const ScansPage: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell className={classes.imgCell}>
-                    {scan.haadf_path ? (
+                    {scan.image_path ? (
                       <img
-                        src={`${staticURL}${scan.haadf_path}`}
+                        src={`${staticURL}${scan.image_path}`}
                         alt="scan thumbnail"
                         className={classes.thumbnail}
                         onClick={stopPropagation(() => onImgClick(scan))}
@@ -460,7 +457,7 @@ const ScansPage: React.FC = () => {
                     </Tooltip>
                   </TableCell>
                   <TableCell align="right" className={classes.progressCell}>
-                    {scan.log_files < MAX_LOG_FILES ? (
+                    {scan.scan_id && scan.log_files < MAX_LOG_FILES ? (
                       <LinearProgress
                         variant="determinate"
                         value={(100 * scan.log_files) / MAX_LOG_FILES}

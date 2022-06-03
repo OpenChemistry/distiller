@@ -63,8 +63,9 @@ const AuthPage: React.FC = () => {
     });
   };
 
-  const onLogout = (_e: MouseEvent) => {
-    dispatch(logout());
+  const onLogout = async (_e: MouseEvent) => {
+    await dispatch(logout());
+    navigate(from, { replace: true });
   };
 
   return (

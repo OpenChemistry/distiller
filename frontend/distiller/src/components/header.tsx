@@ -39,7 +39,7 @@ const HeaderComponent: React.FC = () => {
   };
 
   const onUserClick = () => {
-    navigate(AUTH_PATH);
+    navigate(`${AUTH_PATH}`, { state: { from: location } });
   };
 
   return (

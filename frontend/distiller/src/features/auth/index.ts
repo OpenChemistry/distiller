@@ -18,7 +18,6 @@ import { getMachines } from '../machines';
 import { getMicroscopes } from '../microscopes';
 import { canonicalMicroscopeName } from '../../utils/microscopes';
 import { Microscope } from '../../types';
-import { microscopesSelectors, microscopesState } from '../microscopes';
 import { matchPath, Path } from 'react-router';
 import { isNil } from 'lodash';
 
@@ -34,9 +33,8 @@ const initialState: AuthState = {
 
 let refreshController = new AbortController();
 
-const getMicroscopeID = (state: RootState, pathName: string) => {
+const getMicroscopeID = (microscopes: Microscope[], pathName: string) => {
   // Get microscopes by canonical name
-  const microscopes = microscopesSelectors.selectAll(microscopesState(state));
   const microscopesByCanonicalName = microscopes.reduce(
     (obj: { [key: string]: Microscope }, microscope) => {
       obj[canonicalMicroscopeName(microscope.name)] = microscope;
@@ -47,8 +45,9 @@ const getMicroscopeID = (state: RootState, pathName: string) => {
   );
 
   const pathMatch = matchPath({ path: '/:microscopeName/*' }, pathName);
+  // Default to 4dcamera
   if (pathMatch === null) {
-    throw new Error('Unable to extract microscope');
+    return microscopes[0].id;
   }
 
   const { microscopeName } = pathMatch.params;
@@ -87,10 +86,9 @@ export const login = createAsyncThunk<User, AuthenticatePayload>(
       refreshToken(true, thunkAPI.dispatch, controller.signal);
     }, (exp - 30) * 1000); // Refresh 30 seconds before actual expiration
 
-    await dispatch(getMicroscopes());
-
+    const microscopes = await dispatch(getMicroscopes());
     const microscopeID = getMicroscopeID(
-      thunkAPI.getState() as RootState,
+      microscopes.payload as Microscope[],
       from.pathname
     );
     dispatch(connectNotifications({ microscopeID }));
@@ -136,14 +134,13 @@ export const restoreSession = createAsyncThunk<User, void>(
     refreshController = controller;
 
     await refreshToken(true, thunkAPI.dispatch, controller.signal);
-
+    const microscopes = await dispatch(getMicroscopes());
     const microscopeID = getMicroscopeID(
-      thunkAPI.getState() as RootState,
+      microscopes.payload as Microscope[],
       window.location.pathname
     );
     dispatch(connectNotifications({ microscopeID }));
     dispatch(getMachines());
-    dispatch(getMicroscopes());
 
     const user = await getUserAPI();
 

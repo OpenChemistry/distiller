@@ -64,14 +64,13 @@ function App() {
                       </PrivateRoute>
                     }
                   />
-                  Change underscore to dashes in url ...
                   <Route
                     path={`${SCANS_PATH}/:scanId`}
                     element={<DefaultMicroscope />}
                   />
                   <Route path={SCANS_PATH} element={<DefaultMicroscope />} />
-                  <Route path={HOME_PATH} element={<DefaultMicroscope />} />
                   <Route path={AUTH_PATH} element={<AuthPage />} />
+                  <Route path={HOME_PATH} element={<DefaultMicroscope />} />
                 </Routes>
               </div>
             </div>

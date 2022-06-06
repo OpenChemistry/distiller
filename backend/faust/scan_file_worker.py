@@ -122,7 +122,7 @@ scan_metadata_events = app.topic(TOPIC_SCAN_METADATA_EVENTS, value_type=Dict[str
 def clean_metadata(md):
     for k, v in md.items():
         if isinstance(v, dict):
-            return clean_metadata(v)
+            clean_metadata(v)
         elif isinstance(v, bytes):
             md[k] = v.decode("utf8")
         elif isinstance(v, ndarray):
@@ -227,6 +227,43 @@ def extract_emi_metadata(emi_path: str):
 
     return metadata
 
+def extract_ncem_emd_metadata(emd_file):
+
+    metadata = {}
+
+    try:
+        metadata['user'] = {}
+        metadata['user'].update(emd_file.file_hdl['/user'].attrs)
+    except:
+        pass
+    try:
+        metadata['microscope'] = {}
+        metadata['microscope'].update(emd_file.file_hdl['/microscope'].attrs)
+    except:
+        pass
+    try:
+        metadata['sample'] = {}
+        metadata['sample'].update(emd_file.file_hdl['/sample'].attrs)
+    except:
+        pass
+    try:
+        metadata['comments'] = {}
+        metadata['comments'].update(emd_file.file_hdl['/comments'].attrs)
+    except:
+        pass
+    try:
+        metadata['stage'] = {}
+        # Check for legacy keys in stage group. Skip the rest
+        good_keys = ('position', 'type', 'Type')
+        for k in good_keys:
+            if k in emd_file.file_hdl['/stage'].attrs:
+                metadata['stage'][k] = emd_file.file_hdl['/stage'].attrs[k]
+    except:
+        pass
+
+    return metadata
+
+
 
 def extract_emd_metadata(emd_path: str):
     metadata = {}
@@ -270,11 +307,13 @@ def extract_emd_metadata(emd_path: str):
                 metadata["PhysicalSizeY"] = dimY[0][1] - dimY[0][0]
                 metadata["PhysicalSizeYOrigin"] = dimY[0][0]
                 metadata["PhysicalSizeYUnit"] = dimY[2].replace("_", "")
+                metadata["Dimensions.1"] = dimX[0].shape[0]
+                metadata["Dimensions.2"] = dimY[0].shape[0]
             except:
                 logger.warning(f"Unable to extract PhysicalSize from: {emd_path}")
 
         metadata["shape"] = dataset.shape
-
+        metadata.update(extract_ncem_emd_metadata(emd_file))
         metadata = clean_metadata(metadata)
 
     return metadata

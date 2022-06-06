@@ -28,7 +28,7 @@ from watchdog.observers.polling import PollingObserver as Observer
 from . import ModeHandler
 
 
-SCAN_FILE_GLOBS = ["*.dm4", "*.dm3", "*.emi", ".emd"]
+SCAN_FILE_GLOBS = ["*.dm4", "*.dm3", "*.emi", "*.emd"]
 SCAN_FILE_PATTERNS = [re.compile(f"^.{g}") for g in SCAN_FILE_GLOBS]
 SCAN_FILE_EVENTS = [EVENT_TYPE_CREATED, EVENT_TYPE_MOVED]
 

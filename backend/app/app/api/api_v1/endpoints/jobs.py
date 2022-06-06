@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, cast
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -83,7 +83,7 @@ async def update_job(
     (updated, job) = crud.update_job(db, id, payload)
 
     if updated:
-        jobs = crud.get_jobs(db, scan_id=job.scan_id)
+        jobs = crud.get_jobs(db, scan_id=cast(int, job.scan_id))
         await send_scan_event_to_kafka(ScanUpdateEvent(id=job.scan_id, jobs=jobs))
 
     return job

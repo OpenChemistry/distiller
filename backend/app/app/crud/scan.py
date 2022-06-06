@@ -129,7 +129,7 @@ def create_scan(
     db: Session,
     scan: Union[schemas.Scan4DCreate, schemas.ScanFromFile],
     image_path: Union[str, None] = None,
-):
+) -> models.Scan:
     locations = scan.locations
     scan.locations = []
 
@@ -155,11 +155,11 @@ def create_scan(
 def update_scan(
     db: Session,
     id: int,
-    log_files: int = None,
-    locations: List[schemas.Location] = None,
-    image_path: str = None,
-    notes: str = None,
-    metadata: Dict[str, Any] = None,
+    log_files: Optional[int] = None,
+    locations: Optional[List[schemas.LocationCreate]] = None,
+    image_path: Optional[str] = None,
+    notes: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None,
 ):
     updated = False
 

@@ -1,7 +1,8 @@
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Optional, Dict, Any
+import logging
 
 import aiohttp
 import tenacity
@@ -9,6 +10,9 @@ import tenacity
 from config import settings
 from schemas import (Job, JobUpdate, Machine, Microscope, Scan, ScanCreate,
                      ScanUpdate)
+
+logger = logging.getLogger("utils")
+logger.setLevel(logging.INFO)
 
 pattern = re.compile(r"^log_scan([0-9]*)_.*\.data")
 
@@ -52,7 +56,7 @@ async def create_scan(session: aiohttp.ClientSession, event: ScanCreate) -> Scan
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
-async def update_scan(session: aiohttp.ClientSession, event: ScanUpdate) -> dict:
+async def update_scan(session: aiohttp.ClientSession, event: ScanUpdate) -> Scan:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,
         "Content-Type": "application/json",
@@ -77,16 +81,16 @@ async def update_scan(session: aiohttp.ClientSession, event: ScanUpdate) -> dict
 async def get_scans(
     session: aiohttp.ClientSession,
     scan_id: int,
-    state: str = None,
-    created: datetime = None,
-    sha: str = None,
-) -> Union[Scan, None]:
+    state: Optional[str] = None,
+    created: Optional[datetime] = None,
+    sha: Optional[str] = None,
+) -> List[Scan]:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,
         "Content-Type": "application/json",
     }
 
-    params = {"scan_id": scan_id}
+    params: Dict[str, Any] = {"scan_id": scan_id}
 
     if state is not None:
         params["state"] = state
@@ -133,7 +137,7 @@ async def get_scan(session: aiohttp.ClientSession, id: int) -> Scan:
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
-async def update_job(session: aiohttp.ClientSession, event: JobUpdate) -> dict:
+async def update_job(session: aiohttp.ClientSession, event: JobUpdate) -> Job:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,
         "Content-Type": "application/json",
@@ -155,7 +159,7 @@ async def update_job(session: aiohttp.ClientSession, event: JobUpdate) -> dict:
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
-async def get_jobs(session: aiohttp.ClientSession, slurm_id: int) -> Union[Scan, None]:
+async def get_jobs(session: aiohttp.ClientSession, slurm_id: int) -> List[Job]:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,
         "Content-Type": "application/json",
@@ -179,7 +183,7 @@ async def get_jobs(session: aiohttp.ClientSession, slurm_id: int) -> Union[Scan,
     wait=tenacity.wait_exponential(max=10),
     stop=tenacity.stop_after_attempt(10),
 )
-async def get_job(session: aiohttp.ClientSession, id: int) -> Union[Scan, None]:
+async def get_job(session: aiohttp.ClientSession, id: int) -> Job:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,
         "Content-Type": "application/json",

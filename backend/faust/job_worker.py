@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union, Optional
 
 import aiohttp
 import httpx
@@ -372,7 +372,7 @@ async def update_job(
     job_id: int,
     state: str,
     elapsed: timedelta,
-    output: str = None,
+    output: Optional[str] = None,
 ) -> None:
     update = JobUpdate(id=job_id, state=state, output=output, elapsed=elapsed)
     await update_job_request(session, update)
@@ -409,7 +409,7 @@ def extract_job_id(workdir: str) -> Union[int, None]:
         return None
 
 
-async def read_slurm_out(slurm_id: int, workdir: str) -> Union[str, None]:
+async def read_slurm_out(slurm_id: int, workdir: str) -> Union[str, bytes, None]:
     out_file_path = AsyncPath(workdir) / f"slurm-{slurm_id}.out"
     if await out_file_path.exists():
         logger.info("Output exists: %s", str(out_file_path))
@@ -516,6 +516,7 @@ async def monitor_jobs():
                     job = await get_job(session, id)
                     scan = await get_scan(session, job.scan_id)
                     date_dir = scan.created.astimezone().strftime(DATE_DIR_FORMAT)
+                    machine = job.machine
 
                     update = ScanUpdate(
                         id=job.scan_id,

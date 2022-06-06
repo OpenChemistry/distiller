@@ -4,7 +4,7 @@ import os
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, cast
 
 import aiofiles
 from fastapi import (APIRouter, Depends, File, HTTPException, Response,
@@ -48,7 +48,7 @@ async def create_4d_scan(db: Session, scan: Scan4DCreate):
 
         # Finally update the haadf path
         (_, scan) = crud.update_scan(
-            db, scan.id, image_path=f"{settings.IMAGE_URL_PREFIX}/{scan.id}.png"
+            db, cast(int, scan.id), image_path=f"{settings.IMAGE_URL_PREFIX}/{scan.id}.png"
         )
 
     return scan
@@ -175,7 +175,7 @@ async def create_scan(
         )
 
     await send_scan_event_to_kafka(
-        ScanCreatedEvent(**schemas.Scan.from_orm(scan).dict())
+        ScanUpdateEvent(**schemas.Scan.from_orm(scan).dict())
     )
 
     return scan
@@ -285,21 +285,21 @@ async def update_scan(
     if updated:
         scan_updated_event = schemas.ScanUpdateEvent(id=id)
         if scan.log_files == payload.log_files:
-            scan_updated_event.log_files = scan.log_files
+            scan_updated_event.log_files = cast(int, scan.log_files)
 
         scan_updated_event.locations = [
             schemas.scan.Location.from_orm(l) for l in scan.locations
         ]
 
         if scan.notes is not None and scan.notes == payload.notes:
-            scan_updated_event.notes = scan.notes
+            scan_updated_event.notes = cast(str, scan.notes)
 
         await send_scan_event_to_kafka(scan_updated_event)
 
     return scan
 
 
-async def _remove_scan_files(db_scan: Scan, host: str = None):
+async def _remove_scan_files(db_scan: Scan, host: Optional[str] = None):
     if host is None:
         comput_hosts = [m.name for m in settings.MACHINES]
         hosts = set([l.host for l in db_scan.locations if l.host not in comput_hosts])

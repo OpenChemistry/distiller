@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import AnyHttpUrl, BaseSettings
 from schemas import WatchMode
@@ -9,8 +9,8 @@ class Settings(BaseSettings):
     API_KEY_NAME: str
     API_KEY: str
     WATCH_DIRECTORIES: List[str]
-    HOST: str = None
-    LOG_FILE_PATH: str = None
+    HOST: Optional[str] = None
+    LOG_FILE_PATH: Optional[str] = None
     SYNC: bool = True
     MODE: WatchMode = WatchMode.SCAN_4D_FILES
     MICROSCOPE: str

@@ -86,11 +86,8 @@ export const login = createAsyncThunk<User, AuthenticatePayload>(
       refreshToken(true, thunkAPI.dispatch, controller.signal);
     }, (exp - 30) * 1000); // Refresh 30 seconds before actual expiration
 
-    const microscopes = await dispatch(getMicroscopes());
-    const microscopeID = getMicroscopeID(
-      microscopes.payload as Microscope[],
-      from.pathname
-    );
+    const microscopes = await dispatch(getMicroscopes()).unwrap();
+    const microscopeID = getMicroscopeID(microscopes, from.pathname);
     dispatch(connectNotifications({ microscopeID }));
     dispatch(getMachines());
 
@@ -134,11 +131,8 @@ export const restoreSession = createAsyncThunk<User, void>(
     refreshController = controller;
 
     await refreshToken(true, thunkAPI.dispatch, controller.signal);
-    const microscopes = await dispatch(getMicroscopes());
-    const microscopeID = getMicroscopeID(
-      microscopes.payload as Microscope[],
-      window.location.pathname
-    );
+    const microscopes = await dispatch(getMicroscopes()).unwrap();
+    const microscopeID = getMicroscopeID(microscopes, window.location.pathname);
     dispatch(connectNotifications({ microscopeID }));
     dispatch(getMachines());
 

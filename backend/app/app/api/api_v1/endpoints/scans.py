@@ -42,7 +42,7 @@ async def create_4d_scan(db: Session, scan: Scan4DCreate):
             None,
             shutil.move,
             upload_path,
-            Path(settings.HAADF_IMAGE_STATIC_DIR) / f"{scan.id}.png",
+            Path(settings.IMAGE_STATIC_DIR) / f"{scan.id}.png",
         )
 
         # Finally update the haadf path

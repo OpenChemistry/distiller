@@ -70,8 +70,7 @@ async def login_for_access_token(
     response.set_cookie(
         "refresh_token",
         refresh_token,
-        max_age=refresh_token_expires.total_seconds(),
-        expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"),
+        max_age=int(refresh_token_expires.total_seconds()),
         path=f"{settings.API_V1_STR}/refresh_token",
         domain=settings.JWT_REFRESH_COOKIE_DOMAIN,
         secure=settings.JWT_REFRESH_COOKIE_SECURE,

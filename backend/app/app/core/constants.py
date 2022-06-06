@@ -10,3 +10,5 @@ TOPIC_JOB_EVENTS = "job_events"
 TOPIC_CUSTODIAN_EVENT = "custodian_events"
 
 NERSC_STATUS_URL_PREFIX = "https://api.nersc.gov/api/v1.2/status/"
+
+BLOCKSIZE = 1024 * 1024  # 1M

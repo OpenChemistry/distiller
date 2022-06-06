@@ -19,6 +19,7 @@ from app.kafka.producer import (send_filesystem_event_to_kafka,
                                 send_log_file_sync_event_to_kafka,
                                 send_scan_event_to_kafka,
                                 send_scan_file_sync_event_to_kafka)
+from app.api.utils import upload_to_file
 
 router = APIRouter()
 
@@ -56,8 +57,7 @@ async def upload_haadf_dm4(file: UploadFile) -> None:
     scan_id = match.group(1)
     upload_path = Path(settings.SCAN_FILE_UPLOAD_DIR) / f"scan{scan_id}.dm4"
     async with aiofiles.open(upload_path, "wb") as fp:
-        contents = await file.read()
-        await fp.write(contents)
+        await upload_to_file(file, fp)
 
     await send_haadf_event_to_kafka(
         schemas.HaadfUploaded(path=str(upload_path), scan_id=scan_id)
@@ -75,8 +75,7 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
     scan_id = int(match.group(1))
     upload_path = Path(settings.IMAGE_UPLOAD_DIR) / f"scan{scan_id}.png"
     async with aiofiles.open(upload_path, "wb") as fp:
-        contents = await file.read()
-        await fp.write(contents)
+        await upload_to_file(file, fp)
 
     current_time = datetime.datetime.utcnow()
     created_since = current_time - datetime.timedelta(

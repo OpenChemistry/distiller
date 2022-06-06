@@ -24,9 +24,8 @@ from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
                                 send_scan_file_event_to_kafka)
 from app.models import Scan
 from app.schemas.events import RemoveScanFilesEvent
-from app.schemas.scan import Scan4DCreate, ScanCreatedEvent
-
-BLOCKSIZE = 1024 * 1024  # 1M
+from app.schemas.scan import Scan4DCreate, ScanUpdateEvent
+from app.api.utils import upload_to_file
 
 router = APIRouter()
 
@@ -90,11 +89,7 @@ async def create_scan_from_file(
     ext = Path(file_upload.filename).suffix
     upload_path = Path(settings.SCAN_FILE_UPLOAD_DIR) / f"{scan.id}{ext}"
     async with aiofiles.open(upload_path, "wb") as fp:
-        bytes = file_upload.file.read(BLOCKSIZE)
-
-        while len(bytes) > 0:
-            await fp.write(bytes)
-            bytes = file_upload.file.read(BLOCKSIZE)
+        await upload_to_file(file_upload, fp)
 
     # Send event so the metadata get extracted etc.
     await send_scan_file_event_to_kafka(
@@ -105,11 +100,7 @@ async def create_scan_from_file(
         ext = Path(ser_file_upload.filename).suffix
         upload_path = Path(settings.SCAN_FILE_UPLOAD_DIR) / f"{scan.id}{ext}"
         async with aiofiles.open(upload_path, "wb") as fp:
-            bytes = ser_file_upload.file.read(BLOCKSIZE)
-
-            while len(bytes) > 0:
-                await fp.write(bytes)
-                bytes = ser_file_upload.file.read(BLOCKSIZE)
+            await upload_to_file(ser_file_upload, fp)
 
         # Send event so the metadata get extracted etc.
         await send_scan_file_event_to_kafka(
@@ -406,11 +397,7 @@ async def upload_image(
 ) -> None:
     upload_path = Path(settings.IMAGE_STATIC_DIR) / f"{id}.png"
     async with aiofiles.open(upload_path, "wb") as fp:
-        bytes = file.file.read(BLOCKSIZE)
-
-        while len(bytes) > 0:
-            await fp.write(bytes)
-            bytes = file.file.read(BLOCKSIZE)
+        await upload_to_file(file, fp)
 
     image_path = f"{settings.IMAGE_URL_PREFIX}/{id}.png"
     (updated, _) = crud.update_scan(db, id, image_path=str(image_path))

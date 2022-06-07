@@ -7,6 +7,7 @@ import sys
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from typing import List
+import platform
 
 import aiohttp
 
@@ -160,12 +161,13 @@ def main():
     loop.create_task(watch(get_host(), microscope_id, settings.WATCH_DIRECTORIES, queue, loop))
     monitor_task = loop.create_task(monitor(microscope_id, queue))
 
-    # Install signal handler
-    signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
-    for s in signals:
-        loop.add_signal_handler(
-            s, lambda s=s: asyncio.create_task(shutdown(s, loop, monitor_task))
-        )
+    # Install signal handler ( not in Windows )
+    if platform.system() != "Windows":
+        signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
+        for s in signals:
+            loop.add_signal_handler(
+                s, lambda s=s: asyncio.create_task(shutdown(s, loop, monitor_task))
+            )
 
     loop.run_forever()
 

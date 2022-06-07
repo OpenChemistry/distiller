@@ -51,7 +51,7 @@ import { createJob } from '../features/jobs/api';
 import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
 import JobOutputDialog from '../components/job-output';
 import { isNil } from '../utils';
-import { SCANS_PATH } from '../routes';
+import { SCANS } from '../routes';
 import { canRunJobs } from '../utils/machine';
 import MetadataComponent from '../components/metadata';
 import {
@@ -223,7 +223,7 @@ const ScanPage: React.FC<Props> = () => {
     }
     const microscopeName = canonicalMicroscopeName(microscope.name);
 
-    navigate(`/${microscopeName}${SCANS_PATH}/${scan?.nextScanId}`);
+    navigate(`/${microscopeName}/${SCANS}/${scan?.nextScanId}`);
   };
 
   const onNavigatePrev = () => {
@@ -232,7 +232,7 @@ const ScanPage: React.FC<Props> = () => {
     }
     const microscopeName = canonicalMicroscopeName(microscope.name);
 
-    navigate(`/${microscopeName}${SCANS_PATH}/${scan?.prevScanId}`);
+    navigate(`/${microscopeName}/${SCANS}/${scan?.prevScanId}`);
   };
 
   if (scan === undefined || microscope === null) {

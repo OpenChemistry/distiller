@@ -64,10 +64,18 @@ async def create_scan_from_file(microscope_id: int, host: str, session: aiohttp.
         ser_file = None
         try:
             # Special case for emi files, we need to also attach any associated ser file!
-            if await ser_file_path(scan_file_path).exists():
-                ser_file = Path(ser_file_path(scan_file_path)).open("rb")
-                name = f"{scan_file_path.stem}.ser"
-                data.add_field(name, ser_file, filename=name, content_type="application/octet-stream")
+            if scan_file_path.suffix == '.emi':
+                # Wait for ser file to appear
+                tries = 5
+                while tries > 0:
+                    if await ser_file_path(scan_file_path).exists():
+                        logger.info(f"Associated SER file found for: {scan_file_path}")
+                        ser_file = Path(ser_file_path(scan_file_path)).open("rb")
+                        name = f"{scan_file_path.stem}.ser"
+                        data.add_field(name, ser_file, filename=name, content_type="application/octet-stream")
+                        break
+                    tries -= 1
+                    await asyncio.sleep(1)
 
             # Add the metadata needed encoded in another field, we need to it this way as
             # we can have JSON and a file the same body ...

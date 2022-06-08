@@ -44,7 +44,7 @@ import {
   RemoveScanFilesConfirmDialog,
 } from '../components/scan-confirm-dialog';
 import { machineSelectors, machineState } from '../features/machines';
-import { ExportFormat } from '../types';
+import { ExportFormat, Metadata } from '../types';
 
 import { isNil, isNull } from 'lodash';
 import { ScansToolbar, FilterCriteria } from '../components/scans-toolbar';
@@ -239,6 +239,12 @@ const ScansPage: React.FC = () => {
     return scans;
   };
 
+  const hasScanIDs = () => {
+    const ids = new Set(scans.map((scan) => scan.scan_id));
+
+    return ids.size > 1 || !ids.has(null);
+  };
+
   const exportScans = async (data: string, mimetype: string) => {
     const blob = new Blob([data], { type: mimetype });
     const href = await URL.createObjectURL(blob);
@@ -253,13 +259,24 @@ const ScansPage: React.FC = () => {
 
   const onExportJSON = async () => {
     const filteredScans = selectedScans().map((scan: Scan) => {
-      return {
-        distiller_scan_id: scan.id,
-        detector_scan_id: scan.scan_id,
+      let scanJSON: { [key: string]: string | number | Metadata | undefined } =
+        {
+          distiller_scan_id: scan.id,
+        };
+
+      // Only add if non null
+      if (scan.scan_id !== null) {
+        scanJSON['detector_scan_id'] = scan.scan_id;
+      }
+
+      scanJSON = {
+        ...scanJSON,
         created: scan.created,
         notes: scan.notes,
         metadata: scan.metadata,
       };
+
+      return scanJSON;
     });
     const json = JSON.stringify(filteredScans, null, 2);
 
@@ -267,12 +284,14 @@ const ScansPage: React.FC = () => {
   };
 
   const onExportCSV = async () => {
-    const headers = [
-      'distiller_scan_id',
-      'detector_scan_id',
-      'created',
-      'notes',
-    ];
+    const headers: string[] = [];
+
+    if (hasScanIDs()) {
+      headers.push('distiller_scan_id', 'detector_scan_id');
+    } else {
+      headers.push('distiller_scan_id');
+    }
+    headers.push('created', 'notes');
 
     // Generate metadata headers
     const metadataHeaders = new Set<string>();
@@ -368,12 +387,6 @@ const ScansPage: React.FC = () => {
         )
       );
     }
-  };
-
-  const hasScanIDs = () => {
-    const ids = new Set(scans.map((scan) => scan.scan_id));
-
-    return ids.size > 1 || !ids.has(null);
   };
 
   return (

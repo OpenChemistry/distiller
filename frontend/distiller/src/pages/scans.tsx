@@ -287,10 +287,13 @@ const ScansPage: React.FC = () => {
     const filteredScans = selectedScans().map((scan: Scan) => {
       const exportScan: { [key: string]: string | number } = {
         distiller_scan_id: scan.id,
-        detector_scan_id: scan.scan_id,
         created: scan.created,
         notes: scan.notes ? scan.notes : '',
       };
+
+      if (scan.scan_id !== null) {
+        exportScan['detector_scan_id'] = scan.scan_id;
+      }
 
       Array.from(metadataHeaders).forEach((header: string) => {
         if (!isNil(scan.metadata) && !isNil(scan.metadata[header])) {
@@ -367,6 +370,12 @@ const ScansPage: React.FC = () => {
     }
   };
 
+  const hasScanIDs = () => {
+    const ids = new Set(scans.map((scan) => scan.scan_id));
+
+    return ids.size > 1 || !ids.has(null);
+  };
+
   return (
     <React.Fragment>
       <ScansToolbar
@@ -390,7 +399,9 @@ const ScansPage: React.FC = () => {
               </TableCell>
               <TableCell className={classes.imgCell}></TableCell>
               <TableCell className={classes.headCell}>ID</TableCell>
-              <TableCell className={classes.headCell}>Scan ID</TableCell>
+              {hasScanIDs() && (
+                <TableCell className={classes.headCell}>Scan ID</TableCell>
+              )}
               <TableCell className={classes.headCell}>Notes</TableCell>
               <TableCell className={classes.headCell}>Location</TableCell>
               <TableCell className={classes.headCell}>Created</TableCell>
@@ -430,7 +441,9 @@ const ScansPage: React.FC = () => {
                     )}
                   </TableCell>
                   <TableCell>{scan.id}</TableCell>
-                  <TableCell>{scan.scan_id}</TableCell>
+                  {scan.scan_id !== null && (
+                    <TableCell>{scan.scan_id}</TableCell>
+                  )}
                   <TableCell className={classes.notesCell}>
                     <EditableField
                       value={scan.notes || ''}

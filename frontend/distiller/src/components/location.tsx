@@ -34,8 +34,8 @@ type ChipProps = {
 
 const LocationChip: React.FC<ChipProps> = (props) => {
   const dispatch = useAppDispatch();
-  const [deletable, setDeletable] = React.useState(true);
   const { scan, host, confirmRemoval, machines } = props;
+  const [deletable, setDeletable] = React.useState(scan.scan_id !== null);
 
   const onDelete = async () => {
     if (scan === undefined) {

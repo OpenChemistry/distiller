@@ -376,57 +376,58 @@ const ScanPage: React.FC<Props> = () => {
           </Button>
         </CardActions>
       </Card>
-
-      <Card>
-        <CardHeader title="Jobs"></CardHeader>
-        <CardContent>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell className={classes.headCell}>ID</TableCell>
-                <TableCell className={classes.headCell}>Machine</TableCell>
-                <TableCell className={classes.headCell}>Type</TableCell>
-                <TableCell className={classes.headCell}>Slurm ID</TableCell>
-                <TableCell className={classes.headCell}>Elapsed</TableCell>
-                <TableCell className={classes.headCell} align="right">
-                  State
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {[...scan.jobs]
-                .sort((a, b) => b.id - a.id)
-                .map((job) => {
-                  const Icon = jobTypeToIcon(job.job_type);
-                  return (
-                    <TableRow key={job.id}>
-                      <TableCell>{job.id}</TableCell>
-                      <TableCell>{job.machine}</TableCell>
-                      <TableCell title={job.job_type}>
-                        <Icon />
-                      </TableCell>
-                      <TableCell>{job.slurm_id}</TableCell>
-                      <TableCell>
-                        {humanizeDuration(job.elapsed * 1000)}
-                      </TableCell>
-                      <TableCell className={classes.stateCell} align="right">
-                        <div className={classes.stateContent}>
-                          <IconButton
-                            disabled={!job.output}
-                            onClick={() => onJobOutputClick(job)}
-                          >
-                            <OutputIcon />
-                          </IconButton>
-                          <JobStateComponent state={job.state} />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {actions.length !== 0 && (
+        <Card>
+          <CardHeader title="Jobs"></CardHeader>
+          <CardContent>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell className={classes.headCell}>ID</TableCell>
+                  <TableCell className={classes.headCell}>Machine</TableCell>
+                  <TableCell className={classes.headCell}>Type</TableCell>
+                  <TableCell className={classes.headCell}>Slurm ID</TableCell>
+                  <TableCell className={classes.headCell}>Elapsed</TableCell>
+                  <TableCell className={classes.headCell} align="right">
+                    State
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {[...scan.jobs]
+                  .sort((a, b) => b.id - a.id)
+                  .map((job) => {
+                    const Icon = jobTypeToIcon(job.job_type);
+                    return (
+                      <TableRow key={job.id}>
+                        <TableCell>{job.id}</TableCell>
+                        <TableCell>{job.machine}</TableCell>
+                        <TableCell title={job.job_type}>
+                          <Icon />
+                        </TableCell>
+                        <TableCell>{job.slurm_id}</TableCell>
+                        <TableCell>
+                          {humanizeDuration(job.elapsed * 1000)}
+                        </TableCell>
+                        <TableCell className={classes.stateCell} align="right">
+                          <div className={classes.stateContent}>
+                            <IconButton
+                              disabled={!job.output}
+                              onClick={() => onJobOutputClick(job)}
+                            >
+                              <OutputIcon />
+                            </IconButton>
+                            <JobStateComponent state={job.state} />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       <TransferDialog
         open={jobDialog === JobType.Transfer}

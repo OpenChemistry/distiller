@@ -58,8 +58,12 @@ async def generate_image_from_data(
         file = nio.read(data_path)
 
     img = file["data"]
-    # TODO push to scan
-    # haadf['pixelSize'] # this contains the real space pixel size (most important meta data)
+
+    # If we have more than 2 dimensions just pick the first image
+    if img.ndim > 2:
+        slc = [0] * (img.ndim - 2)
+        img = img[tuple(slc)]
+
     path = AsyncPath(tmp_dir) / image_filename
 
     # Work around issue with how faust resets sys.stdout to an instance of FileLogProxy

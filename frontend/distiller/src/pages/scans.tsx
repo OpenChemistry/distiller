@@ -265,7 +265,7 @@ const ScansPage: React.FC = () => {
         };
 
       // Only add if non null
-      if (scan.scan_id !== null) {
+      if (!isNil(scan.scan_id)) {
         scanJSON['detector_scan_id'] = scan.scan_id;
       }
 
@@ -310,7 +310,7 @@ const ScansPage: React.FC = () => {
         notes: scan.notes ? scan.notes : '',
       };
 
-      if (scan.scan_id !== null) {
+      if (!isNil(scan.scan_id)) {
         exportScan['detector_scan_id'] = scan.scan_id;
       }
 
@@ -454,7 +454,7 @@ const ScansPage: React.FC = () => {
                     )}
                   </TableCell>
                   <TableCell>{scan.id}</TableCell>
-                  {scan.scan_id !== null && (
+                  {!isNil(scan.scan_id) && (
                     <TableCell>{scan.scan_id}</TableCell>
                   )}
                   <TableCell className={classes.notesCell}>

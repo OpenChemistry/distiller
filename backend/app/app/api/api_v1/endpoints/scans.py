@@ -24,7 +24,7 @@ from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
                                 send_scan_file_event_to_kafka)
 from app.models import Scan
 from app.schemas.events import RemoveScanFilesEvent
-from app.schemas.scan import Scan4DCreate, ScanUpdateEvent
+from app.schemas.scan import Scan4DCreate, ScanCreatedEvent
 from app.api.utils import upload_to_file
 
 router = APIRouter()
@@ -166,7 +166,7 @@ async def create_scan(
         )
 
     await send_scan_event_to_kafka(
-        ScanUpdateEvent(**schemas.Scan.from_orm(scan).dict())
+        ScanCreatedEvent(**schemas.Scan.from_orm(scan).dict())
     )
 
     return scan

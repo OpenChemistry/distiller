@@ -1,8 +1,9 @@
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
+import math
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 from app.schemas.job import Job
 
@@ -26,6 +27,22 @@ class ScanState(str, Enum):
     COMPLETE = "complete"
 
 
+# Need this validator so 'Infinity' stays as 'Infinity' rather than inf
+# as postgres will not allow inf to be stored in JSON
+def metadata_infinity(metadata):
+    if metadata == math.inf:
+        return 'Infinity'
+    elif isinstance(metadata, dict):
+        for k, v in metadata.items():
+            metadata[k] = metadata_infinity(v)
+
+        return metadata
+    elif isinstance(metadata, list):
+        return [metadata_infinity(i) for i in metadata]
+
+    return metadata
+
+
 class Scan(BaseModel):
     id: int
     scan_id: Optional[int]
@@ -38,6 +55,8 @@ class Scan(BaseModel):
     metadata: Optional[Dict[str, Any]] = Field(alias="metadata_")
     microscope_id: int
 
+    _metadata_infinity = validator('metadata', allow_reuse=True)(metadata_infinity)
+
     class Config:
         orm_mode = True
 
@@ -48,6 +67,8 @@ class Scan4DCreate(BaseModel):
     locations: List[LocationCreate]
     metadata: Optional[Dict[str, Any]]
     microscope_id: Optional[int]
+
+    _metadata_infinity = validator('metadata', allow_reuse=True)(metadata_infinity)
 
 
 class ScanFromFileMetadata(BaseModel):
@@ -63,6 +84,8 @@ class ScanFromFile(BaseModel):
     metadata: Optional[Dict[str, Any]]
     microscope_id: int
 
+    _metadata_infinity = validator('metadata', allow_reuse=True)(metadata_infinity)
+
 
 class ScanUpdate(BaseModel):
     log_files: Optional[int] = None
@@ -70,6 +93,8 @@ class ScanUpdate(BaseModel):
     notes: Optional[str]
     image_path: Optional[str]
     metadata: Optional[Dict[str, Any]]
+
+    _metadata_infinity = validator('metadata', allow_reuse=True)(metadata_infinity)
 
 
 class ScanEventType(str, Enum):

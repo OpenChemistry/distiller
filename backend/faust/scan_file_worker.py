@@ -288,15 +288,19 @@ def extract_emd_metadata(emd_path: str):
         # Get the dim vectors
         dims = emd_file.get_emddims(data_group)
         if dataset.ndim == 2:
+            dimZ = None
             dimY = dims[0]
             dimX = dims[1]
         elif dataset.ndim == 3:
+            dimZ = dims[0]
             dimY = dims[1]
             dimX = dims[2]
         elif dataset.ndim == 4:
+            dimZ = dims[1]
             dimY = dims[2]
             dimX = dims[3]
         else:
+            dimZ = None
             dimY = None
             dimX = None
 
@@ -313,6 +317,11 @@ def extract_emd_metadata(emd_path: str):
                 metadata["PhysicalSizeYUnit"] = dimY[2].replace("_", "")
                 metadata["Dimensions.1"] = dimX[0].shape[0]
                 metadata["Dimensions.2"] = dimY[0].shape[0]
+                if dimZ is not None:
+                    metadata['PhysicalSizeZ'] = dimZ[0][1] - dimZ[0][0]
+                    metadata['PhysicalSizeZOrigin'] = dimZ[0][0]
+                    metadata['PhysicalSizeZUnit'] = dimZ[2]
+
             except:
                 logger.warning(f"Unable to extract PhysicalSize from: {emd_path}")
 

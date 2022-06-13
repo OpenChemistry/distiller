@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     MODE: WatchMode = WatchMode.SCAN_4D_FILES
     MICROSCOPE: str
     POLL: bool = False
+    RECURSIVE: bool = False
 
     class Config:
         case_sensitive = True

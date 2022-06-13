@@ -52,7 +52,7 @@ async def watch(host: str,
 
     observer = Observer()
     for d in dirs:
-        observer.schedule(handler, str(d))
+        observer.schedule(handler, str(d), recursive=settings.RECURSIVE)
     observer.start()
 
     if settings.SYNC:

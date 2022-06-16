@@ -28,14 +28,18 @@ const HeaderComponent: React.FC = () => {
 
   const authenticated = useAppSelector(isAuthenticated);
 
-  const location = useLocation();
+  const location: any = useLocation();
 
   const navigate = useNavigate();
 
   const onLogoClick = () => {
-    const microscope = location.pathname.split('/')[1];
-
-    navigate(`/${microscope}`);
+    if (location.state !== null) {
+      const { from } = location.state;
+      navigate(from);
+    } else {
+      const microscope = location.pathname.split('/')[1];
+      navigate(`/${microscope}`);
+    }
   };
 
   const onUserClick = () => {

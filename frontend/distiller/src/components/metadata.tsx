@@ -9,7 +9,7 @@ import {
   Collapse,
   Button,
 } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { styled } from '@mui/material/styles';
 
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -50,25 +50,27 @@ const sortWithGrouping = (keys: string[]) => {
   return keys.sort(sort);
 };
 
-const useStyles = makeStyles((theme) => ({
-  nameCell: {
-    fontWeight: 600,
-  },
-  advancedNameCell: {
-    fontWeight: 600,
-    paddingLeft: 0,
-  },
-  advancedValueCell: {
-    paddingRight: 0,
-  },
-  advancedTableCell: {
-    paddingBottom: 0,
-    paddingTop: 0,
-  },
-  advancedTableHeader: {
-    borderBottom: 'unset',
-    paddingLeft: 0,
-  },
+const TableNameCell = styled(TableCell)(({ theme }) => ({
+  fontWeight: 600,
+}));
+
+const TableAdvancedNameCell = styled(TableCell)(({ theme }) => ({
+  fontWeight: 600,
+  paddingLeft: 0,
+}));
+
+const TableAdvancedValueCell = styled(TableCell)(({ theme }) => ({
+  paddingRight: 0,
+}));
+
+const TableAdvancedCell = styled(TableCell)(({ theme }) => ({
+  paddingBottom: 0,
+  paddingTop: 0,
+}));
+
+const TableAdvancedHeaderCell = styled(TableCell)(({ theme }) => ({
+  borderBottom: 'unset',
+  paddingLeft: 0,
 }));
 
 type AdvancedMetadataProps = {
@@ -76,14 +78,13 @@ type AdvancedMetadataProps = {
 };
 
 const AdvancedMetadata: React.FC<AdvancedMetadataProps> = (props) => {
-  const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const { metadata } = props;
 
   return (
     <React.Fragment>
       <TableRow>
-        <TableCell className={classes.advancedTableHeader}>
+        <TableAdvancedHeaderCell>
           <Grid container direction="row" alignItems="center">
             <Button
               endIcon={
@@ -94,30 +95,25 @@ const AdvancedMetadata: React.FC<AdvancedMetadataProps> = (props) => {
               Advanced
             </Button>
           </Grid>
-        </TableCell>
+        </TableAdvancedHeaderCell>
       </TableRow>
       <TableRow>
-        <TableCell className={classes.advancedTableCell} colSpan={6}>
+        <TableAdvancedCell colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Table>
               <TableBody>
                 {sortWithGrouping(Object.keys(metadata)).map((key) => (
                   <TableRow key={key}>
-                    <TableCell className={classes.advancedNameCell}>
-                      {key}
-                    </TableCell>
-                    <TableCell
-                      className={classes.advancedValueCell}
-                      align="right"
-                    >
+                    <TableAdvancedNameCell>{key}</TableAdvancedNameCell>
+                    <TableAdvancedValueCell align="right">
                       {metadata[key]}
-                    </TableCell>
+                    </TableAdvancedValueCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </Collapse>
-        </TableCell>
+        </TableAdvancedCell>
       </TableRow>
     </React.Fragment>
   );
@@ -128,20 +124,19 @@ type MetadataComponentProps = {
 };
 
 const MetadataComponent: React.FC<MetadataComponentProps> = (props) => {
-  const classes = useStyles();
   const { scan } = props;
 
   return (
     <Table>
       <TableBody>
         <TableRow>
-          <TableCell className={classes.nameCell}>Distiller Scan ID</TableCell>
+          <TableNameCell>Distiller Scan ID</TableNameCell>
           <TableCell align="right">{scan.id}</TableCell>
         </TableRow>
         {scan.metadata && (
           <React.Fragment>
             <TableRow>
-              <TableCell className={classes.nameCell}>Size</TableCell>
+              <TableNameCell>Size</TableNameCell>
               <TableCell align="right">{`${scan.metadata['Dimensions.1']} x ${scan.metadata['Dimensions.2']}`}</TableCell>
             </TableRow>
           </React.Fragment>

@@ -19,7 +19,7 @@ import {
   Button,
   IconButton,
 } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { styled } from '@mui/material/styles';
 import CompleteIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
 import TransferIcon from '@mui/icons-material/CompareArrows';
@@ -55,31 +55,36 @@ import { SCANS_PATH } from '../routes';
 import { canRunJobs } from '../utils/machine';
 import MetadataComponent from '../components/metadata';
 
-const useStyles = makeStyles((theme) => ({
-  card: {
-    marginBottom: '2rem',
-  },
-  headCell: {
-    fontWeight: 600,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-  },
-  noImage: {
-    color: pink.A400,
-  },
-  stateCell: {
-    width: '3rem',
-  },
-  stateContent: {
-    display: 'flex',
-    alignItems: 'end',
-  },
-  spacer: {
-    flexGrow: 1,
-  },
+const TableHeaderCell = styled(TableCell)(({ theme }) => ({
+  fontWeight: 600,
+}));
+
+const ThumbnailImage = styled('img')(({ theme }) => ({
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  cursor: 'pointer',
+}));
+
+const NoThumbnailImageIcon = styled(ImageIcon)(({ theme }) => ({
+  width: '60%',
+  height: '60%',
+  objectFit: 'cover',
+  color: pink.A400,
+  cursor: 'pointer',
+}));
+
+const TableStateCell = styled(TableCell)(({ theme }) => ({
+  width: '3rem',
+}));
+
+const StateContent = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'end',
+}));
+
+const Spacer = styled('div')(({ theme }) => ({
+  flexGrow: 1,
 }));
 
 type Props = {};
@@ -95,8 +100,6 @@ function jobTypeToIcon(type: JobType) {
 }
 
 const ScanPage: React.FC<Props> = () => {
-  const classes = useStyles();
-
   const scanIdParam = useUrlParams().scanId;
 
   const scanId = parseInt(scanIdParam as string);
@@ -203,34 +206,28 @@ const ScanPage: React.FC<Props> = () => {
 
   return (
     <React.Fragment>
-      <Card className={classes.card}>
+      <Card sx={{ marginBottom: '2rem' }}>
         <CardContent>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={4} md={3}>
               {scan.haadf_path ? (
-                <img
+                <ThumbnailImage
                   src={`${staticURL}${scan.haadf_path}`}
                   alt="scan thumbnail"
-                  className={classes.image}
                 />
               ) : (
-                <ImageIcon
-                  className={`${classes.image} ${classes.noImage}`}
-                  color="secondary"
-                />
+                <NoThumbnailImageIcon color="secondary" />
               )}
             </Grid>
             <Grid item xs={12} sm={8} md={9}>
               <Table>
                 <TableBody>
                   <TableRow>
-                    <TableCell className={classes.headCell}>
-                      Detector Scan ID
-                    </TableCell>
+                    <TableHeaderCell>Detector Scan ID</TableHeaderCell>
                     <TableCell align="right">{scan.scan_id}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className={classes.headCell}>Location</TableCell>
+                    <TableHeaderCell>Location</TableHeaderCell>
                     <TableCell align="right">
                       <LocationComponent
                         confirmRemoval={confirmScanRemoval}
@@ -241,7 +238,7 @@ const ScanPage: React.FC<Props> = () => {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className={classes.headCell}>Created</TableCell>
+                    <TableHeaderCell>Created</TableHeaderCell>
                     <TableCell align="right">
                       <Tooltip title={scan.created} followCursor>
                         <div>
@@ -253,7 +250,7 @@ const ScanPage: React.FC<Props> = () => {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className={classes.headCell}>Progress</TableCell>
+                    <TableHeaderCell>Progress</TableHeaderCell>
                     <TableCell align="right">
                       {scan.log_files < MAX_LOG_FILES ? (
                         <LinearProgress
@@ -273,7 +270,7 @@ const ScanPage: React.FC<Props> = () => {
           <Table>
             <TableBody>
               <TableRow>
-                <TableCell className={classes.headCell}>Notes</TableCell>
+                <TableHeaderCell>Notes</TableHeaderCell>
                 <TableCell align="right">
                   <EditableField
                     value={scan.notes || ''}
@@ -303,7 +300,7 @@ const ScanPage: React.FC<Props> = () => {
           >
             Count
           </Button>
-          <div className={classes.spacer}></div>
+          <Spacer />
           <Button
             onClick={onNavigatePrev}
             size="small"
@@ -333,14 +330,12 @@ const ScanPage: React.FC<Props> = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell className={classes.headCell}>ID</TableCell>
-                <TableCell className={classes.headCell}>Machine</TableCell>
-                <TableCell className={classes.headCell}>Type</TableCell>
-                <TableCell className={classes.headCell}>Slurm ID</TableCell>
-                <TableCell className={classes.headCell}>Elapsed</TableCell>
-                <TableCell className={classes.headCell} align="right">
-                  State
-                </TableCell>
+                <TableHeaderCell>ID</TableHeaderCell>
+                <TableHeaderCell>Machine</TableHeaderCell>
+                <TableHeaderCell>Type</TableHeaderCell>
+                <TableHeaderCell>Slurm ID</TableHeaderCell>
+                <TableHeaderCell>Elapsed</TableHeaderCell>
+                <TableHeaderCell align="right">State</TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -359,8 +354,8 @@ const ScanPage: React.FC<Props> = () => {
                       <TableCell>
                         {humanizeDuration(job.elapsed * 1000)}
                       </TableCell>
-                      <TableCell className={classes.stateCell} align="right">
-                        <div className={classes.stateContent}>
+                      <TableStateCell align="right">
+                        <StateContent>
                           <IconButton
                             disabled={!job.output}
                             onClick={() => onJobOutputClick(job)}
@@ -368,8 +363,8 @@ const ScanPage: React.FC<Props> = () => {
                             <OutputIcon />
                           </IconButton>
                           <JobStateComponent state={job.state} />
-                        </div>
-                      </TableCell>
+                        </StateContent>
+                      </TableStateCell>
                     </TableRow>
                   );
                 })}

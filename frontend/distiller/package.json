@@ -9,7 +9,7 @@
     "@mui/icons-material": "^5.8.4",
     "@mui/material": "^5.8.5",
     "@mui/x-date-pickers": "^5.0.0-alpha.7",
-    "@reduxjs/toolkit": "^1.8.1",
+    "@reduxjs/toolkit": "^1.8.2",
     "@sentry/react": "^7.3.0",
     "@sentry/tracing": "^7.3.0",
     "@testing-library/jest-dom": "^5.16.4",

@@ -1,17 +1,12 @@
 import React from 'react';
 
 import { Chip } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
 
 import { ScanLocation, Scan } from '../types';
 
 import { useAppDispatch } from '../app/hooks';
 import { removeScanFiles } from '../features/scans';
 import { isNil } from 'lodash';
-
-const useStyles = makeStyles((_theme) => ({
-  chip: {},
-}));
 
 type Props = {
   scan: Scan;
@@ -60,8 +55,6 @@ const LocationChip: React.FC<ChipProps> = (props) => {
 };
 
 const LocationComponent: React.FC<Props> = (props) => {
-  const classes = useStyles();
-
   const { locations, machines } = props;
   const uniqueLocations: UniqueLocation[] = Object.values(
     locations.reduce((locs, location) => {
@@ -79,11 +72,7 @@ const LocationComponent: React.FC<Props> = (props) => {
     <React.Fragment>
       {uniqueLocations.map((location) => {
         return (
-          <div
-            key={location.host}
-            title={location.paths.join(', ')}
-            className={classes.chip}
-          >
+          <div key={location.host} title={location.paths.join(', ')}>
             <LocationChip
               scan={props.scan}
               host={location.host}

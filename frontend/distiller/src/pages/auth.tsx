@@ -6,34 +6,33 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
-import makeStyles from '@mui/styles/makeStyles';
+import { styled } from '@mui/material/styles';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { login, logout, getUser, isAuthenticated } from '../features/auth';
 
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    marginTop: theme.spacing(8),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  avatar: {
-    margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.light,
-  },
-  form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(1),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
+const Paper = styled('div')(({ theme }) => ({
+  marginTop: theme.spacing(8),
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+}));
+
+const StyledAvatar = styled(Avatar)(({ theme }) => ({
+  margin: theme.spacing(1),
+  backgroundColor: theme.palette.secondary.light,
+}));
+
+const SubmitButton = styled(Button)(({ theme }) => ({
+  margin: theme.spacing(3, 0, 2),
+}));
+
+const Form = styled('form')(({ theme }) => ({
+  width: '100%', // Fix IE 11 issue.
+  marginTop: theme.spacing(1),
 }));
 
 const AuthPage: React.FC = () => {
-  const classes = useStyles();
-
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
 
@@ -70,31 +69,30 @@ const AuthPage: React.FC = () => {
 
   return (
     <React.Fragment>
-      <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
+      <Paper>
+        <StyledAvatar>
           <LockOutlinedIcon />
-        </Avatar>
+        </StyledAvatar>
         {authenticated ? (
           <React.Fragment>
             <Typography component="h1" variant="h5">
               {user?.username}
             </Typography>
-            <Button
+            <SubmitButton
               fullWidth
               variant="contained"
               color="primary"
-              className={classes.submit}
               onClick={onLogout}
             >
               Sign out
-            </Button>
+            </SubmitButton>
           </React.Fragment>
         ) : (
           <React.Fragment>
             <Typography component="h1" variant="h5">
               Sign in
             </Typography>
-            <form className={classes.form} noValidate onSubmit={onLogin}>
+            <Form noValidate onSubmit={onLogin}>
               <TextField
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -123,12 +121,11 @@ const AuthPage: React.FC = () => {
                 autoComplete="current-password"
                 error={error.length > 0}
               />
-              <Button
+              <SubmitButton
                 type="submit"
                 fullWidth
                 variant="contained"
                 color="primary"
-                className={classes.submit}
                 disabled={
                   username.length === 0 ||
                   password.length === 0 ||
@@ -136,12 +133,12 @@ const AuthPage: React.FC = () => {
                 }
               >
                 Sign In
-              </Button>
+              </SubmitButton>
               <Typography color="error">{error}</Typography>
-            </form>
+            </Form>
           </React.Fragment>
         )}
-      </div>
+      </Paper>
     </React.Fragment>
   );
 };

@@ -15,7 +15,8 @@ import {
   IconButton,
   Checkbox,
 } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+
+import { styled } from '@mui/material/styles';
 import CompleteIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
 import { pink } from '@mui/material/colors';
@@ -54,46 +55,47 @@ import {
 } from '../features/microscopes';
 import { canonicalMicroscopeName } from '../utils/microscopes';
 
-const useStyles = makeStyles((theme) => ({
-  headCell: {
-    fontWeight: 600,
-  },
-  scanRow: {
-    cursor: 'pointer',
-  },
-  imgCell: {
-    width: '5rem',
-    minWidth: '5rem',
-    height: '5rem',
-    minHeight: '5rem',
-    padding: '0.2rem',
-    textAlign: 'center',
-    color: theme.palette.secondary.light,
-  },
-  thumbnail: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    cursor: 'pointer',
-  },
-  noThumbnail: {
-    width: '60%',
-    height: '60%',
-    objectFit: 'cover',
-    color: pink.A400,
-  },
-  notesCell: {
-    width: '100%',
-  },
-  location: {},
-  progressCell: {
-    width: '5rem',
-  },
+const TableHeaderCell = styled(TableCell)(({ theme }) => ({
+  fontWeight: 600,
+}));
+
+const TableImageCell = styled(TableCell)(({ theme }) => ({
+  width: '5rem',
+  minWidth: '5rem',
+  height: '5rem',
+  minHeight: '5rem',
+  padding: '0.2rem',
+  textAlign: 'center',
+  color: theme.palette.secondary.light,
+}));
+
+const ThumbnailImage = styled('img')(({ theme }) => ({
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  cursor: 'pointer',
+}));
+
+const NoThumbnailImageIcon = styled(ImageIcon)(({ theme }) => ({
+  width: '60%',
+  height: '60%',
+  objectFit: 'cover',
+  color: pink.A400,
+}));
+
+const TableNotesCell = styled(TableCell)(({ theme }) => ({
+  width: '100%',
+}));
+
+const TableProgressCell = styled(TableCell)(({ theme }) => ({
+  width: '5rem',
+}));
+
+const TableScanRow = styled(TableRow)(({ theme }) => ({
+  cursor: 'pointer',
 }));
 
 const ScansPage: React.FC = () => {
-  const classes = useStyles();
-
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const scans = useAppSelector(scansSelector.selectAll);
@@ -410,17 +412,13 @@ const ScansPage: React.FC = () => {
                   onChange={onSelectAllClick}
                 />
               </TableCell>
-              <TableCell className={classes.imgCell}></TableCell>
-              <TableCell className={classes.headCell}>ID</TableCell>
-              {hasScanIDs() && (
-                <TableCell className={classes.headCell}>Scan ID</TableCell>
-              )}
-              <TableCell className={classes.headCell}>Notes</TableCell>
-              <TableCell className={classes.headCell}>Location</TableCell>
-              <TableCell className={classes.headCell}>Created</TableCell>
-              <TableCell className={classes.headCell} align="right">
-                Progress
-              </TableCell>
+              <TableImageCell></TableImageCell>
+              <TableHeaderCell>ID</TableHeaderCell>
+              {hasScanIDs() && <TableHeaderCell>Scan ID</TableHeaderCell>}
+              <TableHeaderCell>Notes</TableHeaderCell>
+              <TableHeaderCell>Location</TableHeaderCell>
+              <TableHeaderCell>Created</TableHeaderCell>
+              <TableHeaderCell align="right">Progress</TableHeaderCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -428,9 +426,8 @@ const ScansPage: React.FC = () => {
               .sort((a, b) => b.created.localeCompare(a.created))
               .slice(0, rowsPerPage)
               .map((scan) => (
-                <TableRow
+                <TableScanRow
                   key={scan.id}
-                  className={classes.scanRow}
                   hover
                   onClick={() => onScanClick(scan)}
                 >
@@ -441,29 +438,28 @@ const ScansPage: React.FC = () => {
                       checked={selectedScanIDs.has(scan.id)}
                     />
                   </TableCell>
-                  <TableCell className={classes.imgCell}>
+                  <TableImageCell>
                     {scan.image_path ? (
-                      <img
+                      <ThumbnailImage
                         src={`${staticURL}${scan.image_path}`}
                         alt="scan thumbnail"
-                        className={classes.thumbnail}
                         onClick={stopPropagation(() => onImgClick(scan))}
                       />
                     ) : (
-                      <ImageIcon className={classes.noThumbnail} />
+                      <NoThumbnailImageIcon />
                     )}
-                  </TableCell>
+                  </TableImageCell>
                   <TableCell>{scan.id}</TableCell>
                   {!isNil(scan.scan_id) && (
                     <TableCell>{scan.scan_id}</TableCell>
                   )}
-                  <TableCell className={classes.notesCell}>
+                  <TableNotesCell>
                     <EditableField
                       value={scan.notes || ''}
                       onSave={(value) => onSaveNotes(scan.id, value)}
                     />
-                  </TableCell>
-                  <TableCell className={classes.location}>
+                  </TableNotesCell>
+                  <TableCell>
                     <LocationComponent
                       confirmRemoval={confirmScanFilesRemoval}
                       scan={scan}
@@ -481,7 +477,7 @@ const ScansPage: React.FC = () => {
                       </div>
                     </Tooltip>
                   </TableCell>
-                  <TableCell align="right" className={classes.progressCell}>
+                  <TableProgressCell align="right">
                     {scan.scan_id && scan.log_files < MAX_LOG_FILES ? (
                       <LinearProgress
                         variant="determinate"
@@ -490,7 +486,7 @@ const ScansPage: React.FC = () => {
                     ) : (
                       <CompleteIcon color="primary" />
                     )}
-                  </TableCell>
+                  </TableProgressCell>
                   <TableCell align="right">
                     <IconButton
                       aria-label="delete"
@@ -499,7 +495,7 @@ const ScansPage: React.FC = () => {
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>
-                </TableRow>
+                </TableScanRow>
               ))}
           </TableBody>
         </Table>

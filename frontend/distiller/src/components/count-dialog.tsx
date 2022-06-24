@@ -14,7 +14,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
 import { Machine } from '../types';
 import MachineOptionComponent from './machine-option';
 
@@ -28,14 +27,7 @@ type Props = {
   onSubmit: (params: any) => Promise<any>;
 };
 
-const useStyles = makeStyles((_theme) => ({
-  form: {
-    width: '100%',
-  },
-}));
-
 const CountDialog: React.FC<Props> = (props) => {
-  const classes = useStyles();
   const { open, machines, machine, setMachine, onClose, onSubmit, canRun } =
     props;
   const [threshold, setThreshold] = useLocalStorageState('threshold', {
@@ -71,7 +63,7 @@ const CountDialog: React.FC<Props> = (props) => {
         <DialogContentText mt={1} mb={1}>
           Create a new count job
         </DialogContentText>
-        <FormControl className={classes.form} variant="standard">
+        <FormControl sx={{ width: '100%' }} variant="standard">
           <InputLabel id="machine-select-label">Machine</InputLabel>
           <Select
             fullWidth

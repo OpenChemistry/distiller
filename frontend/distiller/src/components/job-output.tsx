@@ -7,7 +7,7 @@ import {
   DialogContent,
   DialogTitle,
 } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { styled } from '@mui/material/styles';
 import { lime } from '@mui/material/colors';
 
 import { ScanJob } from '../types';
@@ -18,19 +18,16 @@ type Props = {
   job?: ScanJob;
 };
 
-const useStyles = makeStyles((theme) => ({
-  outputContainer: {
-    backgroundColor: '#121858',
-    color: lime['A400'],
-    minHeight: '20rem',
-    fontFamily: 'monospace',
-    padding: '1rem',
-  },
+const OutputContainer = styled('div')(({ theme }) => ({
+  backgroundColor: '#121858',
+  color: lime['A400'],
+  minHeight: '20rem',
+  fontFamily: 'monospace',
+  padding: '1rem',
 }));
 
 const JobOutputDialog: React.FC<Props> = (props) => {
   const { open, onClose, job } = props;
-  const classes = useStyles();
 
   if (!job) {
     return null;
@@ -46,11 +43,11 @@ const JobOutputDialog: React.FC<Props> = (props) => {
     >
       <DialogTitle id="job-output-title">{`Job ${job.id}`}</DialogTitle>
       <DialogContent>
-        <div className={classes.outputContainer}>
+        <OutputContainer>
           {(job.output || '').split('\n').map((line) => (
             <p>{line}</p>
           ))}
-        </div>
+        </OutputContainer>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>

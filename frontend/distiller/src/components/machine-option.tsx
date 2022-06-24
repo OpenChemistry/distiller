@@ -1,17 +1,15 @@
 import React from 'react';
 
 import { Chip, MenuItem } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { styled } from '@mui/material/styles';
 
 import { Machine } from '../types';
 import { canRunJobs, statusColor } from '../utils/machine';
 
-const useStyles = makeStyles((_theme) => ({
-  menu: {
-    justifyContent: 'space-between',
-    display: 'flex',
-    flexGrow: 1,
-  },
+const MachineDiv = styled('div')(({ theme }) => ({
+  justifyContent: 'space-between',
+  display: 'flex',
+  flexGrow: 1,
 }));
 
 function statusIcon(machine: Machine) {
@@ -32,17 +30,15 @@ function statusIcon(machine: Machine) {
 }
 
 const MachineOptionComponent = (machine: Machine) => {
-  const classes = useStyles();
-
   return (
     <MenuItem
       value={machine.name}
       key={machine.name}
       disabled={!canRunJobs(machine.status)}
     >
-      <div className={classes.menu}>
+      <MachineDiv>
         <div>{machine.name}</div> {statusIcon(machine)}
-      </div>
+      </MachineDiv>
     </MenuItem>
   );
 };

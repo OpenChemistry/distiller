@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Typography, TextField, IconButton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
-import makeStyles from '@mui/styles/makeStyles';
+import { styled } from '@mui/material/styles';
 import { stopPropagation } from '../utils';
 
 type Props = {
@@ -11,20 +11,21 @@ type Props = {
   onSave: (value: string) => Promise<any>;
 };
 
-const useStyles = makeStyles((theme) => ({
-  container: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  field: {
-    flexGrow: 1,
-  },
+const Container = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+}));
+
+const Field = styled(TextField)(({ theme }) => ({
+  flexGrow: 1,
+}));
+
+const FieldTypography = styled(Typography)(({ theme }) => ({
+  flexGrow: 1,
 }));
 
 const EditableField: React.FC<Props> = ({ value, onSave }) => {
-  const classes = useStyles();
-
   const [draftValue, setDraftValue] = useState('');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -56,11 +57,10 @@ const EditableField: React.FC<Props> = ({ value, onSave }) => {
   };
 
   return (
-    <div className={classes.container}>
+    <Container>
       {editing ? (
         <React.Fragment>
-          <TextField
-            className={classes.field}
+          <Field
             value={draftValue}
             onClick={stopPropagation(() => {})}
             onChange={(ev) => setDraftValue(ev.target.value)}
@@ -79,13 +79,13 @@ const EditableField: React.FC<Props> = ({ value, onSave }) => {
         </React.Fragment>
       ) : (
         <React.Fragment>
-          <Typography className={classes.field}>{value}</Typography>
+          <FieldTypography>{value}</FieldTypography>
           <IconButton onClick={stopPropagation(onEditClick)} size="large">
             <EditIcon />
           </IconButton>
         </React.Fragment>
       )}
-    </div>
+    </Container>
   );
 };
 

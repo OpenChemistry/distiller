@@ -2,19 +2,12 @@ import React from 'react';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import makeStyles from '@mui/styles/makeStyles';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import HomeIcon from '@mui/icons-material/Home';
 import ScansIcon from '@mui/icons-material/List';
 
 import { HOME_PATH, SCANS_PATH } from '../routes';
-
-const useStyles = makeStyles({
-  root: {
-    width: '100%',
-  },
-});
 
 type NavPath = {
   pathname: string;
@@ -33,8 +26,6 @@ const PATHS: { [name: string]: NavPath } = (
 }, {} as { [name: string]: NavPath });
 
 const NavigationComponent: React.FC = () => {
-  const classes = useStyles();
-
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -45,7 +36,7 @@ const NavigationComponent: React.FC = () => {
         navigate(pathname);
       }}
       showLabels
-      className={classes.root}
+      sx={{ width: '100%' }}
     >
       {Object.values(PATHS).map(({ pathname, icon, label }) => (
         <BottomNavigationAction

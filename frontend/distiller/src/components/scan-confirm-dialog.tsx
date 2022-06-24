@@ -10,7 +10,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { styled } from '@mui/material/styles';
 import WarningIcon from '@mui/icons-material/Warning';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -18,14 +18,14 @@ import Checkbox from '@mui/material/Checkbox';
 
 import { Scan, ScanLocation } from '../types';
 
-const useStyles = makeStyles((theme) => ({
-  warningText: {
-    color: theme.palette.warning.light,
-  },
-  dialogTitle: {
-    display: 'flex',
-    alignItems: 'right',
-  },
+const DialogTitleWarningText = styled(DialogTitle)(({ theme }) => ({
+  color: theme.palette.warning.light,
+  display: 'flex',
+  alignItems: 'right',
+}));
+
+const FormControlLabelWarningText = styled(FormControlLabel)(({ theme }) => ({
+  color: theme.palette.warning.light,
 }));
 
 type BaseProps = {
@@ -41,7 +41,6 @@ interface ScanConfirmDialogProps extends BaseProps {
 }
 
 const ScanConfirmDialog: React.FC<ScanConfirmDialogProps> = (props) => {
-  const classes = useStyles();
   const { onConfirm, title, contentText, scan, children } = props;
 
   const [enteredScanID, setEnteredScanID] = useState<number | null>(null);
@@ -74,13 +73,10 @@ const ScanConfirmDialog: React.FC<ScanConfirmDialogProps> = (props) => {
       onClose={onCancelClick}
       aria-labelledby="confirm-title"
     >
-      <DialogTitle
-        id="confirm-title"
-        className={`${classes.warningText} ${classes.dialogTitle}`}
-      >
+      <DialogTitleWarningText id="confirm-title">
         <WarningIcon />
         <Typography ml={1}>{title}</Typography>
-      </DialogTitle>
+      </DialogTitleWarningText>
 
       <DialogContent>
         <DialogContentText mt={1} mb={1}>
@@ -113,7 +109,6 @@ const ScanConfirmDialog: React.FC<ScanConfirmDialogProps> = (props) => {
 };
 
 export const ScanDeleteConfirmDialog: React.FC<BaseProps> = (props) => {
-  const classes = useStyles();
   const { scan, machines } = props;
   const [removeScanFiles, setRemoveScanFiles] = useState<boolean>(false);
 
@@ -163,8 +158,7 @@ export const ScanDeleteConfirmDialog: React.FC<BaseProps> = (props) => {
             To remove scan file check box below.
           </DialogContentText>
           <FormGroup>
-            <FormControlLabel
-              className={classes.warningText}
+            <FormControlLabelWarningText
               control={
                 <Checkbox
                   checked={removeScanFiles}

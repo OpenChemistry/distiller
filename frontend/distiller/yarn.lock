@@ -4364,9 +4364,9 @@ human-signals@^2.1.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/human-signals/-/human-signals-2.1.0.tgz"
 
-humanize-duration@^3.27.1:
-  version "3.27.1"
-  resolved "https://registry.npmjs.org/humanize-duration/-/humanize-duration-3.27.1.tgz"
+humanize-duration@^3.27.2:
+  version "3.27.2"
+  resolved "https://registry.yarnpkg.com/humanize-duration/-/humanize-duration-3.27.2.tgz#4b4e565bec098d22c9a54344e16156d1c649f160"
 
 iconv-lite@0.4.24:
   version "0.4.24"

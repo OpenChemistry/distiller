@@ -1435,22 +1435,22 @@
   version "1.1.3"
   resolved "https://registry.npmjs.org/@rushstack/eslint-patch/-/eslint-patch-1.1.3.tgz"
 
-"@sentry/browser@7.3.0":
-  version "7.3.0"
-  resolved "https://registry.npmjs.org/@sentry/browser/-/browser-7.3.0.tgz"
+"@sentry/browser@7.6.0":
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-7.6.0.tgz#54bcd52747c40b2656d62d53541037a5724f3296"
   dependencies:
-    "@sentry/core" "7.3.0"
-    "@sentry/types" "7.3.0"
-    "@sentry/utils" "7.3.0"
+    "@sentry/core" "7.6.0"
+    "@sentry/types" "7.6.0"
+    "@sentry/utils" "7.6.0"
     tslib "^1.9.3"
 
-"@sentry/core@7.3.0":
-  version "7.3.0"
-  resolved "https://registry.npmjs.org/@sentry/core/-/core-7.3.0.tgz"
+"@sentry/core@7.6.0":
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-7.6.0.tgz#5e5efd54af7b63957ac4d446fb5a69af33da3e51"
   dependencies:
-    "@sentry/hub" "7.3.0"
-    "@sentry/types" "7.3.0"
-    "@sentry/utils" "7.3.0"
+    "@sentry/hub" "7.6.0"
+    "@sentry/types" "7.6.0"
+    "@sentry/utils" "7.6.0"
     tslib "^1.9.3"
 
 "@sentry/hub@7.3.0":
@@ -1461,13 +1461,21 @@
     "@sentry/utils" "7.3.0"
     tslib "^1.9.3"
 
-"@sentry/react@^7.3.0":
-  version "7.3.0"
-  resolved "https://registry.npmjs.org/@sentry/react/-/react-7.3.0.tgz"
+"@sentry/hub@7.6.0":
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-7.6.0.tgz#69a0d11e50ee61f3f93665948c4acbe56a9ce676"
   dependencies:
-    "@sentry/browser" "7.3.0"
-    "@sentry/types" "7.3.0"
-    "@sentry/utils" "7.3.0"
+    "@sentry/types" "7.6.0"
+    "@sentry/utils" "7.6.0"
+    tslib "^1.9.3"
+
+"@sentry/react@^7.6.0":
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/@sentry/react/-/react-7.6.0.tgz#349596f64da8eb9370c19dde0febfd2dbaeef682"
+  dependencies:
+    "@sentry/browser" "7.6.0"
+    "@sentry/types" "7.6.0"
+    "@sentry/utils" "7.6.0"
     hoist-non-react-statics "^3.3.2"
     tslib "^1.9.3"
 
@@ -1484,11 +1492,22 @@
   version "7.3.0"
   resolved "https://registry.npmjs.org/@sentry/types/-/types-7.3.0.tgz"
 
+"@sentry/types@7.6.0":
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.6.0.tgz#7352bcc5621177ceefb18733d0a6b0cdb0307822"
+
 "@sentry/utils@7.3.0":
   version "7.3.0"
   resolved "https://registry.npmjs.org/@sentry/utils/-/utils-7.3.0.tgz"
   dependencies:
     "@sentry/types" "7.3.0"
+    tslib "^1.9.3"
+
+"@sentry/utils@7.6.0":
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-7.6.0.tgz#50b44fd9b06686a358ef2c7c0fd3b80970e1f9ee"
+  dependencies:
+    "@sentry/types" "7.6.0"
     tslib "^1.9.3"
 
 "@sinclair/typebox@^0.23.3":

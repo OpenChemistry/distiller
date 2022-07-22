@@ -1,4 +1,4 @@
-FROM node:16.6.1 as build
+FROM node:18.6.0 as build
 COPY ./distiller /distiller
 ARG REACT_APP_API_URL
 ARG REACT_APP_SENTRY_DSN_URL

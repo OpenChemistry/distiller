@@ -171,6 +171,18 @@ const ScansPage: React.FC = () => {
     setSelectedScanIDs(new Set<IdType>());
   }, [scans]);
 
+  useEffect(() => {
+    if (microscopeId === undefined) {
+      return;
+    }
+
+    const result = microscopes.filter((m) => m.id === microscopeId);
+    if (result.length === 1) {
+      const microscopeName = result[0].name;
+      document.title = `distiller - ${microscopeName}`;
+    }
+  }, [microscopes, microscopeId]);
+
   const onSaveNotes = (id: IdType, notes: string) => {
     return dispatch(patchScan({ id, updates: { notes } }));
   };

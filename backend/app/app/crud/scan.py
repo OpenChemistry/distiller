@@ -1,14 +1,15 @@
 from datetime import datetime
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from sqlalchemy import desc, or_, update
 from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.core import constants
+from app.crud import microscope
 
 
-def get_scan(db: Session, id: int):
+def get_scan(db: Session, id: int) -> models.Scan:
     return db.query(models.Scan).filter(models.Scan.id == id).first()
 
 
@@ -21,11 +22,13 @@ def _get_scans_query(
     skip: int = 0,
     limit: int = 100,
     scan_id: int = -1,
-    state: schemas.ScanState = None,
-    created: datetime = None,
-    has_haadf: bool = None,
-    start: datetime = None,
-    end: datetime = None,
+    state: Optional[schemas.ScanState] = None,
+    created: Optional[datetime] = None,
+    has_image: Optional[bool] = None,
+    start: Optional[datetime] = None,
+    end: Optional[datetime] = None,
+    microscope_id: Optional[int] = None,
+    sha: Optional[str] = None,
 ):
     query = db.query(models.Scan)
     if scan_id > -1:
@@ -41,17 +44,23 @@ def _get_scans_query(
     if created is not None:
         query = query.filter(models.Scan.created == created)
 
-    if has_haadf is not None:
-        if has_haadf:
-            query = query.filter(models.Scan.haadf_path != None)
+    if has_image is not None:
+        if has_image:
+            query = query.filter(models.Scan.image_path != None)
         else:
-            query = query.filter(models.Scan.haadf_path == None)
+            query = query.filter(models.Scan.image_path == None)
 
     if start is not None:
         query = query.filter(models.Scan.created > start)
 
     if end is not None:
         query = query.filter(models.Scan.created < end)
+
+    if microscope_id is not None:
+        query = query.filter(models.Scan.microscope_id == microscope_id)
+
+    if sha is not None:
+        query = query.filter(models.Scan.sha == sha)
 
     return query
 
@@ -61,14 +70,26 @@ def get_scans(
     skip: int = 0,
     limit: int = 100,
     scan_id: int = -1,
-    state: schemas.ScanState = None,
-    created: datetime = None,
-    has_haadf: bool = None,
-    start: datetime = None,
-    end: datetime = None,
+    state: Optional[schemas.ScanState] = None,
+    created: Optional[datetime] = None,
+    has_image: Optional[bool] = None,
+    start: Optional[datetime] = None,
+    end: Optional[datetime] = None,
+    microscope_id: Optional[int] = None,
+    sha: Optional[str] = None,
 ):
     query = _get_scans_query(
-        db, skip, limit, scan_id, state, created, has_haadf, start, end
+        db,
+        skip,
+        limit,
+        scan_id,
+        state,
+        created,
+        has_image,
+        start,
+        end,
+        microscope_id,
+        sha,
     )
 
     return query.order_by(desc(models.Scan.created)).offset(skip).limit(limit).all()
@@ -79,25 +100,47 @@ def get_scans_count(
     skip: int = 0,
     limit: int = 100,
     scan_id: int = -1,
-    state: schemas.ScanState = None,
-    created: datetime = None,
-    has_haadf: bool = None,
-    start: datetime = None,
-    end: datetime = None,
+    state: Optional[schemas.ScanState] = None,
+    created: Optional[datetime] = None,
+    has_image: Optional[bool] = None,
+    start: Optional[datetime] = None,
+    end: Optional[datetime] = None,
+    microscope_id: Optional[int] = None,
+    sha: Optional[str] = None,
 ):
     query = _get_scans_query(
-        db, skip, limit, scan_id, state, created, has_haadf, start, end
+        db,
+        skip,
+        limit,
+        scan_id,
+        state,
+        created,
+        has_image,
+        start,
+        end,
+        microscope_id,
+        sha,
     )
 
     return query.count()
 
 
-def create_scan(db: Session, scan: schemas.ScanCreate, haadf_path: str = None):
+def create_scan(
+    db: Session,
+    scan: Union[schemas.Scan4DCreate, schemas.ScanFromFile],
+    image_path: Union[str, None] = None,
+) -> models.Scan:
     locations = scan.locations
     scan.locations = []
 
+    if scan.microscope_id is None:
+
+        microscope_ids = [m.id for m in microscope.get_microscopes(db)]
+        # We default to the first ( 4D Camera )
+        scan.microscope_id = microscope_ids[0]
+
     # Note: We have to pass metadata as metadata_ as metadata is reserved!
-    db_scan = models.Scan(**scan.dict(), haadf_path=haadf_path, metadata_=scan.metadata)
+    db_scan = models.Scan(**scan.dict(), image_path=image_path, metadata_=scan.metadata)
     db.add(db_scan)
     for l in locations:
         l = models.Location(**l.dict())
@@ -112,11 +155,11 @@ def create_scan(db: Session, scan: schemas.ScanCreate, haadf_path: str = None):
 def update_scan(
     db: Session,
     id: int,
-    log_files: int = None,
-    locations: List[schemas.Location] = None,
-    haadf_path: str = None,
-    notes: str = None,
-    metadata: Dict[str, Any] = None,
+    log_files: Optional[int] = None,
+    locations: Optional[List[schemas.LocationCreate]] = None,
+    image_path: Optional[str] = None,
+    notes: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None,
 ):
     updated = False
 
@@ -148,20 +191,20 @@ def update_scan(
 
         updated = updated or locations_updated
 
-    if haadf_path is not None:
+    if image_path is not None:
         statement = (
             update(models.Scan)
             .where(models.Scan.id == id)
             .where(
                 or_(
-                    models.Scan.haadf_path != haadf_path, models.Scan.haadf_path == None
+                    models.Scan.image_path != image_path, models.Scan.image_path == None
                 )
             )
-            .values(haadf_path=haadf_path)
+            .values(image_path=image_path)
         )
         resultsproxy = db.execute(statement)
-        haadf_path_updated = resultsproxy.rowcount == 1
-        updated = updated or haadf_path_updated
+        image_path_updated = resultsproxy.rowcount == 1
+        updated = updated or image_path_updated
 
     if notes is not None:
         statement = (
@@ -220,9 +263,16 @@ def delete_locations(db: Session, scan_id: int, host: str) -> None:
 def get_prev_next_scan(
     db: Session, id: int
 ) -> Tuple[Union[int, None], Union[int, None]]:
+    # Fetch the scan so we can constrain by microscope id
+    scan = get_scan(db, id)
+
+    if scan is None:
+        raise Exception("Invalid scan id: {id}")
+
     prev_scan = (
         db.query(models.Scan.id)
         .order_by(models.Scan.id.desc())
+        .filter(models.Scan.microscope_id == scan.microscope_id)
         .filter(models.Scan.id < id)
         .limit(1)
         .scalar()
@@ -230,6 +280,7 @@ def get_prev_next_scan(
     next_scan = (
         db.query(models.Scan.id)
         .order_by(models.Scan.id.asc())
+        .filter(models.Scan.microscope_id == scan.microscope_id)
         .filter(models.Scan.id > id)
         .limit(1)
         .scalar()

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
 
 import AppBar from '@mui/material/AppBar';
@@ -10,7 +10,7 @@ import UserIcon from '@mui/icons-material/AccountCircle';
 import { styled } from '@mui/material/styles';
 
 import { isAuthenticated } from '../features/auth';
-import { HOME_PATH, AUTH_PATH } from '../routes';
+import { AUTH_PATH } from '../routes';
 
 import logo from '../logo.png';
 
@@ -25,14 +25,22 @@ const Title = styled('img')(({ theme }) => ({
 const HeaderComponent: React.FC = () => {
   const authenticated = useAppSelector(isAuthenticated);
 
+  const location: any = useLocation();
+
   const navigate = useNavigate();
 
   const onLogoClick = () => {
-    navigate(HOME_PATH);
+    if (location.state !== null) {
+      const { from } = location.state;
+      navigate(from);
+    } else {
+      const microscope = location.pathname.split('/')[1];
+      navigate(`/${microscope}`);
+    }
   };
 
   const onUserClick = () => {
-    navigate(AUTH_PATH);
+    navigate(`${AUTH_PATH}`, { state: { from: location } });
   };
 
   return (

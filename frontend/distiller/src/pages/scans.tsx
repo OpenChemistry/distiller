@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import {
   Table,
@@ -35,21 +35,25 @@ import {
 } from '../features/scans';
 import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
-import { IdType, Scan } from '../types';
+import { IdType, Microscope, Scan } from '../types';
 import { staticURL } from '../client';
 import ImageDialog from '../components/image-dialog';
 import LocationComponent from '../components/location';
-import { SCANS_PATH } from '../routes';
 import { stopPropagation } from '../utils';
 import {
   ScanDeleteConfirmDialog,
   RemoveScanFilesConfirmDialog,
 } from '../components/scan-confirm-dialog';
 import { machineSelectors, machineState } from '../features/machines';
-import { ExportFormat } from '../types';
+import { ExportFormat, Metadata } from '../types';
 
 import { isNil, isNull } from 'lodash';
 import { ScansToolbar, FilterCriteria } from '../components/scans-toolbar';
+import {
+  microscopesSelectors,
+  microscopesState,
+} from '../features/microscopes';
+import { canonicalMicroscopeName } from '../utils/microscopes';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
@@ -118,27 +122,73 @@ const ScansPage: React.FC = () => {
     new Set<IdType>()
   );
 
+  const microscopes = useAppSelector((state) =>
+    microscopesSelectors.selectAll(microscopesState(state))
+  );
+
+  const microscopesByCanonicalName = microscopes.reduce(
+    (obj: { [key: string]: Microscope }, microscope) => {
+      obj[canonicalMicroscopeName(microscope.name)] = microscope;
+
+      return obj;
+    },
+    {}
+  );
+
+  // Default to 4D Camera
+  let microscopeId: IdType | undefined;
+
+  if (microscopes.length > 0) {
+    microscopeId = microscopes[0].id;
+  }
+
+  const microscope = useParams().microscope;
+  if (microscope !== undefined) {
+    const canonicalName = canonicalMicroscopeName(microscope as string);
+
+    if (canonicalName in microscopesByCanonicalName) {
+      microscopeId = microscopesByCanonicalName[canonicalName].id;
+    }
+  }
+
   useEffect(() => {
+    if (microscopeId === undefined) {
+      return;
+    }
+
     dispatch(
       getScans({
         skip: page * rowsPerPage,
         limit: rowsPerPage,
         start: filterCriteria?.start,
         end: filterCriteria?.end,
+        microscopeId: microscopeId,
       })
     );
-  }, [dispatch, page, rowsPerPage, filterCriteria]);
+  }, [dispatch, page, rowsPerPage, filterCriteria, microscopeId]);
 
   useEffect(() => {
     setSelectedScanIDs(new Set<IdType>());
   }, [scans]);
+
+  useEffect(() => {
+    if (microscopeId === undefined) {
+      return;
+    }
+
+    const result = microscopes.filter((m) => m.id === microscopeId);
+    if (result.length === 1) {
+      const microscopeName = result[0].name;
+      document.title = `distiller - ${microscopeName}`;
+    }
+  }, [microscopes, microscopeId]);
 
   const onSaveNotes = (id: IdType, notes: string) => {
     return dispatch(patchScan({ id, updates: { notes } }));
   };
 
   const onImgClick = (scan: Scan) => {
-    setActiveImg(`${staticURL}${scan.haadf_path!}`);
+    setActiveImg(`${staticURL}${scan.image_path!}`);
     setMaximizeImg(true);
   };
 
@@ -147,7 +197,7 @@ const ScansPage: React.FC = () => {
   };
 
   const onScanClick = (scan: Scan) => {
-    navigate(`${SCANS_PATH}/${scan.id}`);
+    navigate(`scans/${scan.id}`);
   };
   const onChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -203,6 +253,12 @@ const ScansPage: React.FC = () => {
     return scans;
   };
 
+  const hasScanIDs = () => {
+    const ids = new Set(scans.map((scan) => scan.scan_id));
+
+    return ids.size > 1 || !ids.has(null);
+  };
+
   const exportScans = async (data: string, mimetype: string) => {
     const blob = new Blob([data], { type: mimetype });
     const href = await URL.createObjectURL(blob);
@@ -217,13 +273,24 @@ const ScansPage: React.FC = () => {
 
   const onExportJSON = async () => {
     const filteredScans = selectedScans().map((scan: Scan) => {
-      return {
-        distiller_scan_id: scan.id,
-        detector_scan_id: scan.scan_id,
+      let scanJSON: { [key: string]: string | number | Metadata | undefined } =
+        {
+          distiller_scan_id: scan.id,
+        };
+
+      // Only add if non null
+      if (!isNil(scan.scan_id)) {
+        scanJSON['detector_scan_id'] = scan.scan_id;
+      }
+
+      scanJSON = {
+        ...scanJSON,
         created: scan.created,
         notes: scan.notes,
         metadata: scan.metadata,
       };
+
+      return scanJSON;
     });
     const json = JSON.stringify(filteredScans, null, 2);
 
@@ -231,12 +298,14 @@ const ScansPage: React.FC = () => {
   };
 
   const onExportCSV = async () => {
-    const headers = [
-      'distiller_scan_id',
-      'detector_scan_id',
-      'created',
-      'notes',
-    ];
+    const headers: string[] = [];
+
+    if (hasScanIDs()) {
+      headers.push('distiller_scan_id', 'detector_scan_id');
+    } else {
+      headers.push('distiller_scan_id');
+    }
+    headers.push('created', 'notes');
 
     // Generate metadata headers
     const metadataHeaders = new Set<string>();
@@ -251,10 +320,13 @@ const ScansPage: React.FC = () => {
     const filteredScans = selectedScans().map((scan: Scan) => {
       const exportScan: { [key: string]: string | number } = {
         distiller_scan_id: scan.id,
-        detector_scan_id: scan.scan_id,
         created: scan.created,
         notes: scan.notes ? scan.notes : '',
       };
+
+      if (!isNil(scan.scan_id)) {
+        exportScan['detector_scan_id'] = scan.scan_id;
+      }
 
       Array.from(metadataHeaders).forEach((header: string) => {
         if (!isNil(scan.metadata) && !isNil(scan.metadata[header])) {
@@ -352,9 +424,9 @@ const ScansPage: React.FC = () => {
                   onChange={onSelectAllClick}
                 />
               </TableCell>
-              <TableImageCell />
+              <TableImageCell></TableImageCell>
               <TableHeaderCell>ID</TableHeaderCell>
-              <TableHeaderCell>Scan ID</TableHeaderCell>
+              {hasScanIDs() && <TableHeaderCell>Scan ID</TableHeaderCell>}
               <TableHeaderCell>Notes</TableHeaderCell>
               <TableHeaderCell>Location</TableHeaderCell>
               <TableHeaderCell>Created</TableHeaderCell>
@@ -379,9 +451,9 @@ const ScansPage: React.FC = () => {
                     />
                   </TableCell>
                   <TableImageCell>
-                    {scan.haadf_path ? (
+                    {scan.image_path ? (
                       <ThumbnailImage
-                        src={`${staticURL}${scan.haadf_path}`}
+                        src={`${staticURL}${scan.image_path}`}
                         alt="scan thumbnail"
                         onClick={stopPropagation(() => onImgClick(scan))}
                       />
@@ -390,7 +462,9 @@ const ScansPage: React.FC = () => {
                     )}
                   </TableImageCell>
                   <TableCell>{scan.id}</TableCell>
-                  <TableCell>{scan.scan_id}</TableCell>
+                  {!isNil(scan.scan_id) && (
+                    <TableCell>{scan.scan_id}</TableCell>
+                  )}
                   <TableNotesCell>
                     <EditableField
                       value={scan.notes || ''}
@@ -416,7 +490,7 @@ const ScansPage: React.FC = () => {
                     </Tooltip>
                   </TableCell>
                   <TableProgressCell align="right">
-                    {scan.log_files < MAX_LOG_FILES ? (
+                    {scan.scan_id && scan.log_files < MAX_LOG_FILES ? (
                       <LinearProgress
                         variant="determinate"
                         value={(100 * scan.log_files) / MAX_LOG_FILES}

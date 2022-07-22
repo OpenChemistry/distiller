@@ -15,6 +15,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
+import { isNil } from 'lodash';
 
 import { Scan, ScanLocation } from '../types';
 
@@ -67,6 +68,12 @@ const ScanConfirmDialog: React.FC<ScanConfirmDialogProps> = (props) => {
     return null;
   }
 
+  // We use the scan ID in the case of 4D and ID otherwise
+  const idLabel = !isNil(scan.scan_id) ? 'scan ID' : 'ID';
+
+  // The id to use for confirmation
+  const id = !isNil(scan.scan_id) ? scan.scan_id : scan.id;
+
   return (
     <Dialog
       open={scan !== null}
@@ -84,10 +91,10 @@ const ScanConfirmDialog: React.FC<ScanConfirmDialogProps> = (props) => {
         </DialogContentText>
         {children}
         <DialogContentText mt={1} mb={1}>
-          Please enter the scan ID to confirm action.
+          Please enter the {idLabel} to confirm action.
         </DialogContentText>
         <TextField
-          label="scan ID"
+          label={idLabel}
           value={enteredScanID}
           onChange={(ev) => setEnteredScanID(parseInt(ev.target.value))}
           type="number"
@@ -97,7 +104,7 @@ const ScanConfirmDialog: React.FC<ScanConfirmDialogProps> = (props) => {
       <DialogActions>
         <Button
           onClick={onConfirmClick}
-          disabled={scan.scan_id !== enteredScanID}
+          disabled={id !== enteredScanID}
           color="warning"
         >
           Confirm
@@ -117,7 +124,9 @@ export const ScanDeleteConfirmDialog: React.FC<BaseProps> = (props) => {
   }
 
   const title = 'Remove scan';
-  const contentText = `You are about to remove scan ${scan.scan_id}. This operation can not be undone.`;
+  const contentText = `You are about to remove scan ${
+    !isNil(scan.scan_id) ? scan.scan_id : scan.id
+  }. This operation can not be undone.`;
 
   const hasLocations = () => {
     const edgeLocations = scan.locations.filter((l: ScanLocation) => {
@@ -151,7 +160,7 @@ export const ScanDeleteConfirmDialog: React.FC<BaseProps> = (props) => {
       onConfirm={onConfirm}
       machines={machines}
     >
-      {hasLocations() && (
+      {hasLocations() && !isNil(scan.scan_id) && (
         <React.Fragment>
           <DialogContentText mt={1} mb={1}>
             Warning: Scan files exist on the acquisition machine for this scan.

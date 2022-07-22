@@ -106,7 +106,12 @@ const AdvancedMetadata: React.FC<AdvancedMetadataProps> = (props) => {
                   <TableRow key={key}>
                     <TableAdvancedNameCell>{key}</TableAdvancedNameCell>
                     <TableAdvancedValueCell align="right">
-                      {metadata[key]}
+                      {
+                        JSON.stringify(metadata[key]).replace(
+                          /^"(.*)"$/,
+                          '$1'
+                        ) /* strip outer quotes */
+                      }
                     </TableAdvancedValueCell>
                   </TableRow>
                 ))}

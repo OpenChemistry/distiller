@@ -53,7 +53,7 @@ const AuthPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    dispatch(login({ username, password })).then((res) => {
+    dispatch(login({ username, password, from })).then((res) => {
       if (res.type === login.fulfilled.toString()) {
         navigate(from, { replace: true });
       } else {
@@ -62,8 +62,9 @@ const AuthPage: React.FC = () => {
     });
   };
 
-  const onLogout = (_e: MouseEvent) => {
-    dispatch(logout());
+  const onLogout = async (_e: MouseEvent) => {
+    await dispatch(logout());
+    navigate(from, { replace: true });
   };
 
   return (

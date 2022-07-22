@@ -88,20 +88,21 @@ export type ScanJob = {
   machine?: string;
 };
 
-export type Metadata = { [name: string]: string | number };
+export type Metadata = { [name: string]: any };
 
 export type Scan = {
   id: IdType;
-  scan_id: IdType;
+  scan_id: IdType | null;
   log_files: number;
   created: string;
   locations: ScanLocation[];
   notes?: string;
-  haadf_path?: string;
+  image_path?: string;
   jobs: ScanJob[];
   prevScanId?: IdType;
   nextScanId?: IdType;
   metadata?: Metadata;
+  microscope_id: IdType;
 };
 
 export type ScansRequestResult = {
@@ -121,3 +122,9 @@ export enum ExportFormat {
   JSON = 'json',
   CSV = 'csv',
 }
+
+export type Microscope = {
+  id: number;
+  name: string;
+  config: { [name: string]: any };
+};

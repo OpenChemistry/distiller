@@ -58,10 +58,10 @@ class Settings(BaseSettings):
 
     KAFKA_BOOTSTRAP_SERVERS: List[str]
 
-    HAADF_DM4_UPLOAD_DIR: str
-    HAADF_IMAGE_UPLOAD_DIR: str
-    HAADF_IMAGE_URL_PREFIX: str
-    HAADF_IMAGE_STATIC_DIR: str
+    SCAN_FILE_UPLOAD_DIR: str
+    IMAGE_UPLOAD_DIR: str
+    IMAGE_URL_PREFIX: str
+    IMAGE_STATIC_DIR: str
     # Max age a scan can be to still have a HAADF image associated with it (hours)
     # This is need to avoid associate a HAADF with a old scan if the scan ids
     # have been reset in in the detector software.

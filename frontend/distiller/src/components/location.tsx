@@ -6,6 +6,7 @@ import { ScanLocation, Scan } from '../types';
 
 import { useAppDispatch } from '../app/hooks';
 import { removeScanFiles } from '../features/scans';
+import { isNil } from 'lodash';
 
 type Props = {
   scan: Scan;
@@ -29,8 +30,8 @@ type ChipProps = {
 
 const LocationChip: React.FC<ChipProps> = (props) => {
   const dispatch = useAppDispatch();
-  const [deletable, setDeletable] = React.useState(true);
   const { scan, host, confirmRemoval, machines } = props;
+  const [deletable, setDeletable] = React.useState(!isNil(scan.scan_id));
 
   const onDelete = async () => {
     if (scan === undefined) {

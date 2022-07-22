@@ -6,7 +6,8 @@ import { CssBaseline } from '@mui/material';
 
 import './App.css';
 import PrivateRoute from './routes/private';
-import { HOME_PATH, AUTH_PATH, SCANS_PATH } from './routes';
+import DefaultMicroscope from './routes/default';
+import { HOME_PATH, AUTH_PATH, SCANS_PATH, SCANS } from './routes';
 import ScansPage from './pages/scans';
 import AuthPage from './pages/auth';
 import ScanPage from './pages/scan';
@@ -41,9 +42,8 @@ function App() {
             <div className="content">
               <div className="inner-content">
                 <Routes>
-                  <Route path={AUTH_PATH} element={<AuthPage />} />
                   <Route
-                    path={`${SCANS_PATH}/:scanId`}
+                    path={`/:microscope/${SCANS}/:scanId`}
                     element={
                       <PrivateRoute>
                         <ScanPage />
@@ -51,13 +51,20 @@ function App() {
                     }
                   />
                   <Route
-                    path={HOME_PATH}
+                    path={'/:microscope'}
                     element={
                       <PrivateRoute>
                         <ScansPage />
                       </PrivateRoute>
                     }
                   />
+                  <Route
+                    path={`${SCANS_PATH}/:scanId`}
+                    element={<DefaultMicroscope />}
+                  />
+                  <Route path={SCANS_PATH} element={<DefaultMicroscope />} />
+                  <Route path={AUTH_PATH} element={<AuthPage />} />
+                  <Route path={HOME_PATH} element={<DefaultMicroscope />} />
                 </Routes>
               </div>
             </div>

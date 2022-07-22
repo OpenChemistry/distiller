@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -34,9 +34,15 @@ class File(BaseModel):
 
 
 class SyncEvent(BaseModel):
+    microscope_id: Optional[int]
     files: List[File]
 
 
 class HaadfUploaded(BaseModel):
     scan_id: int
+    path: str
+
+
+class ScanFileUploaded(BaseModel):
+    id: int
     path: str

@@ -11,6 +11,7 @@ export interface IRequestOptions {
 
 export interface IWebsocketOptions {
   url: string;
+  params: { [key: string]: any };
 }
 
 export interface IApiClient {
@@ -71,7 +72,7 @@ export class ApiClient implements IApiClient {
       try {
         const { url } = options;
         const baseUrl = this.getBaseURL().replace('http', 'ws');
-        const params: any = {};
+        const params: any = { ...options.params };
         const token = this.getToken();
         if (token !== undefined) {
           params['token'] = token;

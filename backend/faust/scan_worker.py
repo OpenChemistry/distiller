@@ -63,9 +63,9 @@ sync_events_topic = app.topic(TOPIC_LOG_FILE_SYNC_EVENTS, value_type=SyncEvent)
 
 
 class LogFileState(faust.Record):
-    created: datetime = None
+    created: Optional[datetime] = None
     processed: bool = False
-    host: str = None
+    host: Optional[str] = None
 
 
 # path to log file state
@@ -304,6 +304,7 @@ class ScanMetadata(faust.Record):
 scan_metadata_events_topic = app.topic(
     TOPIC_SCAN_METADATA_EVENTS, value_type=ScanMetadata
 )
+
 
 @app.agent(scan_metadata_events_topic)
 async def watch_for_metadata_event(metadata_events):

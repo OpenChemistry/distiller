@@ -59,6 +59,8 @@ import {
   microscopesState,
 } from '../features/microscopes';
 import { canonicalMicroscopeName } from '../utils/microscopes';
+import ImageDialog from '../components/image-dialog';
+import { stopPropagation } from '../utils';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
@@ -105,6 +107,7 @@ function jobTypeToIcon(type: JobType) {
 }
 
 const ScanPage: React.FC<Props> = () => {
+  const [maximizeImg, setMaximizeImg] = useState(false);
   const scanIdParam = useUrlParams().scanId;
 
   const scanId = parseInt(scanIdParam as string);
@@ -244,6 +247,14 @@ const ScanPage: React.FC<Props> = () => {
 
   const actions = microscope.config['actions'];
 
+  const onImgClick = (scan: Scan) => {
+    setMaximizeImg(true);
+  };
+
+  const onCloseDialog = () => {
+    setMaximizeImg(false);
+  };
+
   return (
     <React.Fragment>
       <Card sx={{ marginBottom: '2rem' }}>
@@ -254,6 +265,7 @@ const ScanPage: React.FC<Props> = () => {
                 <ThumbnailImage
                   src={`${staticURL}${scan.image_path}`}
                   alt="scan thumbnail"
+                  onClick={stopPropagation(() => onImgClick(scan))}
                 />
               ) : (
                 <NoThumbnailImageIcon color="secondary" />
@@ -452,6 +464,12 @@ const ScanPage: React.FC<Props> = () => {
         open={!!jobOutputDialog}
         onClose={onJobOutputClose}
         job={jobOutputDialog}
+      />
+      <ImageDialog
+        open={maximizeImg}
+        src={`${staticURL}${scan.image_path!}`}
+        alt="scan image"
+        handleClose={onCloseDialog}
       />
     </React.Fragment>
   );

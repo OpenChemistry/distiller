@@ -12,9 +12,9 @@ import ScansPage from './pages/scans';
 import AuthPage from './pages/auth';
 import ScanPage from './pages/scan';
 import HeaderComponent from './components/header';
+import FooterComponent from './components/footer';
 import { useAppDispatch } from './app/hooks';
 import { restoreSession } from './features/auth';
-
 import {
   ThemeProvider,
   StyledEngineProvider,
@@ -67,8 +67,10 @@ function App() {
                   <Route path={HOME_PATH} element={<DefaultMicroscope />} />
                 </Routes>
               </div>
+              <div className="footer">
+                <FooterComponent />
+              </div>
             </div>
-            <div className="navigation"></div>
           </div>
         </Router>
       </ThemeProvider>

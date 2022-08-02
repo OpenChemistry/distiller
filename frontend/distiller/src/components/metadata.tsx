@@ -134,10 +134,6 @@ const MetadataComponent: React.FC<MetadataComponentProps> = (props) => {
   return (
     <Table>
       <TableBody>
-        <TableRow>
-          <TableNameCell>Distiller Scan ID</TableNameCell>
-          <TableCell align="right">{scan.id}</TableCell>
-        </TableRow>
         {scan.metadata && (
           <React.Fragment>
             <TableRow>

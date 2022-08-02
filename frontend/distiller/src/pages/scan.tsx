@@ -281,6 +281,10 @@ const ScanPage: React.FC<Props> = () => {
                     </TableRow>
                   )}
                   <TableRow>
+                    <TableHeaderCell>Distiller Scan ID</TableHeaderCell>
+                    <TableCell align="right">{scan.id}</TableCell>
+                  </TableRow>
+                  <TableRow>
                     <TableHeaderCell>Location</TableHeaderCell>
                     <TableCell align="right">
                       <LocationComponent

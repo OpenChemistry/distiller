@@ -416,7 +416,7 @@ async def watch_for_scan_file_events(scan_file_events):
                             AsyncPath(path), AsyncPath(settings.NCEMHUB_DATA_PATH)
                         )
                     except Exception:
-                            logger.exception("Exception coping to ncemhub.")
+                            logger.exception("Exception copying to ncemhub.")
                             raise
 
                     if Path(path).suffix in DATA_FILE_FORMATS:

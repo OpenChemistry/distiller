@@ -120,7 +120,11 @@ export const scansSlice = createSlice({
         scansAdapter.setOne(state, action.payload);
       })
       .addCase(patchScan.fulfilled, (state, action) => {
-        scansAdapter.setOne(state, action.payload);
+        const update = {
+          id: action.payload.id,
+          changes: action.payload,
+        };
+        scansAdapter.updateOne(state, update);
       })
       .addCase(removeScan.fulfilled, (state, action) => {
         scansAdapter.removeOne(state, action.payload);

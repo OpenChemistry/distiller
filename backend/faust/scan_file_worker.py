@@ -410,22 +410,43 @@ async def watch_for_scan_file_events(scan_file_events):
             path = event.path
             id = event.id
             with tempfile.TemporaryDirectory() as tmp:
-                await copy_to_ncemhub(
-                    AsyncPath(path), AsyncPath(settings.NCEMHUB_DATA_PATH)
-                )
+                try:
+                    try:
+                        await copy_to_ncemhub(
+                            AsyncPath(path), AsyncPath(settings.NCEMHUB_DATA_PATH)
+                        )
+                    except Exception:
+                            logger.exception("Exception copying to ncemhub.")
+                            raise
 
-                if Path(path).suffix in DATA_FILE_FORMATS:
-                    image_path = await generate_image(tmp, path, f"{id}.png")
-                    r = await upload_image(session, id, image_path)
-                    r.raise_for_status()
+                    if Path(path).suffix in DATA_FILE_FORMATS:
+                        try:
+                            image_path = await generate_image(tmp, path, f"{id}.png")
+                        except Exception:
+                            logger.exception("Exception generating image.")
+                            raise
 
-                # First get the current metadata to patch
-                scan = await get_scan(session, id)
-                metadata = scan.metadata
-                if metadata is None:
-                    metadata = {}
-                metadata.update(extract_metadata(path))
-                await update_scan(session, ScanUpdate(id=id, metadata=metadata))
+                        try:
+                            r = await upload_image(session, id, image_path)
+                            r.raise_for_status()
+                        except Exception:
+                            logger.exception("Exception uploading image.")
+                            raise
 
-            loop = asyncio.get_event_loop()
-            loop.run_in_executor(None, os.remove, path)
+                    # First get the current metadata to patch
+                    try:
+                        scan = await get_scan(session, id)
+                        metadata = scan.metadata
+                        if metadata is None:
+                            metadata = {}
+                        metadata.update(extract_metadata(path))
+                        await update_scan(session, ScanUpdate(id=id, metadata=metadata))
+                    except Exception:
+                        logger.exception("Exception extracting metadata.")
+                        raise
+                except Exception:
+                    logger.exception(f"Exception processing scan file: {path}.")
+                finally:
+                    if Path(path).exists():
+                        loop = asyncio.get_event_loop()
+                        loop.run_in_executor(None, os.remove, path)

@@ -445,7 +445,7 @@ async def watch_for_scan_file_events(scan_file_events):
                         logger.exception("Exception extracting metadata.")
                         raise
                 except Exception:
-                    pass
+                    logger.exception(f"Exception processing scan file: {path}.")
                 finally:
                     if Path(path).exists():
                         loop = asyncio.get_event_loop()

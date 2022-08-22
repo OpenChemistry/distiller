@@ -5,3 +5,5 @@ coloredlogs
 cachetools
 pydantic[dotenv]
 tenacity
+h5py
+ncempy

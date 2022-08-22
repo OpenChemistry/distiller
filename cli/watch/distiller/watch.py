@@ -29,9 +29,6 @@ if settings.POLL or settings.MODE in [WatchMode.SCAN_4D_FILES, WatchMode.SCAN_4D
 else:
     from watchdog.observers import Observer
 
-from modes.scan_4d_files import Scan4DFilesModeHandler
-from modes.scan_4d_haadf_files import Scan4DHAADFFilesModeHandler
-from modes.scan_files import ScanFilesModeHandler
 from utils import logger
 from modes import ModeHandler
 
@@ -92,10 +89,13 @@ async def get_microscope(session: aiohttp.ClientSession, name: str) -> Microscop
 
 def get_mode_handler(mode: WatchMode, session: aiohttp.ClientSession, microscope_id: int, host: str) -> ModeHandler:
     if mode == WatchMode.SCAN_4D_FILES:
+        from modes.scan_4d_files import Scan4DFilesModeHandler
         return Scan4DFilesModeHandler(microscope_id, host, session)
     elif mode == WatchMode.SCAN_4D_HAADF_FILES:
+        from modes.scan_4d_haadf_files import Scan4DHAADFFilesModeHandler
         return Scan4DHAADFFilesModeHandler(microscope_id, host, session)
     elif mode == WatchMode.SCAN_FILES:
+        from modes.scan_files import ScanFilesModeHandler
         return ScanFilesModeHandler(microscope_id, host, session)
     else:
         raise Exception(f"Unrecognized mode: {mode}")
@@ -113,14 +113,6 @@ async def monitor(microscope_id: int, queue: asyncio.Queue) -> None:
             handler = get_mode_handler(mode, session, microscope_id, host)
             while True:
                 async for event in AIOEventIterator(queue):
-                    # Don't send all events, the debounces the events.
-                    key = f"{host}:{event.src_path}"
-                    if event.event_type in [EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED]:
-                        if key in cache:
-                            continue
-                        else:
-                            cache[key] = True
-
                     await handler.on_event(event)
 
 

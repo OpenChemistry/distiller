@@ -1,36 +1,32 @@
 import asyncio
-import logging
-import platform
 import re
-import signal
-import sys
 from datetime import datetime
-from logging.handlers import RotatingFileHandler
-from typing import List, Optional
+from typing import List, Optional, cast
 import hashlib
+import h5py
+
 
 import aiohttp
-import coloredlogs
 import tenacity
 from aiopath import AsyncPath
 from pathlib import Path
-from aiowatchdog import AIOEventHandler, AIOEventIterator
 from cachetools import TTLCache
 from config import settings
-from constants import LOG_FILE_GLOB
-from schemas import File, WatchMode
-from schemas import FileSystemEvent as FileSystemEventModel, Location, ScanFromFileMetadata
-from schemas import SyncEvent, Scan
+from schemas import Location, ScanFromFileMetadata
+from schemas import Scan
 from utils import logger
 from watchdog.events import (EVENT_TYPE_CLOSED, EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED,
-                             EVENT_TYPE_MOVED, FileSystemEvent)
-from watchdog.observers.polling import PollingObserver as Observer
+                             EVENT_TYPE_MOVED, FileSystemEvent, FileMovedEvent)
+
+from ncempy.io import emd
+
 from . import ModeHandler
+
 
 
 SCAN_FILE_GLOBS = ["*.dm4", "*.dm3", "*.emi", "*.emd"]
 SCAN_FILE_PATTERNS = [re.compile(f"^.{g}") for g in SCAN_FILE_GLOBS]
-SCAN_FILE_EVENTS = [EVENT_TYPE_CREATED, EVENT_TYPE_MOVED]
+SCAN_FILE_EVENTS = [EVENT_TYPE_CREATED, EVENT_TYPE_MOVED, EVENT_TYPE_MODIFIED, EVENT_TYPE_CLOSED]
 
 
 def ser_file_path(emi_file_path: AsyncPath) -> AsyncPath:
@@ -89,7 +85,10 @@ async def create_scan_from_file(microscope_id: int, host: str, session: aiohttp.
             async with session.post(
                 f"{settings.API_URL}/scans", headers=headers, data=data
             ) as r:
-                r.raise_for_status()
+                if r.status == 409:
+                    logger.warning(f'"{scan_file_path}" has already been uploaded.')
+                else:
+                    r.raise_for_status()
         finally:
             if ser_file is not None:
                 ser_file.close()
@@ -124,6 +123,31 @@ async def get_scans(
 
 
 class ScanFilesModeHandler(ModeHandler):
+    def __init__(self, microscope_id: int,  host: str, session: aiohttp.ClientSession):
+        super().__init__(microscope_id, host, session)
+        self._cache = TTLCache(maxsize=100000, ttl=5*60)
+
+    async def _handle_emd(self, event: FileSystemEvent):
+        if event.event_type in [EVENT_TYPE_CREATED, EVENT_TYPE_MOVED, EVENT_TYPE_MODIFIED]:
+            try:
+
+                # Retry logic for PermissionError
+                for attempt in tenacity.Retrying(wait=tenacity.wait_fixed(1),
+                                                 stop=tenacity.stop_after_attempt(10),
+                                                 retry=tenacity.retry_if_exception_type(PermissionError)):
+                    with attempt:
+                        if not h5py.is_hdf5(event.src_path):
+                            return
+
+                with emd.fileEMD(event.src_path, readonly=True) as emd_file:
+                    if len(emd_file.list_emds) > 0:
+                        path = AsyncPath(event.src_path)
+                        await create_scan_from_file(self.microscope_id, self.host, self.session, path)
+                        key = event.src_path
+                        self._cache[key] = True
+            except Exception:
+                logger.exception("Error reading EMD")
+
     async def on_event(self, event: FileSystemEvent):
         path = AsyncPath(event.src_path)
 
@@ -136,13 +160,23 @@ class ScanFilesModeHandler(ModeHandler):
         if event.event_type not in SCAN_FILE_EVENTS or not pattern_match:
             return
 
+        key = event.src_path
+        # Handle EMD, we need to make sure it a complete file
+        if path.suffix.lower() == ".emd" and key not in self._cache:
+            await self._handle_emd(event)
+            return
+
         # Could be a move event ( the microscopy software creates
         # a temp file and then moves it )
         if event.event_type == EVENT_TYPE_MOVED:
-            path = AsyncPath(event.dest_path)
+            path = AsyncPath(cast(FileMovedEvent, event).dest_path)
 
-        # Check we are dealing with a DM4
+        if key in self._cache:
+            return
+
         await create_scan_from_file(self.microscope_id, self.host, self.session, path)
+
+        self._cache[key] = True
 
     def  generate_sha256(self, path: str, created: datetime):
         sha = hashlib.sha256()

@@ -85,7 +85,19 @@ async def post_file_event(
 
 
 class Scan4DFilesModeHandler(ModeHandler):
+    def __init__(self, microscope_id: int,  host: str, session: aiohttp.ClientSession):
+        super().__init__(microscope_id, host, session)
+        self._cache = TTLCache(maxsize=100000, ttl=30)
+
     async def on_event(self, event: FileSystemEvent):
+        # Don't send all events, the debounces the events.
+        key = f"{self.host}:{event.src_path}"
+        if event.event_type in [EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED]:
+            if key in self._cache:
+                return
+            else:
+                self._cache[key] = True
+
         path = AsyncPath(event.src_path)
 
         # We are only looking for log files

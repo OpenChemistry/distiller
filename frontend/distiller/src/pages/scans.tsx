@@ -490,10 +490,10 @@ const ScansPage: React.FC = () => {
                     </Tooltip>
                   </TableCell>
                   <TableProgressCell align="right">
-                    {scan.scan_id && scan.log_files < MAX_LOG_FILES ? (
+                    {scan.scan_id && scan.progress < 1000 ? (
                       <LinearProgress
                         variant="determinate"
-                        value={(100 * scan.log_files) / MAX_LOG_FILES}
+                        value={scan.progress}
                       />
                     ) : (
                       <CompleteIcon color="primary" />

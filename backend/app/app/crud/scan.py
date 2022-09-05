@@ -36,10 +36,10 @@ def _get_scans_query(
 
     if state is not None:
         if state == schemas.ScanState.TRANSFER:
-            query = query.filter(models.Scan.log_files < constants.NUMBER_OF_LOG_FILES)
+            query = query.filter(models.Scan.progress < 100)
         elif state == schemas.ScanState.COMPLETE:
 
-            query = query.filter(models.Scan.log_files == constants.NUMBER_OF_LOG_FILES)
+            query = query.filter(models.Scan.progress == 100)
 
     if created is not None:
         query = query.filter(models.Scan.created == created)
@@ -155,7 +155,7 @@ def create_scan(
 def update_scan(
     db: Session,
     id: int,
-    log_files: Optional[int] = None,
+    progress: Optional[int] = None,
     locations: Optional[List[schemas.LocationCreate]] = None,
     image_path: Optional[str] = None,
     notes: Optional[str] = None,
@@ -163,17 +163,17 @@ def update_scan(
 ):
     updated = False
 
-    if log_files is not None:
+    if progress is not None:
         statement = (
             update(models.Scan)
             .where(models.Scan.id == id)
-            .where(models.Scan.log_files < log_files)
-            .values(log_files=log_files)
+            .where(models.Scan.progress < progress)
+            .values(progress=progress)
         )
 
         resultsproxy = db.execute(statement)
-        log_files_updated = resultsproxy.rowcount == 1
-        updated = updated or log_files_updated
+        progress_updated = resultsproxy.rowcount == 1
+        updated = updated or progress_updated
 
     if locations is not None:
         locations_updated = False

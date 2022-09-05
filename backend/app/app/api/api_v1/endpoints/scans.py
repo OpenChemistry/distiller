@@ -267,7 +267,7 @@ async def update_scan(
     (updated, scan) = crud.update_scan(
         db,
         id,
-        log_files=payload.log_files,
+        progress=payload.progress,
         locations=payload.locations,
         notes=payload.notes,
         metadata=payload.metadata,
@@ -275,8 +275,8 @@ async def update_scan(
 
     if updated:
         scan_updated_event = schemas.ScanUpdateEvent(id=id)
-        if scan.log_files == payload.log_files:
-            scan_updated_event.log_files = cast(int, scan.log_files)
+        if scan.progress == payload.progress:
+            scan_updated_event.progress = cast(int, scan.progress)
 
         scan_updated_event.locations = [
             schemas.scan.Location.from_orm(l) for l in scan.locations

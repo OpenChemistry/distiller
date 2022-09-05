@@ -14,7 +14,7 @@ export interface ScanCreatedEvent extends ScanEvent<ScanEventType.Created> {
   scan_id: IdType;
   created: string;
   locations: ScanLocation[];
-  log_files: number;
+  progress: number;
   microscope_id: IdType;
 }
 

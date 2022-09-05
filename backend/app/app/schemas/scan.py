@@ -46,7 +46,7 @@ def metadata_infinity(metadata):
 class Scan(BaseModel):
     id: int
     scan_id: Optional[int]
-    log_files: int
+    progress: int
     created: datetime
     locations: List[Location]
     image_path: Optional[str]
@@ -88,7 +88,7 @@ class ScanFromFile(BaseModel):
 
 
 class ScanUpdate(BaseModel):
-    log_files: Optional[int] = None
+    progress: Optional[int] = None
     locations: Optional[List[LocationCreate]] = None
     notes: Optional[str]
     image_path: Optional[str]
@@ -110,7 +110,7 @@ class ScanEventType(str, Enum):
 
 class ScanEvent(BaseModel):
     id: int
-    log_files: Optional[int]
+    progress: Optional[int]
     locations: Optional[List[Location]]
     event_type: ScanEventType
 

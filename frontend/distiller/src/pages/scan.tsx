@@ -311,10 +311,10 @@ const ScanPage: React.FC<Props> = () => {
                     <TableRow>
                       <TableHeaderCell>Progress</TableHeaderCell>
                       <TableCell align="right">
-                        {scan.log_files < MAX_LOG_FILES ? (
+                        {scan.progress < 100 ? (
                           <LinearProgress
                             variant="determinate"
-                            value={(100 * scan.log_files) / MAX_LOG_FILES}
+                            value={scan.progress}
                           />
                         ) : (
                           <CompleteIcon color="primary" />

@@ -93,7 +93,7 @@ export type Metadata = { [name: string]: any };
 export type Scan = {
   id: IdType;
   scan_id: IdType | null;
-  log_files: number;
+  progress: number;
   created: string;
   locations: ScanLocation[];
   notes?: string;

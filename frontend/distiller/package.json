@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@emotion/react": "^11.10.0",
+    "@emotion/react": "^11.10.4",
     "@date-io/luxon": "^2.15.0",
     "@emotion/styled": "^11.10.0",
     "@mui/icons-material": "^5.10.2",

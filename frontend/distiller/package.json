@@ -8,7 +8,7 @@
     "@emotion/styled": "^11.10.4",
     "@mui/icons-material": "^5.10.3",
     "@mui/material": "^5.10.2",
-    "@mui/x-date-pickers": "^5.0.0",
+    "@mui/x-date-pickers": "^5.0.1",
     "@reduxjs/toolkit": "^1.8.5",
     "@sentry/react": "^7.11.1",
     "@sentry/tracing": "^7.11.1",

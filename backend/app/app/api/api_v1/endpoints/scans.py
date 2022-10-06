@@ -5,6 +5,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, cast
+from urllib.parse import unquote
 
 import aiofiles
 from fastapi import (APIRouter, Depends, File, HTTPException, Response,
@@ -96,7 +97,7 @@ async def create_scan_from_file(
     # Send event so the metadata get extracted etc.
     await send_scan_file_event_to_kafka(
         schemas.ScanFileUploaded(
-            path=str(upload_path), id=scan.id, filename=file_upload.filename
+            path=str(upload_path), id=scan.id, filename=unquote(file_upload.filename)
         )
     )
 
@@ -109,7 +110,7 @@ async def create_scan_from_file(
         # Send event so the metadata get extracted etc.
         await send_scan_file_event_to_kafka(
             schemas.ScanFileUploaded(
-                path=str(upload_path), id=scan.id, filename=ser_file_upload.filename
+                path=str(upload_path), id=scan.id, filename=unquote(ser_file_upload.filename)
             )
         )
 

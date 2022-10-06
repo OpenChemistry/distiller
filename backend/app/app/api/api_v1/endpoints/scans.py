@@ -93,7 +93,7 @@ async def create_scan_from_file(
 
     # Send event so the metadata get extracted etc.
     await send_scan_file_event_to_kafka(
-        schemas.ScanFileUploaded(path=str(upload_path), id=scan.id)
+        schemas.ScanFileUploaded(path=str(upload_path), id=scan.id, filename=file_upload.filename)
     )
 
     if ser_file_upload is not None:
@@ -104,7 +104,7 @@ async def create_scan_from_file(
 
         # Send event so the metadata get extracted etc.
         await send_scan_file_event_to_kafka(
-            schemas.ScanFileUploaded(path=str(upload_path), id=scan.id)
+            schemas.ScanFileUploaded(path=str(upload_path), id=scan.id, filename=ser_file_upload.filename)
         )
 
     return scan

@@ -46,3 +46,5 @@ class HaadfUploaded(BaseModel):
 class ScanFileUploaded(BaseModel):
     id: int
     path: str
+    # This is the original filename
+    filename: str

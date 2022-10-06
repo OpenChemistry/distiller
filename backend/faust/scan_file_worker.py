@@ -19,9 +19,10 @@ from numpy import ndarray
 import faust
 from config import settings
 from constants import (DATE_DIR_FORMAT, TOPIC_HAADF_FILE_EVENTS,
-                       TOPIC_SCAN_FILE_EVENTS, TOPIC_SCAN_METADATA_EVENTS)
+                       TOPIC_SCAN_FILE_EVENTS, TOPIC_SCAN_METADATA_EVENTS, NERSC_LOCATION)
 from faust_records import ScanMetadata
 from utils import ScanUpdate, get_scan, update_scan
+from schemas import Location
 
 DATA_FILE_FORMATS = [".dm3", ".dm4", ".ser", ".emd"]
 
@@ -43,6 +44,8 @@ class HaadfEvent(faust.Record):
 class ScanFileUploadedEvent(faust.Record):
     id: int
     path: str
+    # The original filename provided by the user
+    filename: str
 
 
 haadf_events_topic = app.topic(TOPIC_HAADF_FILE_EVENTS, value_type=HaadfEvent)
@@ -85,18 +88,38 @@ async def generate_image(tmp_dir: str, path: str, image_filename: str) -> AsyncP
 
     return await generate_image_from_data(tmp_dir, path, image_filename)
 
-
-async def copy_to_ncemhub(src_path: AsyncPath, dest_path: AsyncPath):
-
+async def ensure_date_directory(src_path: AsyncPath, dest_path: AsyncPath):
     stat_info = await src_path.stat()
     created_datetime = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
 
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
-    dest_path =  dest_path / date_dir / src_path.name
+    dest_path =  dest_path / date_dir
 
-    await dest_path.parent.mkdir(parents=True, exist_ok=True)
+    await dest_path.mkdir(parents=True, exist_ok=True)
+
+    return dest_path
+
+
+async def copy_to_ncemhub(src_path: AsyncPath, dest_path: AsyncPath):
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, shutil.copy, src_path, dest_path)
+
+async def copy_file_to_ncemhub(src_path: AsyncPath, dest_path: AsyncPath):
+    dest_path = await ensure_date_directory(src_path, dest_path)
+
+    await copy_to_ncemhub(src_path, dest_path / src_path.name)
+
+async def copy_scan_file_to_ncemhub(src_path: AsyncPath, id: str, filename: str):
+    # Copy the file to ncemhub into a <id>/<filename>
+    src_path = AsyncPath(src_path)
+    dest_path = await ensure_date_directory(src_path, AsyncPath(settings.NCEMHUB_DATA_PATH)) / str(id) / filename
+    await dest_path.parent.mkdir(parents=True, exist_ok=True)
+
+    await copy_to_ncemhub(
+        src_path, dest_path
+    )
+
+    return dest_path
 
 
 @tenacity.retry(
@@ -357,13 +380,12 @@ async def send_scan_metadata(session: aiohttp.ClientSession, scan_id: int, path:
 
 @app.agent(haadf_events_topic)
 async def watch_for_haadf_events(haadf_events):
-
     async with aiohttp.ClientSession() as session:
         async for event in haadf_events:
             path = event.path
             scan_id = event.scan_id
             with tempfile.TemporaryDirectory() as tmp:
-                await copy_to_ncemhub(
+                await copy_file_to_ncemhub(
                     AsyncPath(path), AsyncPath(settings.HAADF_NCEMHUB_DM4_DATA_PATH)
                 )
                 image_path = await generate_image(tmp, path, f"{scan_id}.png")
@@ -412,9 +434,7 @@ async def watch_for_scan_file_events(scan_file_events):
             with tempfile.TemporaryDirectory() as tmp:
                 try:
                     try:
-                        await copy_to_ncemhub(
-                            AsyncPath(path), AsyncPath(settings.NCEMHUB_DATA_PATH)
-                        )
+                        ncemhub_path = await copy_scan_file_to_ncemhub(path, id, event.filename)
                     except Exception:
                             logger.exception("Exception copying to ncemhub.")
                             raise
@@ -440,7 +460,12 @@ async def watch_for_scan_file_events(scan_file_events):
                         if metadata is None:
                             metadata = {}
                         metadata.update(extract_metadata(path))
-                        await update_scan(session, ScanUpdate(id=id, metadata=metadata))
+
+                        # Patch the locations to include the location at NERSC
+                        locations = scan.locations
+                        locations.append(Location(host=NERSC_LOCATION, path=str(ncemhub_path)))
+
+                        await update_scan(session, ScanUpdate(id=id, metadata=metadata, locations=locations))
                     except Exception:
                         logger.exception("Exception extracting metadata.")
                         raise

@@ -83,4 +83,5 @@ class JobType(str, Enum):
     def __str__(self) -> str:
         return self.value
 
+
 NERSC_LOCATION = "NERSC"

@@ -16,6 +16,7 @@ from starlette.requests import Request
 
 from app import schemas
 from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
+from app.api.utils import upload_to_file
 from app.core.config import settings
 from app.core.logging import logger
 from app.crud import scan as crud
@@ -25,7 +26,6 @@ from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
 from app.models import Scan
 from app.schemas.events import RemoveScanFilesEvent
 from app.schemas.scan import Scan4DCreate, ScanCreatedEvent
-from app.api.utils import upload_to_file
 
 router = APIRouter()
 
@@ -47,7 +47,9 @@ async def create_4d_scan(db: Session, scan: Scan4DCreate):
 
         # Finally update the haadf path
         (_, scan) = crud.update_scan(
-            db, cast(int, scan.id), image_path=f"{settings.IMAGE_URL_PREFIX}/{scan.id}.png"
+            db,
+            cast(int, scan.id),
+            image_path=f"{settings.IMAGE_URL_PREFIX}/{scan.id}.png",
         )
 
     return scan
@@ -93,7 +95,9 @@ async def create_scan_from_file(
 
     # Send event so the metadata get extracted etc.
     await send_scan_file_event_to_kafka(
-        schemas.ScanFileUploaded(path=str(upload_path), id=scan.id, filename=file_upload.filename)
+        schemas.ScanFileUploaded(
+            path=str(upload_path), id=scan.id, filename=file_upload.filename
+        )
     )
 
     if ser_file_upload is not None:
@@ -104,7 +108,9 @@ async def create_scan_from_file(
 
         # Send event so the metadata get extracted etc.
         await send_scan_file_event_to_kafka(
-            schemas.ScanFileUploaded(path=str(upload_path), id=scan.id, filename=ser_file_upload.filename)
+            schemas.ScanFileUploaded(
+                path=str(upload_path), id=scan.id, filename=ser_file_upload.filename
+            )
         )
 
     return scan
@@ -388,12 +394,13 @@ async def remove_scan(id: int, host: str, db: Session = Depends(get_db)):
         scan_updated_event.locations = db_scan.locations
         await send_scan_event_to_kafka(scan_updated_event)
 
+
 @router.put("/{id}/image")
 async def upload_image(
     id: int,
     file: UploadFile = File(...),
     api_key: APIKey = Depends(get_api_key),
-     db: Session = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> None:
     upload_path = Path(settings.IMAGE_STATIC_DIR) / f"{id}.png"
     async with aiofiles.open(upload_path, "wb") as fp:

@@ -21,7 +21,7 @@ from config import settings
 from constants import (DATE_DIR_FORMAT, TOPIC_HAADF_FILE_EVENTS,
                        TOPIC_SCAN_FILE_EVENTS, TOPIC_SCAN_METADATA_EVENTS)
 from faust_records import ScanMetadata
-from utils import ScanUpdate, get_scan, update_scan
+from utils import ScanUpdate, get_scan, update_scan, get_microscope_by_id
 
 DATA_FILE_FORMATS = [".dm3", ".dm4", ".ser", ".emd"]
 
@@ -412,8 +412,12 @@ async def watch_for_scan_file_events(scan_file_events):
             with tempfile.TemporaryDirectory() as tmp:
                 try:
                     try:
+                        # First get the microscope name to use for the directory
+                        scan = await get_scan(session, id)
+                        microscope = await get_microscope_by_id(session, scan.microscope_id)
+                        name = microscope.name.lower().replace(" ", "")
                         await copy_to_ncemhub(
-                            AsyncPath(path), AsyncPath(settings.NCEMHUB_DATA_PATH)
+                            AsyncPath(path), AsyncPath(settings.NCEMHUB_DATA_PATH) / name
                         )
                     except Exception:
                             logger.exception("Exception copying to ncemhub.")

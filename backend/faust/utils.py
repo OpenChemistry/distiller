@@ -288,3 +288,30 @@ async def get_microscope(session: aiohttp.ClientSession, name: str) -> Microscop
             raise Exception("Unable to fetch microscopy")
 
         return Microscope(**json[0])
+
+
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    )
+    | tenacity.retry_if_exception_type(aiohttp.client_exceptions.ClientConnectionError),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
+async def get_microscope_by_id(session: aiohttp.ClientSession, id: int) -> Microscope:
+    headers = {
+        settings.API_KEY_NAME: settings.API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    async with session.get(
+        f"{settings.API_URL}/microscopes/{id}", headers=headers
+    ) as r:
+        r.raise_for_status()
+
+        json = await r.json()
+
+        if json is None:
+            raise Exception("Unable to fetch microscopy")
+
+        return Microscope(**json)

@@ -22,3 +22,14 @@ def read_microscopes(
     microscopes = crud.get_microscopes(db, name=name)
 
     return microscopes
+
+
+@router.get(
+    "/{id}",
+    response_model=schemas.Microscope,
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
+)
+def read_microscope(id: int, db: Session = Depends(get_db)):
+    microscope = crud.get_microscope(db, id=id)
+
+    return microscope

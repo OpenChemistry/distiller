@@ -23,7 +23,7 @@ from constants import (DATE_DIR_FORMAT, NERSC_LOCATION,
                        TOPIC_SCAN_METADATA_EVENTS)
 from faust_records import ScanMetadata
 from schemas import Location
-from utils import ScanUpdate, get_scan, update_scan
+from utils import ScanUpdate, get_scan, update_scan, get_microscope_by_id
 
 DATA_FILE_FORMATS = [".dm3", ".dm4", ".ser", ".emd"]
 
@@ -104,6 +104,7 @@ async def ensure_date_directory(src_path: AsyncPath, dest_path: AsyncPath):
 
 async def copy_to_ncemhub(src_path: AsyncPath, dest_path: AsyncPath):
     loop = asyncio.get_event_loop()
+    await dest_path.parent.mkdir(parents=True, exist_ok=True)
     await loop.run_in_executor(None, shutil.copy, src_path, dest_path)
 
 
@@ -113,20 +114,24 @@ async def copy_file_to_ncemhub(src_path: AsyncPath, dest_path: AsyncPath):
     await copy_to_ncemhub(src_path, dest_path / src_path.name)
 
 
-async def copy_scan_file_to_ncemhub(src_path: AsyncPath, id: str, filename: str):
-    # Copy the file to ncemhub into a <id>/<filename>
-    src_path = AsyncPath(src_path)
-    dest_path = (
-        await ensure_date_directory(src_path, AsyncPath(settings.NCEMHUB_DATA_PATH))
+async def generate_ncemhub_scan_file_path(session: aiohttp.ClientSession, src_path: AsyncPath, id: int, filename: str):
+    # ncemhub path are of the form <date dir>/microscope/<id>/<filename>
+    # First get the microscope name to use for the directory
+    scan = await get_scan(session, id)
+    microscope = await get_microscope_by_id(session, scan.microscope_id)
+    name = microscope.name.lower().replace(" ", "")
+
+    stat_info = await src_path.stat()
+    created_datetime = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
+
+    date_dir = AsyncPath(created_datetime.astimezone().strftime(DATE_DIR_FORMAT))
+
+    return (
+        date_dir
+        / name
         / str(id)
         / filename
     )
-    await dest_path.parent.mkdir(parents=True, exist_ok=True)
-
-    await copy_to_ncemhub(src_path, dest_path)
-
-    return dest_path
-
 
 @tenacity.retry(
     retry=tenacity.retry_if_exception_type(
@@ -440,9 +445,9 @@ async def watch_for_scan_file_events(scan_file_events):
             with tempfile.TemporaryDirectory() as tmp:
                 try:
                     try:
-                        ncemhub_path = await copy_scan_file_to_ncemhub(
-                            path, id, event.filename
-                        )
+                        ncemhub_path = await generate_ncemhub_scan_file_path(
+                            session, path, id, event.filename)
+                        await copy_file_to_ncemhub(path, ncemhub_path)
                     except Exception:
                         logger.exception("Exception copying to ncemhub.")
                         raise

@@ -128,7 +128,7 @@ async def generate_ncemhub_scan_file_path(
 
     date_dir = AsyncPath(created_datetime.astimezone().strftime(DATE_DIR_FORMAT))
 
-    return date_dir / name / str(id) / filename
+    return AsyncPath(settings.NCEMHUB_DATA_PATH) / name / date_dir / str(id) / filename
 
 
 @tenacity.retry(
@@ -444,9 +444,9 @@ async def watch_for_scan_file_events(scan_file_events):
                 try:
                     try:
                         ncemhub_path = await generate_ncemhub_scan_file_path(
-                            session, path, id, event.filename
+                            session, AsyncPath(path), id, event.filename
                         )
-                        await copy_file_to_ncemhub(path, ncemhub_path)
+                        await copy_file_to_ncemhub(AsyncPath(path), ncemhub_path)
                     except Exception:
                         logger.exception("Exception copying to ncemhub.")
                         raise

@@ -65,7 +65,7 @@ const LocationChip: React.FC<ChipProps> = React.forwardRef<
       {...props}
       ref={ref}
       label={host}
-      onDelete={deletable && !machines.includes(host) ? onDelete : onDelete}
+      onDelete={deletable && !machines.includes(host) ? onDelete : undefined}
     />
   );
 });

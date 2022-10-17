@@ -446,7 +446,7 @@ async def watch_for_scan_file_events(scan_file_events):
                         ncemhub_path = await generate_ncemhub_scan_file_path(
                             session, AsyncPath(path), id, event.filename
                         )
-                        await copy_file_to_ncemhub(AsyncPath(path), ncemhub_path)
+                        await copy_to_ncemhub(AsyncPath(path), ncemhub_path)
                     except Exception:
                         logger.exception("Exception copying to ncemhub.")
                         raise

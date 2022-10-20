@@ -1,4 +1,5 @@
 from typing import Union
+
 from aiokafka import AIOKafkaProducer
 
 from app.core.config import settings
@@ -8,10 +9,9 @@ from app.core.constants import (TOPIC_CUSTODIAN_EVENT, TOPIC_HAADF_FILE_EVENTS,
                                 TOPIC_SCAN_FILE_EVENTS,
                                 TOPIC_SCAN_FILE_SYNC_EVENTS)
 from app.core.logging import logger
-from app.schemas import (FileSystemEvent, HaadfUploaded, ScanFileUploaded,
-                         ScanUpdateEvent, ScanCreatedEvent, SyncEvent)
+from app.schemas import (FileSystemEvent, HaadfUploaded, ScanCreatedEvent,
+                         ScanFileUploaded, ScanUpdateEvent, SyncEvent)
 from app.schemas.events import RemoveScanFilesEvent, SubmitJobEvent
-
 
 
 def serializer(event: FileSystemEvent) -> bytes:
@@ -85,7 +85,9 @@ async def send_scan_file_event_to_kafka(event: ScanFileUploaded) -> None:
         logger.exception(f"Exception send on topic: {TOPIC_HAADF_FILE_EVENTS}")
 
 
-async def send_scan_event_to_kafka(event: Union[ScanUpdateEvent,ScanCreatedEvent]) -> None:
+async def send_scan_event_to_kafka(
+    event: Union[ScanUpdateEvent, ScanCreatedEvent]
+) -> None:
     if producer is None:
         raise Exception("Producer has not been initialized")
 

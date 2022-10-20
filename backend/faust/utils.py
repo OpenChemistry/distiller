@@ -1,8 +1,8 @@
+import logging
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import List, Union, Optional, Dict, Any
-import logging
+from typing import Any, Dict, List, Optional
 
 import aiohttp
 import tenacity

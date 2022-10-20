@@ -18,10 +18,12 @@ from numpy import ndarray
 
 import faust
 from config import settings
-from constants import (DATE_DIR_FORMAT, TOPIC_HAADF_FILE_EVENTS,
-                       TOPIC_SCAN_FILE_EVENTS, TOPIC_SCAN_METADATA_EVENTS)
+from constants import (DATE_DIR_FORMAT, NERSC_LOCATION,
+                       TOPIC_HAADF_FILE_EVENTS, TOPIC_SCAN_FILE_EVENTS,
+                       TOPIC_SCAN_METADATA_EVENTS)
 from faust_records import ScanMetadata
-from utils import ScanUpdate, get_scan, update_scan, get_microscope_by_id
+from schemas import Location
+from utils import ScanUpdate, get_microscope_by_id, get_scan, update_scan
 
 DATA_FILE_FORMATS = [".dm3", ".dm4", ".ser", ".emd"]
 
@@ -43,6 +45,8 @@ class HaadfEvent(faust.Record):
 class ScanFileUploadedEvent(faust.Record):
     id: int
     path: str
+    # The original filename provided by the user
+    filename: str
 
 
 haadf_events_topic = app.topic(TOPIC_HAADF_FILE_EVENTS, value_type=HaadfEvent)
@@ -52,7 +56,7 @@ async def generate_image_from_data(
     tmp_dir: str, data_path: str, image_filename: str
 ) -> AsyncPath:
     # Hack to get around problem with memory mapping in spin!
-    if (Path(data_path).suffix in [".dm3", ".dm4"]):
+    if Path(data_path).suffix in [".dm3", ".dm4"]:
         file = dm.dmReader(data_path, on_memory=False)
     else:
         file = nio.read(data_path)
@@ -86,17 +90,45 @@ async def generate_image(tmp_dir: str, path: str, image_filename: str) -> AsyncP
     return await generate_image_from_data(tmp_dir, path, image_filename)
 
 
-async def copy_to_ncemhub(src_path: AsyncPath, dest_path: AsyncPath):
-
+async def ensure_date_directory(src_path: AsyncPath, dest_path: AsyncPath):
     stat_info = await src_path.stat()
     created_datetime = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
 
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
-    dest_path =  dest_path / date_dir / src_path.name
+    dest_path = dest_path / date_dir
 
-    await dest_path.parent.mkdir(parents=True, exist_ok=True)
+    await dest_path.mkdir(parents=True, exist_ok=True)
+
+    return dest_path
+
+
+async def copy_to_ncemhub(src_path: AsyncPath, dest_path: AsyncPath):
     loop = asyncio.get_event_loop()
+    await dest_path.parent.mkdir(parents=True, exist_ok=True)
     await loop.run_in_executor(None, shutil.copy, src_path, dest_path)
+
+
+async def copy_file_to_ncemhub(src_path: AsyncPath, dest_path: AsyncPath):
+    dest_path = await ensure_date_directory(src_path, dest_path)
+
+    await copy_to_ncemhub(src_path, dest_path / src_path.name)
+
+
+async def generate_ncemhub_scan_file_path(
+    session: aiohttp.ClientSession, src_path: AsyncPath, id: int, filename: str
+):
+    # ncemhub path are of the form <date dir>/microscope/<id>/<filename>
+    # First get the microscope name to use for the directory
+    scan = await get_scan(session, id)
+    microscope = await get_microscope_by_id(session, scan.microscope_id)
+    name = microscope.name.lower().replace(" ", "")
+
+    stat_info = await src_path.stat()
+    created_datetime = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
+
+    date_dir = AsyncPath(created_datetime.astimezone().strftime(DATE_DIR_FORMAT))
+
+    return AsyncPath(settings.NCEMHUB_DATA_PATH) / name / date_dir / str(id) / filename
 
 
 @tenacity.retry(
@@ -231,42 +263,42 @@ def extract_emi_metadata(emi_path: str):
 
     return metadata
 
+
 def extract_ncem_emd_metadata(emd_file):
 
     metadata = {}
 
     try:
-        metadata['user'] = {}
-        metadata['user'].update(emd_file.file_hdl['/user'].attrs)
+        metadata["user"] = {}
+        metadata["user"].update(emd_file.file_hdl["/user"].attrs)
     except:
         pass
     try:
-        metadata['microscope'] = {}
-        metadata['microscope'].update(emd_file.file_hdl['/microscope'].attrs)
+        metadata["microscope"] = {}
+        metadata["microscope"].update(emd_file.file_hdl["/microscope"].attrs)
     except:
         pass
     try:
-        metadata['sample'] = {}
-        metadata['sample'].update(emd_file.file_hdl['/sample'].attrs)
+        metadata["sample"] = {}
+        metadata["sample"].update(emd_file.file_hdl["/sample"].attrs)
     except:
         pass
     try:
-        metadata['comments'] = {}
-        metadata['comments'].update(emd_file.file_hdl['/comments'].attrs)
+        metadata["comments"] = {}
+        metadata["comments"].update(emd_file.file_hdl["/comments"].attrs)
     except:
         pass
     try:
-        metadata['stage'] = {}
+        metadata["stage"] = {}
         # Check for legacy keys in stage group. Skip the rest
-        good_keys = ('position', 'type', 'Type')
+        good_keys = ("position", "type", "Type")
         for k in good_keys:
-            if k in emd_file.file_hdl['/stage'].attrs:
-                metadata['stage'][k] = emd_file.file_hdl['/stage'].attrs[k]
+            if k in emd_file.file_hdl["/stage"].attrs:
+                metadata["stage"][k] = emd_file.file_hdl["/stage"].attrs[k]
     except:
         pass
 
     return metadata
-
 
 
 def extract_emd_metadata(emd_path: str):
@@ -318,9 +350,9 @@ def extract_emd_metadata(emd_path: str):
                 metadata["Dimensions.1"] = dimX[0].shape[0]
                 metadata["Dimensions.2"] = dimY[0].shape[0]
                 if dimZ is not None:
-                    metadata['PhysicalSizeZ'] = dimZ[0][1] - dimZ[0][0]
-                    metadata['PhysicalSizeZOrigin'] = dimZ[0][0]
-                    metadata['PhysicalSizeZUnit'] = dimZ[2]
+                    metadata["PhysicalSizeZ"] = dimZ[0][1] - dimZ[0][0]
+                    metadata["PhysicalSizeZOrigin"] = dimZ[0][0]
+                    metadata["PhysicalSizeZUnit"] = dimZ[2]
 
             except:
                 logger.warning(f"Unable to extract PhysicalSize from: {emd_path}")
@@ -357,13 +389,12 @@ async def send_scan_metadata(session: aiohttp.ClientSession, scan_id: int, path:
 
 @app.agent(haadf_events_topic)
 async def watch_for_haadf_events(haadf_events):
-
     async with aiohttp.ClientSession() as session:
         async for event in haadf_events:
             path = event.path
             scan_id = event.scan_id
             with tempfile.TemporaryDirectory() as tmp:
-                await copy_to_ncemhub(
+                await copy_file_to_ncemhub(
                     AsyncPath(path), AsyncPath(settings.HAADF_NCEMHUB_DM4_DATA_PATH)
                 )
                 image_path = await generate_image(tmp, path, f"{scan_id}.png")
@@ -412,16 +443,13 @@ async def watch_for_scan_file_events(scan_file_events):
             with tempfile.TemporaryDirectory() as tmp:
                 try:
                     try:
-                        # First get the microscope name to use for the directory
-                        scan = await get_scan(session, id)
-                        microscope = await get_microscope_by_id(session, scan.microscope_id)
-                        name = microscope.name.lower().replace(" ", "")
-                        await copy_to_ncemhub(
-                            AsyncPath(path), AsyncPath(settings.NCEMHUB_DATA_PATH) / name
+                        ncemhub_path = await generate_ncemhub_scan_file_path(
+                            session, AsyncPath(path), id, event.filename
                         )
+                        await copy_to_ncemhub(AsyncPath(path), ncemhub_path)
                     except Exception:
-                            logger.exception("Exception copying to ncemhub.")
-                            raise
+                        logger.exception("Exception copying to ncemhub.")
+                        raise
 
                     if Path(path).suffix in DATA_FILE_FORMATS:
                         try:
@@ -444,7 +472,17 @@ async def watch_for_scan_file_events(scan_file_events):
                         if metadata is None:
                             metadata = {}
                         metadata.update(extract_metadata(path))
-                        await update_scan(session, ScanUpdate(id=id, metadata=metadata))
+
+                        # Patch the locations to include the location at NERSC
+                        locations = scan.locations
+                        locations.append(
+                            Location(host=NERSC_LOCATION, path=str(ncemhub_path))
+                        )
+
+                        await update_scan(
+                            session,
+                            ScanUpdate(id=id, metadata=metadata, locations=locations),
+                        )
                     except Exception:
                         logger.exception("Exception extracting metadata.")
                         raise

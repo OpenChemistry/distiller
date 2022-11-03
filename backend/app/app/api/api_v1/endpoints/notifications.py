@@ -67,7 +67,9 @@ class WebsocketConsumer(WebSocketEndpoint):
 
     async def relay_events(self) -> None:
         if self.consumer is None:
-            raise Exception("on_connect has not been called, consumer is not initialized")
+            raise Exception(
+                "on_connect has not been called, consumer is not initialized"
+            )
 
         try:
             async for msg in self.consumer:

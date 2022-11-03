@@ -1,5 +1,4 @@
-from sqlalchemy import (Column, DateTime, ForeignKey, Integer, String,
-                        UniqueConstraint)
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
@@ -22,5 +21,3 @@ class Scan(Base):
 
     locations = relationship("Location", cascade="delete")
     jobs = relationship("Job", cascade="delete")
-
-    __table_args__ = (UniqueConstraint("scan_id", "created", name="scan_id_created"),)

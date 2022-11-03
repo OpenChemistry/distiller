@@ -5,7 +5,6 @@ from sqlalchemy import desc, or_, update
 from sqlalchemy.orm import Session
 
 from app import models, schemas
-from app.core import constants
 from app.crud import microscope
 
 

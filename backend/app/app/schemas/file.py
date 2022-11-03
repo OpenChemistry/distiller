@@ -25,12 +25,14 @@ class FileSystemEvent(BaseModel):
     is_directory: bool
     created: datetime = None
     host: str
+    content: Optional[str] = None
 
 
 class File(BaseModel):
     path: str
     created: datetime = None
     host: str
+    content: Optional[str] = None
 
 
 class SyncEvent(BaseModel):

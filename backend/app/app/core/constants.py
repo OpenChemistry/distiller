@@ -1,6 +1,6 @@
-TOPIC_LOG_FILE_EVENTS = "log_file_events"
+TOPIC_STATUS_FILE_EVENTS = "status_file_events"
 TOPIC_SCAN_EVENTS = "scan_events"
-TOPIC_LOG_FILE_SYNC_EVENTS = "log_file_sync_events"
+TOPIC_STATUS_FILE_SYNC_EVENTS = "status_file_sync_events"
 TOPIC_HAADF_FILE_EVENTS = "haadf_file_events"
 TOPIC_SCAN_FILE_EVENTS = "scan_file_events"
 TOPIC_SCAN_FILE_SYNC_EVENTS = "scan_file_events"

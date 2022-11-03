@@ -31,6 +31,7 @@ class Scan(BaseModel):
     created: datetime
     image_path: Optional[str] = None
     metadata: Optional[Dict[str, Any]]
+    microscope_id: int
 
 
 class ScanCreate(BaseModel):

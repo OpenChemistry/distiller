@@ -84,3 +84,4 @@ class JobType(str, Enum):
 
 
 STATUS_PREFIX = "4dstem_rec_status"
+NERSC_LOCATION = "NERSC"

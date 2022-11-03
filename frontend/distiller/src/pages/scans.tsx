@@ -490,7 +490,7 @@ const ScansPage: React.FC = () => {
                     </Tooltip>
                   </TableCell>
                   <TableProgressCell align="right">
-                    {scan.scan_id && scan.progress < 1000 ? (
+                    {scan.scan_id && scan.progress < 100 ? (
                       <LinearProgress
                         variant="determinate"
                         value={scan.progress}

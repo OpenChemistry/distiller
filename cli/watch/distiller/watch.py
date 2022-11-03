@@ -18,7 +18,6 @@ from pathlib import Path
 from aiowatchdog import AIOEventHandler, AIOEventIterator
 from cachetools import TTLCache
 from config import settings
-from constants import LOG_FILE_GLOB
 from schemas import File, WatchMode
 from schemas import FileSystemEvent as FileSystemEventModel
 from schemas import SyncEvent, Microscope

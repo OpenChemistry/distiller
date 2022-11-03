@@ -6,7 +6,7 @@ import signal
 import sys
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
-from typing import List
+from typing import List, cast
 
 import aiohttp
 import coloredlogs
@@ -16,25 +16,30 @@ from pathlib import Path
 from aiowatchdog import AIOEventHandler, AIOEventIterator
 from cachetools import TTLCache
 from config import settings
-from constants import LOG_FILE_GLOB
+from constants import STATUS_FILE_GLOB
 from schemas import File, WatchMode
 from schemas import FileSystemEvent as FileSystemEventModel
 from schemas import SyncEvent
-from watchdog.events import (EVENT_TYPE_CLOSED, EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED,
+from watchdog.events import (EVENT_TYPE_DELETED, EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED,
                              EVENT_TYPE_MOVED, FileSystemEvent)
 from utils import logger
 from . import ModeHandler
 
-LOG_PATTERN = re.compile(r"^log_scan([0-9]*)_.*\.data")
+STATUS_PATTERN = re.compile(r"^4dstem_rec_status_.*\.json")
+
+STATUS_FILE_EVENTS = [EVENT_TYPE_CREATED, EVENT_TYPE_MOVED, EVENT_TYPE_MODIFIED, EVENT_TYPE_DELETED]
 
 async def create_sync_snapshot(host, watch_dirs: List[str]) -> List[File]:
     files = []
     for watch_dir in watch_dirs:
-        async for f in AsyncPath(watch_dir).glob(LOG_FILE_GLOB):
+        async for f in AsyncPath(watch_dir).glob(STATUS_FILE_GLOB):
             path = AsyncPath(f)
             stat_info = await path.stat()
             created = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
-            files.append(File(path=str(f), created=created, host=host))
+            async with path.open('r') as fp:
+                content = await fp.read()
+
+            files.append(File(path=str(f), created=created, host=host, content=cast(str, content)))
 
     return files
 
@@ -87,30 +92,17 @@ async def post_file_event(
 class Scan4DFilesModeHandler(ModeHandler):
     def __init__(self, microscope_id: int,  host: str, session: aiohttp.ClientSession):
         super().__init__(microscope_id, host, session)
-        self._cache = TTLCache(maxsize=100000, ttl=30)
 
     async def on_event(self, event: FileSystemEvent):
-        # Don't send all events, the debounces the events.
-        key = f"{self.host}:{event.src_path}"
-        if event.event_type in [EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED]:
-            if key in self._cache:
-                return
-            else:
-                self._cache[key] = True
-
         path = AsyncPath(event.src_path)
+        event_type = event.event_type
 
-        # We are only looking for log files
-        if not LOG_PATTERN.match(path.name):
+        # We are only looking for status files
+        if not (STATUS_PATTERN.match(path.name) and event_type in STATUS_FILE_EVENTS):
             return
 
-        event_type = event.event_type
-        # We just send a single created event to the server
-        if event_type == EVENT_TYPE_MODIFIED:
-            event_type  = EVENT_TYPE_CREATED
-
         model = FileSystemEventModel(
-            event_type=event_type,
+            event_type=event.event_type,
             src_path=event.src_path,
             is_directory=event.is_directory,
             host=self.host,
@@ -119,6 +111,12 @@ class Scan4DFilesModeHandler(ModeHandler):
         if await path.exists():
             stat_info = await path.stat()
             model.created = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
+
+            # If its not a delete event attach the contents
+            if event_type != EVENT_TYPE_DELETED:
+                async with path.open('r') as fp:
+                    content = await fp.read()
+                    model.content = cast(str, content)
 
         def _log_exception(task: asyncio.Task) -> None:
             try:

@@ -64,6 +64,7 @@ class Scan(BaseModel):
 class Scan4DCreate(BaseModel):
     scan_id: int
     created: datetime
+    uuid: str
     locations: List[LocationCreate]
     metadata: Optional[Dict[str, Any]]
     microscope_id: Optional[int]

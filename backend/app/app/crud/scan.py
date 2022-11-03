@@ -29,6 +29,7 @@ def _get_scans_query(
     end: Optional[datetime] = None,
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
+    uuid: Optional[str] = None,
 ):
     query = db.query(models.Scan)
     if scan_id > -1:
@@ -62,6 +63,9 @@ def _get_scans_query(
     if sha is not None:
         query = query.filter(models.Scan.sha == sha)
 
+    if uuid is not None:
+        query = query.filter(models.Scan.uuid == uuid)
+
     return query
 
 
@@ -77,6 +81,7 @@ def get_scans(
     end: Optional[datetime] = None,
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
+    uuid: Optional[str] = None,
 ):
     query = _get_scans_query(
         db,
@@ -90,6 +95,7 @@ def get_scans(
         end,
         microscope_id,
         sha,
+        uuid,
     )
 
     return query.order_by(desc(models.Scan.created)).offset(skip).limit(limit).all()
@@ -107,6 +113,7 @@ def get_scans_count(
     end: Optional[datetime] = None,
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
+    uuid: Optional[str] = None,
 ):
     query = _get_scans_query(
         db,
@@ -120,6 +127,7 @@ def get_scans_count(
         end,
         microscope_id,
         sha,
+        uuid,
     )
 
     return query.count()

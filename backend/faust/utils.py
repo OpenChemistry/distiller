@@ -84,6 +84,7 @@ async def get_scans(
     state: Optional[str] = None,
     created: Optional[datetime] = None,
     sha: Optional[str] = None,
+    uuid: Optional[str] = None,
 ) -> List[Scan]:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,
@@ -100,6 +101,9 @@ async def get_scans(
 
     if sha is not None:
         params["sha"] = sha
+
+    if uuid is not None:
+        params["uuid"] = uuid
 
     async with session.get(
         f"{settings.API_URL}/scans", headers=headers, params=params

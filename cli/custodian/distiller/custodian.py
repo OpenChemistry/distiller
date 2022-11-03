@@ -22,7 +22,7 @@ import coloredlogs
 from config import settings
 
 DATA_FILE_GLOB_PATTERN = "data_scan{scan_id}_module*_dst*_file*.data"
-LOG_FILE_GLOB_PATTERN = "log_scan{scan_id}_to*_module*_dst*_file*.data"
+STATUS_FILE_GLOB_PATTERN = "4dstem_rec_status_*_scan_{scan_id}.json"
 
 COMMANDS = ["rm", "ls", "bbcp"]
 
@@ -85,7 +85,7 @@ def _traverse(args, patterns, func):
 def _rm(args):
     patterns = [
         DATA_FILE_GLOB_PATTERN,
-        LOG_FILE_GLOB_PATTERN,
+        STATUS_FILE_GLOB_PATTERN,
     ]
 
     logger.info("Removing scan files.")

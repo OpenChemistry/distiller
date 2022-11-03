@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel
+from dateutil.parser import parse
+from pydantic import BaseModel, Field, validator
 
 from json_utils import numpy_dumps
 
@@ -11,10 +12,21 @@ class Location(BaseModel):
     path: str
 
 
+class ScanStatusFile(BaseModel):
+    time: datetime
+    last_scan_number: int
+    progress: float
+    uuid: str = Field(None, alias="UUID")
+
+    @validator("time", pre=True)
+    def time_validate(cls, v):
+        return parse(v)
+
+
 class Scan(BaseModel):
     id: int
     scan_id: Optional[int]
-    log_files: int
+    progress: int
     locations: List[Location]
     created: datetime
     image_path: Optional[str] = None
@@ -31,7 +43,7 @@ class ScanCreate(BaseModel):
 
 class ScanUpdate(BaseModel):
     id: int
-    log_files: Optional[int]
+    progress: Optional[int]
     locations: Optional[List[Location]]
     metadata: Optional[Dict[str, Any]]
 

@@ -1,8 +1,8 @@
+import logging
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import List, Union, Optional, Dict, Any
-import logging
+from typing import Any, Dict, List, Optional
 
 import aiohttp
 import tenacity
@@ -14,7 +14,7 @@ from schemas import (Job, JobUpdate, Machine, Microscope, Scan, ScanCreate,
 logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)
 
-pattern = re.compile(r"^log_scan([0-9]*)_.*\.data")
+pattern = re.compile(r"^4dstem_rec_status_[0123]{1}_scan_([0-9]*)\.json")
 
 
 def extract_scan_id(path: str) -> int:

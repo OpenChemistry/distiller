@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import aiohttp
 import httpx

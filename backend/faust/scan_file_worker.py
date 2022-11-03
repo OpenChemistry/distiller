@@ -52,7 +52,7 @@ async def generate_image_from_data(
     tmp_dir: str, data_path: str, image_filename: str
 ) -> AsyncPath:
     # Hack to get around problem with memory mapping in spin!
-    if (Path(data_path).suffix in [".dm3", ".dm4"]):
+    if Path(data_path).suffix in [".dm3", ".dm4"]:
         file = dm.dmReader(data_path, on_memory=False)
     else:
         file = nio.read(data_path)
@@ -92,7 +92,7 @@ async def copy_to_ncemhub(src_path: AsyncPath, dest_path: AsyncPath):
     created_datetime = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
 
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
-    dest_path =  dest_path / date_dir / src_path.name
+    dest_path = dest_path / date_dir / src_path.name
 
     await dest_path.parent.mkdir(parents=True, exist_ok=True)
     loop = asyncio.get_event_loop()
@@ -231,42 +231,42 @@ def extract_emi_metadata(emi_path: str):
 
     return metadata
 
+
 def extract_ncem_emd_metadata(emd_file):
 
     metadata = {}
 
     try:
-        metadata['user'] = {}
-        metadata['user'].update(emd_file.file_hdl['/user'].attrs)
+        metadata["user"] = {}
+        metadata["user"].update(emd_file.file_hdl["/user"].attrs)
     except:
         pass
     try:
-        metadata['microscope'] = {}
-        metadata['microscope'].update(emd_file.file_hdl['/microscope'].attrs)
+        metadata["microscope"] = {}
+        metadata["microscope"].update(emd_file.file_hdl["/microscope"].attrs)
     except:
         pass
     try:
-        metadata['sample'] = {}
-        metadata['sample'].update(emd_file.file_hdl['/sample'].attrs)
+        metadata["sample"] = {}
+        metadata["sample"].update(emd_file.file_hdl["/sample"].attrs)
     except:
         pass
     try:
-        metadata['comments'] = {}
-        metadata['comments'].update(emd_file.file_hdl['/comments'].attrs)
+        metadata["comments"] = {}
+        metadata["comments"].update(emd_file.file_hdl["/comments"].attrs)
     except:
         pass
     try:
-        metadata['stage'] = {}
+        metadata["stage"] = {}
         # Check for legacy keys in stage group. Skip the rest
-        good_keys = ('position', 'type', 'Type')
+        good_keys = ("position", "type", "Type")
         for k in good_keys:
-            if k in emd_file.file_hdl['/stage'].attrs:
-                metadata['stage'][k] = emd_file.file_hdl['/stage'].attrs[k]
+            if k in emd_file.file_hdl["/stage"].attrs:
+                metadata["stage"][k] = emd_file.file_hdl["/stage"].attrs[k]
     except:
         pass
 
     return metadata
-
 
 
 def extract_emd_metadata(emd_path: str):
@@ -318,9 +318,9 @@ def extract_emd_metadata(emd_path: str):
                 metadata["Dimensions.1"] = dimX[0].shape[0]
                 metadata["Dimensions.2"] = dimY[0].shape[0]
                 if dimZ is not None:
-                    metadata['PhysicalSizeZ'] = dimZ[0][1] - dimZ[0][0]
-                    metadata['PhysicalSizeZOrigin'] = dimZ[0][0]
-                    metadata['PhysicalSizeZUnit'] = dimZ[2]
+                    metadata["PhysicalSizeZ"] = dimZ[0][1] - dimZ[0][0]
+                    metadata["PhysicalSizeZOrigin"] = dimZ[0][0]
+                    metadata["PhysicalSizeZUnit"] = dimZ[2]
 
             except:
                 logger.warning(f"Unable to extract PhysicalSize from: {emd_path}")
@@ -416,8 +416,8 @@ async def watch_for_scan_file_events(scan_file_events):
                             AsyncPath(path), AsyncPath(settings.NCEMHUB_DATA_PATH)
                         )
                     except Exception:
-                            logger.exception("Exception copying to ncemhub.")
-                            raise
+                        logger.exception("Exception copying to ncemhub.")
+                        raise
 
                     if Path(path).suffix in DATA_FILE_FORMATS:
                         try:

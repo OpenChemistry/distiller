@@ -17,7 +17,7 @@
     "@testing-library/user-event": "^14.4.3",
     "@types/humanize-duration": "^3.27.1",
     "@types/jest": "^29.2.1",
-    "@types/lodash": "^4.14.186",
+    "@types/lodash": "^4.14.188",
     "@types/luxon": "^3.1.0",
     "@types/node": "^18.11.7",
     "@types/react": "^18.0.24",

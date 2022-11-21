@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 
 import aiohttp
 import pytz
+from pydantic.error_wrappers import ValidationError
 
 import faust
 from config import settings
@@ -283,7 +284,11 @@ async def watch_for_event(file_events):
             if event.content is None:
                 raise Exception("Status file not included!")
 
-            status_file = ScanStatusFile.parse_raw(event.content)
+            try:
+                status_file = ScanStatusFile.parse_raw(event.content)
+            except ValidationError:
+                logger.warning(f"Skipping {path}, with validation error.")
+                continue
 
             # We are seeing a scan being overridden
             if is_override(path, status_file.uuid):
@@ -315,7 +320,11 @@ async def process_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -
             content=f.content,
         )
 
-        status = ScanStatusFile.parse_raw(f.content)
+        try:
+            status = ScanStatusFile.parse_raw(f.content)
+        except ValidationError:
+            logger.warning(f"Skipping {path}, with validation error.")
+            continue
 
         # We are seeing a scan being overridden
         if is_override(file_event, status.uuid):

@@ -111,7 +111,7 @@ def reap_scan_metadata():
         expiration = timedelta(hours=1)
         now = datetime.now().astimezone()
         if now - record.created > expiration:
-            del scan_id_to_metadata[key]
+            purge_scan_metadata(key)
 
 
 async def process_delete_event(session: aiohttp.ClientSession, path: str) -> None:

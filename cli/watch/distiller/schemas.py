@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Any, Dict
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class WatchMode(str, Enum):
@@ -70,3 +70,6 @@ class Scan(BaseModel):
     locations: List[Location]
     created: datetime
     image_path: Optional[str] = None
+
+class ScanStatusFile(BaseModel):
+    progress: float

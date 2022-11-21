@@ -4,7 +4,8 @@ import platform
 import re
 import signal
 import sys
-from datetime import datetime
+import cachetools
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from typing import List, cast
 
@@ -20,14 +21,15 @@ from constants import STATUS_FILE_GLOB
 from schemas import File, WatchMode
 from schemas import FileSystemEvent as FileSystemEventModel
 from schemas import SyncEvent
+from schemas import ScanStatusFile
 from watchdog.events import (EVENT_TYPE_DELETED, EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED,
-                             EVENT_TYPE_MOVED, FileSystemEvent)
+                             EVENT_TYPE_MOVED, FileSystemEvent, FileCreatedEvent)
 from utils import logger
 from . import ModeHandler
 
-STATUS_PATTERN = re.compile(r"^4dstem_rec_status_.*\.json")
+STATUS_PATTERN = re.compile(r"^4dstem_rec_status_([0-3]{1}).*\.json")
 
-STATUS_FILE_EVENTS = [EVENT_TYPE_CREATED, EVENT_TYPE_MOVED, EVENT_TYPE_MODIFIED, EVENT_TYPE_DELETED]
+STATUS_FILE_EVENTS = [EVENT_TYPE_CREATED, EVENT_TYPE_MODIFIED, EVENT_TYPE_DELETED, EVENT_TYPE_MOVED]
 
 async def create_sync_snapshot(host, watch_dirs: List[str]) -> List[File]:
     files = []
@@ -92,14 +94,56 @@ async def post_file_event(
 class Scan4DFilesModeHandler(ModeHandler):
     def __init__(self, microscope_id: int,  host: str, session: aiohttp.ClientSession):
         super().__init__(microscope_id, host, session)
+        self._receiver_progress = {}
 
     async def on_event(self, event: FileSystemEvent):
-        path = AsyncPath(event.src_path)
         event_type = event.event_type
 
+        # Code around issue with inode reuse
+        if event_type == EVENT_TYPE_MOVED:
+            event_type = EVENT_TYPE_CREATED
+            event = FileCreatedEvent(event.dest_path)
+
+        path = AsyncPath(event.src_path)
+
         # We are only looking for status files
-        if not (STATUS_PATTERN.match(path.name) and event_type in STATUS_FILE_EVENTS):
+        status_file_match = STATUS_PATTERN.match(path.name)
+        if not (status_file_match and event_type in STATUS_FILE_EVENTS):
             return
+
+        if event_type == EVENT_TYPE_DELETED:
+            if await path.exists():
+                return
+            else:
+                logger.info(f"Delete event for {path}")
+
+        elif event_type in [EVENT_TYPE_CREATED, EVENT_TYPE_MODIFIED]:
+            # The receivers are continually writing to their status files, we don't want to send
+            # event if nothing has changes. So we stop sending events if nothing has changed for
+            # 5 minutes. We store progress and last change time for each receiver to be able todo
+            # this. 
+            receiver = status_file_match.group(1)
+            status = ScanStatusFile.parse_file(path)
+            progress = status.progress
+
+            update_receiver_progress = False
+            if receiver in self._receiver_progress:
+                (change_time, previous_progress) = self._receiver_progress[receiver]
+                if progress == previous_progress:
+                    if change_time + timedelta(minutes=5) < datetime.utcnow():
+                        print("skipping")
+                        # we can stop sending events, wait until something changes
+                        return
+                else:
+                    update_receiver_progress = True
+            else:
+                update_receiver_progress = True
+        
+            if update_receiver_progress:
+                self._receiver_progress[receiver] = (datetime.utcnow(), progress) 
+
+
+        print(event)
 
         model = FileSystemEventModel(
             event_type=event.event_type,

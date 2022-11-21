@@ -312,7 +312,7 @@ async def process_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -
             continue
 
         file_event = FileSystemEvent(
-            src_path=f.path,
+            src_path=path,
             created=f.created,
             event_type=FILE_EVENT_TYPE_CREATED,
             is_directory=False,
@@ -327,8 +327,8 @@ async def process_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -
             continue
 
         # We are seeing a scan being overridden
-        if is_override(file_event, status.uuid):
-            await process_override(file_event)
+        if is_override(path, status.uuid):
+            await process_override(status)
 
         await process_status_file(session, file_event)
 

@@ -33,7 +33,6 @@ import {
   totalCount,
   removeScan,
 } from '../features/scans';
-import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
 import { IdType, Microscope, Scan } from '../types';
 import { staticURL } from '../client';

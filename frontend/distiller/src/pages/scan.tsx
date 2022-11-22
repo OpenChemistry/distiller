@@ -41,7 +41,6 @@ import {
   getMachineState,
 } from '../features/machines';
 import LocationComponent from '../components/location';
-import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
 import { IdType, JobType, Scan, ScanJob, Microscope } from '../types';
 import JobStateComponent from '../components/job-state';

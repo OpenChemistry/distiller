@@ -15,6 +15,7 @@ from constants import (FILE_EVENT_TYPE_CREATED, FILE_EVENT_TYPE_DELETED,
                        FILE_EVENT_TYPE_MODIFIED, PRIMARY_STATUS_FILE_REGEX,
                        STATUS_PREFIX, TOPIC_SCAN_METADATA_EVENTS,
                        TOPIC_STATUS_FILE_EVENTS, TOPIC_STATUS_FILE_SYNC_EVENTS)
+from faust_records import ScanMetadata
 from schemas import Location, ScanCreate, ScanStatusFile, ScanUpdate
 from utils import (create_scan, delete_locations, extract_scan_id, get_scan,
                    get_scans, update_scan)
@@ -65,10 +66,6 @@ class SyncEvent(faust.Record):
 sync_events_topic = app.topic(TOPIC_STATUS_FILE_SYNC_EVENTS, value_type=SyncEvent)
 
 
-class ExpirableRecord(faust.Record):
-    created: Optional[datetime] = None
-
-
 class ScanStatus(faust.Record):
     created: Optional[datetime] = None
     uuid: Optional[str] = None
@@ -109,7 +106,7 @@ def purge_scan_data(scan_id):
 def reap_scan_metadata():
     for (key, record) in scan_id_to_metadata.items():
         expiration = timedelta(hours=1)
-        now = datetime.now().astimezone()
+        now = datetime.utcnow()
         if now - record.created > expiration:
             purge_scan_metadata(key)
 
@@ -341,7 +338,8 @@ async def watch_for_sync_event(sync_events):
             await process_sync_event(session, event)
 
 
-class ScanMetadata(ExpirableRecord):
+class ScanMetadataExpirableRecord(faust.Record, coerce=True):
+    created: datetime
     metadata: Dict[str, Any]
 
 
@@ -381,6 +379,6 @@ async def watch_for_metadata_event(metadata_events):
                     continue
             # Save the metadata so we can used it when we create a scan
             else:
-                scan_id_to_metadata[scan_id] = ScanMetadata(
-                    created=datetime.now(), metadata=metadata
+                scan_id_to_metadata[scan_id] = ScanMetadataExpirableRecord(
+                    created=datetime.utcnow(), metadata=metadata
                 )

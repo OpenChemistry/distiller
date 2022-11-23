@@ -8,8 +8,9 @@ import {
 
 import { apiClient } from '../../client';
 import { startMockNotifications } from './mock';
-import { isCreatedEvent, isUpdatedEvent } from './events';
+import { isMicroscopeUpdatedEvent, isScanCreatedEvent, isScanUpdatedEvent } from './events';
 import { setScan, updateScan } from '../scans';
+import { updateMicroscope } from '../microscopes';
 
 class NotificationHub {
   constructor(
@@ -22,12 +23,15 @@ class NotificationHub {
         msg = JSON.parse(ev.data);
       } catch {}
 
-      if (isCreatedEvent(msg)) {
+      if (isScanCreatedEvent(msg)) {
         const scan = { ...msg, jobs: [] };
         dispatch(setScan(scan));
-      } else if (isUpdatedEvent(msg)) {
+      } else if (isScanUpdatedEvent(msg)) {
         dispatch(updateScan(msg));
+      } else if (isMicroscopeUpdatedEvent(msg)) {
+        dispatch(updateMicroscope(msg));
       }
+
     };
 
     ws.addEventListener('message', messageListener);

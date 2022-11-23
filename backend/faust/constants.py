@@ -6,7 +6,7 @@ TOPIC_LOG_FILE_SYNC_EVENTS = "log_file_sync_events"
 TOPIC_HAADF_FILE_EVENTS = "haadf_file_events"
 TOPIC_SCAN_FILE_EVENTS = "scan_file_events"
 TOPIC_JOB_SUBMIT_EVENTS = "job_events"
-TOPIC_CUSTODIAN_EVENT = "custodian_events"
+TOPIC_CUSTODIAN_EVENTS = "custodian_events"
 TOPIC_SCAN_METADATA_EVENTS = "scan_metadata_events"
 
 FILE_EVENT_TYPE_DELETED = "deleted"

@@ -3,14 +3,15 @@ from typing import Union
 from aiokafka import AIOKafkaProducer
 
 from app.core.config import settings
-from app.core.constants import (TOPIC_CUSTODIAN_EVENT, TOPIC_HAADF_FILE_EVENTS,
+from app.core.constants import (TOPIC_CUSTODIAN_EVENTS, TOPIC_HAADF_FILE_EVENTS,
                                 TOPIC_JOB_EVENTS, TOPIC_LOG_FILE_EVENTS,
                                 TOPIC_LOG_FILE_SYNC_EVENTS, TOPIC_SCAN_EVENTS,
                                 TOPIC_SCAN_FILE_EVENTS,
-                                TOPIC_SCAN_FILE_SYNC_EVENTS)
+                                TOPIC_SCAN_FILE_SYNC_EVENTS,
+                                TOPIC_MICROSCOPE_EVENTS)
 from app.core.logging import logger
 from app.schemas import (FileSystemEvent, HaadfUploaded, ScanCreatedEvent,
-                         ScanFileUploaded, ScanUpdateEvent, SyncEvent)
+                         ScanFileUploaded, ScanUpdateEvent, SyncEvent, MicroscopeUpdateEvent)
 from app.schemas.events import RemoveScanFilesEvent, SubmitJobEvent
 
 
@@ -112,6 +113,16 @@ async def send_remove_scan_files_event_to_kafka(event: RemoveScanFilesEvent) -> 
         raise Exception("Producer has not been initialized")
 
     try:
-        await producer.send(TOPIC_CUSTODIAN_EVENT, event)
+        await producer.send(TOPIC_CUSTODIAN_EVENTS, event)
     except:
-        logger.exception(f"Exception send on topic: {TOPIC_CUSTODIAN_EVENT}")
+        logger.exception(f"Exception send on topic: {TOPIC_CUSTODIAN_EVENTS}")
+
+
+async def send_microscope_event_to_kafka(event: MicroscopeUpdateEvent]) -> None:
+    if producer is None:
+        raise Exception("Producer has not been initialized")
+
+    try:
+        await producer.send(TOPIC_MICROSCOPE_EVENTS, event)
+    except:
+        logger.exception(f"Exception send on topic: {TOPIC_MICROSCOPE_EVENTS}")

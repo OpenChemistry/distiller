@@ -60,6 +60,7 @@ class Microscope(BaseModel):
     id: int
     name: str
     config: Optional[Dict[str, Any]]
+    state: Optional[Dict[str, An]]
 
 class Scan(BaseModel):
     id: int
@@ -68,3 +69,6 @@ class Scan(BaseModel):
     locations: List[Location]
     created: datetime
     image_path: Optional[str] = None
+
+class MicroscopeUpdate(BaseModel):
+    state: Dict[str, Any]

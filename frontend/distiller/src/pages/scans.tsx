@@ -11,11 +11,12 @@ import {
   TableContainer,
   TablePagination,
   Paper,
-  LinearProgress,
   IconButton,
   Checkbox,
+  Box,
+  Typography,
 } from '@mui/material';
-
+import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 import { styled } from '@mui/material/styles';
 import CompleteIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
@@ -403,8 +404,43 @@ const ScansPage: React.FC = () => {
     }
   };
 
+  const usage = 90;
+
+  const DiskUsage = styled(LinearProgress)(({ theme }) => {
+    let barColor = theme.palette.success.light;
+
+    if (usage > 75) {
+      barColor = theme.palette.error.light;
+    }
+    else if ( usage > 50) {
+      barColor = theme.palette.warning.light;
+    }
+
+    return {
+    height: 15,
+    borderRadius: 5,
+    [`&.${linearProgressClasses.colorPrimary}`]: {
+      backgroundColor: theme.palette.grey[theme.palette.mode === 'light' ? 300 : 800],
+    },
+    [`& .${linearProgressClasses.bar}`]: {
+      borderRadius: 5,
+      backgroundColor: barColor,
+    },
+  }});
+
   return (
     <React.Fragment>
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ minWidth: 105 }}>
+          <Typography variant="body2" color="text.secondary">Storage Usage</Typography>
+        </Box>
+        <Box sx={{ width: '100%', mr: 1 }}>
+          <DiskUsage variant="determinate" value={usage}></DiskUsage>
+        </Box>
+        <Box sx={{ minWidth: 105 }}>
+          <Typography variant="body2" color="text.secondary">{100-usage} TB Free</Typography>
+        </Box>
+      </Box>
       <ScansToolbar
         onFilter={onFilter}
         onExport={onExport}

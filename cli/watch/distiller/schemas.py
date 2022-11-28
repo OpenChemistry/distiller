@@ -57,11 +57,11 @@ class ScanFromFileMetadata(BaseModel):
     locations: List[Location]
     microscope_id: int
 
-
 class Microscope(BaseModel):
     id: int
     name: str
     config: Optional[Dict[str, Any]]
+    state: Optional[Dict[str, Any]]
 
 class Scan(BaseModel):
     id: int
@@ -73,3 +73,6 @@ class Scan(BaseModel):
 
 class ScanStatusFile(BaseModel):
     progress: float
+
+class MicroscopeUpdate(BaseModel):
+    state: Dict[str, Any]

@@ -4,10 +4,18 @@ import platform
 import re
 import signal
 import sys
+<<<<<<< HEAD
 import cachetools
 from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 from typing import List, cast
+=======
+import os
+from datetime import datetime
+from logging.handlers import RotatingFileHandler
+from typing import List
+import shutil
+>>>>>>> disk-space
 
 import aiohttp
 import coloredlogs
@@ -18,13 +26,12 @@ from aiowatchdog import AIOEventHandler, AIOEventIterator
 from cachetools import TTLCache
 from config import settings
 from constants import STATUS_FILE_GLOB
-from schemas import File, WatchMode
-from schemas import FileSystemEvent as FileSystemEventModel
-from schemas import SyncEvent
-from schemas import ScanStatusFile
+from schemas import (File, FileSystemEvent as FileSystemEventModel, SyncEvent,
+    ScanStatusFile, MicroscopeUpdate )
+
 from watchdog.events import (EVENT_TYPE_DELETED, EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED,
                              EVENT_TYPE_MOVED, FileSystemEvent, FileCreatedEvent)
-from utils import logger
+from utils import logger, get_microscope_by_id
 from . import ModeHandler
 
 STATUS_PATTERN = re.compile(r"^4dstem_rec_status_([0-3]{1}).*\.json")
@@ -90,11 +97,73 @@ async def post_file_event(
     ) as r:
         r.raise_for_status()
 
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    ) | tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ClientConnectionError
+    ),
+
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
+async def patch_microscope(
+    session: aiohttp.ClientSession, id: int, update: MicroscopeUpdate
+) -> None:
+    headers = {
+        settings.API_KEY_NAME: settings.API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    async with session.patch(
+        f"{settings.API_URL}/microscopes/{id}", headers=headers, data=update.json()
+    ) as r:
+        r.raise_for_status()
+
+def find_mount_point(path):
+    path = os.path.abspath(path)
+    while not os.path.ismount(path):
+        path = os.path.dirname(path)
+    return path
 
 class Scan4DFilesModeHandler(ModeHandler):
     def __init__(self, microscope_id: int,  host: str, session: aiohttp.ClientSession):
         super().__init__(microscope_id, host, session)
         self._receiver_progress = {}
+
+        # File mounts point to use for calculating disk usage
+        self._mount_points = set()
+        for d in settings.WATCH_DIRECTORIES:
+             self._mount_points.add(find_mount_point(d))
+
+
+    async def _send_disk_usage(self, path: str):
+        # First get the current microscope state
+        microscope = await get_microscope_by_id(self.session, self.microscope_id)
+        state = microscope.state if microscope.state is not None else {}
+        disk_usage = state.setdefault("disk_usage", {})
+        state_total = disk_usage.get("total")
+        state_used = disk_usage.get("used")
+        state_free = disk_usage.get("free")
+
+        # Iterate over mount points and calculate the disk usage
+        total = 0
+        used = 0
+        free = 0
+        for p in self._mount_points:
+            (total_, used_, free_) = shutil.disk_usage(p)
+            total += total_
+            used += used_
+            free += free_
+
+        # Only patch if its changed
+        if state_total != total or state_used != used or state_free != free:
+            disk_usage["total"] = total
+            disk_usage["used"] = used
+            disk_usage["free"] = free
+
+            await patch_microscope(self.session, self.microscope_id, MicroscopeUpdate(state=state))
+
 
     async def on_event(self, event: FileSystemEvent):
         event_type = event.event_type
@@ -121,7 +190,7 @@ class Scan4DFilesModeHandler(ModeHandler):
             # The receivers are continually writing to their status files, we don't want to send
             # event if nothing has changes. So we stop sending events if nothing has changed for
             # 5 minutes. We store progress and last change time for each receiver to be able todo
-            # this. 
+            # this.
             receiver = status_file_match.group(1)
             status = ScanStatusFile.parse_file(path)
             progress = status.progress
@@ -138,9 +207,9 @@ class Scan4DFilesModeHandler(ModeHandler):
                     update_receiver_progress = True
             else:
                 update_receiver_progress = True
-        
+
             if update_receiver_progress:
-                self._receiver_progress[receiver] = (datetime.utcnow(), progress) 
+                self._receiver_progress[receiver] = (datetime.utcnow(), progress)
 
 
         print(event)
@@ -173,6 +242,8 @@ class Scan4DFilesModeHandler(ModeHandler):
         # Fire and forget
         task = asyncio.create_task(post_file_event(self.session, model))
         task.add_done_callback(_log_exception)
+
+        await self._send_disk_usage(str(path))
 
     async def sync(self):
         files = await create_sync_snapshot(self.host, settings.WATCH_DIRECTORIES)

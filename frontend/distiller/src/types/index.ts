@@ -127,4 +127,5 @@ export type Microscope = {
   id: number;
   name: string;
   config: { [name: string]: any };
+  state?: { [name: string]: any };
 };

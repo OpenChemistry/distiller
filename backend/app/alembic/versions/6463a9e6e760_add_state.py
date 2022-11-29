@@ -1,7 +1,7 @@
 """Add state
 
 Revision ID: 6463a9e6e760
-Revises: 0c210573a858
+Revises: 8d59cb767673
 Create Date: 2022-11-28 10:37:15.251008
 
 """
@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = '6463a9e6e760'
-down_revision = '0c210573a858'
+down_revision = '8d59cb767673'
 branch_labels = None
 depends_on = None
 

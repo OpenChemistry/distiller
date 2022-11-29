@@ -23,7 +23,7 @@ def locations():
 
 @pytest.fixture
 def scan(locations, created):
-    return Scan(id=0, scan_id=1, log_files=72, created=created, locations=locations)
+    return Scan(id=0, scan_id=1, created=created, locations=locations)
 
 
 @pytest.fixture

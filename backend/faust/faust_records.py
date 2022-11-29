@@ -14,7 +14,6 @@ class Location(faust.Record):
 
 class Scan(faust.Record):
     id: int
-    log_files: int
     locations: List[Location]
     created: datetime
     scan_id: Optional[int]

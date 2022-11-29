@@ -66,7 +66,6 @@ class Microscope(BaseModel):
 class Scan(BaseModel):
     id: int
     scan_id: Optional[int]
-    log_files: int
     locations: List[Location]
     created: datetime
     image_path: Optional[str] = None

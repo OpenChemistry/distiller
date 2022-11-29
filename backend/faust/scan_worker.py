@@ -223,14 +223,22 @@ async def process_status_file(
 
     if distiller_id is not None:
         locations = [Location(host=event.host, path=str(Path(path).parent))]
-        await update_scan(
-            session,
-            ScanUpdate(
-                id=distiller_id,
-                progress=scan_status.progress,
-                locations=locations,
-            ),
-        )
+        try:
+            await update_scan(
+                session,
+                ScanUpdate(
+                    id=distiller_id,
+                    progress=scan_status.progress,
+                    locations=locations,
+                ),
+            )
+        except aiohttp.client_exceptions.ClientResponseError as ex:
+            if ex.code == 404:
+                logger.info(f"Scan '{distiller_id}' have been remove, skipping update.")
+                return
+
+            raise
+
 
     if (scan_status.progress == 100 and scan_create) or (
         distiller_id is not None and progress_updated and scan_status.progress == 100

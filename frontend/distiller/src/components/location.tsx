@@ -136,7 +136,7 @@ const LocationComponent: React.FC<Props> = (props, ref) => {
     >
       {uniqueLocations.map((location) => {
         return (
-          <Grid item>
+          <Grid key={location.host} item>
             <NoWrapTooltip
               key={location.host}
               title={<PathComponent path={location.paths.join(', ')} />}

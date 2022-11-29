@@ -1,29 +1,13 @@
 import asyncio
-import logging
-import platform
 import re
-import signal
-import sys
-<<<<<<< HEAD
-import cachetools
 from datetime import datetime, timedelta
-from logging.handlers import RotatingFileHandler
 from typing import List, cast
-=======
 import os
-from datetime import datetime
-from logging.handlers import RotatingFileHandler
-from typing import List
 import shutil
->>>>>>> disk-space
 
 import aiohttp
-import coloredlogs
 import tenacity
 from aiopath import AsyncPath
-from pathlib import Path
-from aiowatchdog import AIOEventHandler, AIOEventIterator
-from cachetools import TTLCache
 from config import settings
 from constants import STATUS_FILE_GLOB
 from schemas import (File, FileSystemEvent as FileSystemEventModel, SyncEvent,

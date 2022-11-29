@@ -21,7 +21,8 @@ from pathlib import Path
 import coloredlogs
 from config import settings
 
-DATA_FILE_GLOB_PATTERN = "data_scan{scan_id}_module*_dst*_file*.data"
+DATA_FILE_GLOB_PATTERN = "data_scan{padded_scan_id}_module*_dst*_file*.data"
+LOG_FILE_GLOB_PATTERN = "log_scan{padded_scan_id}_to*_module*_dst*_file*.data"
 STATUS_FILE_GLOB_PATTERN = "4dstem_rec_status_*_scan_{scan_id}.json"
 
 COMMANDS = ["rm", "ls", "bbcp"]
@@ -43,6 +44,9 @@ if settings.LOG_FILE_PATH is not None:
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
+class PermissiveDict(dict):
+    def __missing__(self, key):
+        return f"{{{key}}}"
 
 def _traverse(args, patterns, func):
     if len(args) < 2:
@@ -64,7 +68,8 @@ def _traverse(args, patterns, func):
     zero_padded_scan_id = f"{scan_id:010}"
 
     # Render the scan id into the glob patterns
-    patterns = [pattern.format(scan_id=zero_padded_scan_id) for pattern in patterns]
+    patterns = [pattern.format_map(PermissiveDict(padded_scan_id=zero_padded_scan_id)) for pattern in patterns]
+    patterns = [pattern.format_map(PermissiveDict(scan_id=scan_id)) for pattern in patterns]
 
     logger.info(f"Glob patterns: {patterns}")
 
@@ -85,6 +90,7 @@ def _traverse(args, patterns, func):
 def _rm(args):
     patterns = [
         DATA_FILE_GLOB_PATTERN,
+        LOG_FILE_GLOB_PATTERN,
         STATUS_FILE_GLOB_PATTERN,
     ]
 

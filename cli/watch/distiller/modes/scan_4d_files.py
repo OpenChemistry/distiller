@@ -176,7 +176,12 @@ class Scan4DFilesModeHandler(ModeHandler):
             # 5 minutes. We store progress and last change time for each receiver to be able todo
             # this.
             receiver = status_file_match.group(1)
-            status = ScanStatusFile.parse_file(path)
+
+            try:
+                status = ScanStatusFile.parse_file(path)
+            except FileNotFoundError:
+                return
+
             progress = status.progress
 
             update_receiver_progress = False

@@ -32,6 +32,7 @@ class Scan(BaseModel):
     image_path: Optional[str] = None
     metadata: Optional[Dict[str, Any]]
     microscope_id: int
+    uuid: Optional[str]
 
 
 class ScanCreate(BaseModel):

@@ -54,6 +54,7 @@ class Scan(BaseModel):
     jobs: List[Job]
     metadata: Optional[Dict[str, Any]] = Field(alias="metadata_")
     microscope_id: int
+    uuid: Optional[str]
 
     _metadata_infinity = validator("metadata", allow_reuse=True)(metadata_infinity)
 

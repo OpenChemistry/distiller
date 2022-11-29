@@ -138,6 +138,7 @@ async def process_delete_event(session: aiohttp.ClientSession, path: str) -> Non
         logger.info(f"Delete all '{host}' locations for scan {distiller_id}")
         await delete_locations(session, distiller_id, host)
 
+latest_scan_uuid = None
 
 async def process_status_file(
     session: aiohttp.ClientSession, event: FileSystemEvent
@@ -175,8 +176,19 @@ async def process_status_file(
     # Save the uuid, so we detect if we have an override
     path_to_uuid[path] = status_file.uuid
 
+    # The global storing the uuid of the last scan we created
+    global latest_scan_uuid
+
     # We have a new scan
     if new_scan and primary_status_file:
+        # Special case for a current scan that has been deleted. The receiver
+        # processes will still write to the status files so we will still get
+        # events. We don't want to recreate the scan so we save the uuid of the
+        # last scan we created. If the uuid's match we can just skip over the
+        # events
+        if scan_status.uuid == latest_scan_uuid:
+            return
+
         # First check if we already have a scan
         scans = await get_scans(session, scan_id=scan_id, uuid=status_file.uuid)
 
@@ -205,6 +217,8 @@ async def process_status_file(
                     metadata=metadata,
                 ),
             )
+            # Update our uuid for the latest scan
+            latest_scan_uuid = scan_status.uuid
             scan_create = True
             scan_id_to_distiller_id[scan_id] = scan.id
             purge_scan_metadata(scan_id)
@@ -258,7 +272,19 @@ async def process_override(status_file: ScanStatusFile) -> None:
 
 @app.agent(file_events_topic)
 async def watch_for_event(file_events):
+    global latest_scan_uuid
+
     async with aiohttp.ClientSession() as session:
+        # initialize the scan uuid for the last scan we have created
+        scans = await get_scans(session, microscope_id=1, limit=1)
+
+        if len(scans) != 1:
+            raise Exception("Unable to fetch latest scan uuid")
+
+        latest_scan_uuid = scans[0].uuid
+
+        logger.info(f"Last scan uuid: {latest_scan_uuid}")
+
         async for event in file_events:
             reap_scan_metadata()
             path = event.src_path

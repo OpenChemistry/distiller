@@ -380,7 +380,6 @@ async def process_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -
 async def watch_for_sync_event(sync_events):
     async with aiohttp.ClientSession() as session:
         async for event in sync_events:
-            print("sync event")
             await process_sync_event(session, event)
 
 

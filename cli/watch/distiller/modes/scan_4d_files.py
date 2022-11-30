@@ -189,7 +189,6 @@ class Scan4DFilesModeHandler(ModeHandler):
                 (change_time, previous_progress) = self._receiver_progress[receiver]
                 if progress == previous_progress:
                     if change_time + timedelta(minutes=5) < datetime.utcnow():
-                        print("skipping")
                         # we can stop sending events, wait until something changes
                         return
                 else:
@@ -199,9 +198,6 @@ class Scan4DFilesModeHandler(ModeHandler):
 
             if update_receiver_progress:
                 self._receiver_progress[receiver] = (datetime.utcnow(), progress)
-
-
-        print(event)
 
         model = FileSystemEventModel(
             event_type=event.event_type,

@@ -1,8 +1,3 @@
-import { useAppSelector } from '../app/hooks';
-import {
-  microscopesSelectors,
-  microscopesState,
-} from '../features/microscopes';
 import { Microscope } from '../types';
 
 export const canonicalMicroscopeName = (name: string) =>

@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from sqlalchemy import asc, update
 from sqlalchemy.orm import Session
@@ -19,10 +19,11 @@ def get_microscopes(db: Session, name: Optional[str] = None):
 def get_microscope(db: Session, id: int):
     return db.query(models.Microscope).filter(models.Microscope.id == id).first()
 
+
 def update_microscope(db: Session, id: int, state: Dict[str, Any]):
-    statement = (update(models.Microscope)
-        .where(models.Microscope.id == id)
-        .values(state=state))
+    statement = (
+        update(models.Microscope).where(models.Microscope.id == id).values(state=state)
+    )
 
     resultproxy = db.execute(statement)
     updated = resultproxy.rowcount == 1

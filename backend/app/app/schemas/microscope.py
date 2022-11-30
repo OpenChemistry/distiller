@@ -1,5 +1,5 @@
-from typing import Any, Dict, Optional
 from enum import Enum
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
 
@@ -13,8 +13,10 @@ class Microscope(BaseModel):
     class Config:
         orm_mode = True
 
+
 class MicroscopeUpdate(BaseModel):
     state: Dict[str, Any]
+
 
 class MicroscopeEventType(str, Enum):
     UPDATED = "microscope.updated"

@@ -3,16 +3,17 @@ from typing import Union
 from aiokafka import AIOKafkaProducer
 
 from app.core.config import settings
-from app.core.constants import (TOPIC_CUSTODIAN_EVENTS, TOPIC_HAADF_FILE_EVENTS,
-                                TOPIC_JOB_EVENTS, TOPIC_SCAN_EVENTS,
+from app.core.constants import (TOPIC_CUSTODIAN_EVENTS,
+                                TOPIC_HAADF_FILE_EVENTS, TOPIC_JOB_EVENTS,
+                                TOPIC_MICROSCOPE_EVENTS, TOPIC_SCAN_EVENTS,
                                 TOPIC_SCAN_FILE_EVENTS,
                                 TOPIC_SCAN_FILE_SYNC_EVENTS,
                                 TOPIC_STATUS_FILE_EVENTS,
-                                TOPIC_STATUS_FILE_SYNC_EVENTS,
-                                TOPIC_MICROSCOPE_EVENTS)
+                                TOPIC_STATUS_FILE_SYNC_EVENTS)
 from app.core.logging import logger
-from app.schemas import (FileSystemEvent, HaadfUploaded, ScanCreatedEvent,
-                         ScanFileUploaded, ScanUpdateEvent, SyncEvent, MicroscopeUpdateEvent)
+from app.schemas import (FileSystemEvent, HaadfUploaded, MicroscopeUpdateEvent,
+                         ScanCreatedEvent, ScanFileUploaded, ScanUpdateEvent,
+                         SyncEvent)
 from app.schemas.events import RemoveScanFilesEvent, SubmitJobEvent
 
 

@@ -110,7 +110,9 @@ async def create_scan_from_file(
         # Send event so the metadata get extracted etc.
         await send_scan_file_event_to_kafka(
             schemas.ScanFileUploaded(
-                path=str(upload_path), id=scan.id, filename=unquote(ser_file_upload.filename)
+                path=str(upload_path),
+                id=scan.id,
+                filename=unquote(ser_file_upload.filename),
             )
         )
 

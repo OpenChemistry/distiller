@@ -93,7 +93,7 @@ async def get_scans(
         "Content-Type": "application/json",
     }
 
-    params: Dict[str, Any] = { }
+    params: Dict[str, Any] = {}
 
     if scan_id is not None:
         params["scan_id"] = scan_id
@@ -111,7 +111,7 @@ async def get_scans(
         params["uuid"] = uuid
 
     if microscope_id is not None:
-        params["microscope_id"]  = microscope_id
+        params["microscope_id"] = microscope_id
 
     if limit is not None:
         params["limit"] = limit

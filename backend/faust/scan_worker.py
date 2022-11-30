@@ -116,7 +116,11 @@ def reap_scan_status():
     for (key, record) in scan_id_to_status.items():
         expiration = timedelta(hours=1)
         now = datetime.utcnow()
-        if key not in scan_id_to_distiller_id and record.modified is not None and now - record.modified > expiration:
+        if (
+            key not in scan_id_to_distiller_id
+            and record.modified is not None
+            and now - record.modified > expiration
+        ):
             purge_scan_data(key)
 
 
@@ -147,7 +151,9 @@ async def process_delete_event(session: aiohttp.ClientSession, path: str) -> Non
         logger.info(f"Delete all '{host}' locations for scan {distiller_id}")
         await delete_locations(session, distiller_id, host)
 
+
 latest_scan_uuid = None
+
 
 async def process_status_file(
     session: aiohttp.ClientSession, event: FileSystemEvent
@@ -262,7 +268,6 @@ async def process_status_file(
                 return
 
             raise
-
 
     if (scan_status.progress == 100 and scan_create) or (
         distiller_id is not None and progress_updated and scan_status.progress == 100

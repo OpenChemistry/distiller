@@ -1,11 +1,11 @@
-from typing import List, Optional, Any
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 from fastapi.security.api_key import APIKey
 from sqlalchemy.orm import Session
 
 from app import schemas
-from app.api.deps import get_db, oauth2_password_bearer_or_api_key, get_api_key
+from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
 from app.crud import microscope as crud
 from app.kafka.producer import send_microscope_event_to_kafka
 
@@ -37,15 +37,19 @@ def read_microscope(id: int, db: Session = Depends(get_db)):
     return microscope
 
 
-@router.patch(
-    "/{id}",
-    response_model=schemas.Microscope)
-async def update_microscope(id: int, payload: schemas.MicroscopeUpdate, db: Session = Depends(get_db), api_key: APIKey = Depends(get_api_key)):
+@router.patch("/{id}", response_model=schemas.Microscope)
+async def update_microscope(
+    id: int,
+    payload: schemas.MicroscopeUpdate,
+    db: Session = Depends(get_db),
+    api_key: APIKey = Depends(get_api_key),
+):
     (updated, microscope) = crud.update_microscope(db, id=id, state=payload.state)
 
     if updated:
-        microscope_updated_event = schemas.MicroscopeUpdateEvent(id=id, state=microscope.state)
+        microscope_updated_event = schemas.MicroscopeUpdateEvent(
+            id=id, state=microscope.state
+        )
         await send_microscope_event_to_kafka(microscope_updated_event)
 
     return microscope
-

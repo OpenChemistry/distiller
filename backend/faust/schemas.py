@@ -38,7 +38,7 @@ class Scan(BaseModel):
 class ScanCreate(BaseModel):
     scan_id: int
     uuid: str
-    created: datetime
+    created: str
     locations: List[Location]
     metadata: Optional[Dict[str, Any]]
 

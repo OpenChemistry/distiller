@@ -66,12 +66,13 @@ class SyncEvent(faust.Record):
 sync_events_topic = app.topic(TOPIC_STATUS_FILE_SYNC_EVENTS, value_type=SyncEvent)
 
 
-class ScanStatus(faust.Record):
-    created: Optional[datetime] = None
+class ScanStatus(faust.Record, coerce=True):
+    created: Optional[str] = None
     uuid: Optional[str] = None
     progress: Optional[int] = None
     host: Optional[str] = None
     paths: List[str] = []
+    modified: Optional[datetime] = None
 
 
 # native scan id to distiller id
@@ -109,6 +110,14 @@ def reap_scan_metadata():
         now = datetime.utcnow()
         if now - record.created > expiration:
             purge_scan_metadata(key)
+
+
+def reap_scan_status():
+    for (key, record) in scan_id_to_status.items():
+        expiration = timedelta(hours=1)
+        now = datetime.utcnow()
+        if key not in scan_id_to_distiller_id and record.modified is not None and now - record.modified > expiration:
+            purge_scan_data(key)
 
 
 async def process_delete_event(session: aiohttp.ClientSession, path: str) -> None:
@@ -161,6 +170,7 @@ async def process_status_file(
 
     # First update the scan status in our table
     scan_status = scan_id_to_status[scan_id]
+    scan_status.modified = datetime.utcnow()
     if scan_status.progress is None or scan_status.progress < status_file.progress:
         scan_status.progress = round(status_file.progress)
         progress_updated = True
@@ -287,6 +297,8 @@ async def watch_for_event(file_events):
 
         async for event in file_events:
             reap_scan_metadata()
+            reap_scan_status()
+
             path = event.src_path
             event_type = event.event_type
 

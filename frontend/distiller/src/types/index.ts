@@ -93,7 +93,7 @@ export type Metadata = { [name: string]: any };
 export type Scan = {
   id: IdType;
   scan_id: IdType | null;
-  log_files: number;
+  progress: number;
   created: string;
   locations: ScanLocation[];
   notes?: string;
@@ -127,4 +127,5 @@ export type Microscope = {
   id: number;
   name: string;
   config: { [name: string]: any };
+  state?: { [name: string]: any };
 };

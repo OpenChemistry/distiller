@@ -18,7 +18,6 @@ from pathlib import Path
 from aiowatchdog import AIOEventHandler, AIOEventIterator
 from cachetools import TTLCache
 from config import settings
-from constants import LOG_FILE_GLOB
 from schemas import File, WatchMode
 from schemas import FileSystemEvent as FileSystemEventModel
 from schemas import SyncEvent, Microscope
@@ -29,7 +28,7 @@ if settings.POLL or settings.MODE in [WatchMode.SCAN_4D_FILES, WatchMode.SCAN_4D
 else:
     from watchdog.observers import Observer
 
-from utils import logger
+from utils import logger, get_microscope
 from modes import ModeHandler
 
 
@@ -58,33 +57,6 @@ async def watch(host: str,
             handler = get_mode_handler(mode, session, microscope_id, host)
             logger.info("Running sync.")
             await handler.sync()
-
-@tenacity.retry(
-    retry=tenacity.retry_if_exception_type(
-        aiohttp.client_exceptions.ServerConnectionError
-    ) | tenacity.retry_if_exception_type(
-        aiohttp.client_exceptions.ClientConnectionError
-    ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
-)
-async def get_microscope(session: aiohttp.ClientSession, name: str) -> Microscope:
-    headers = {
-        settings.API_KEY_NAME: settings.API_KEY,
-        "Content-Type": "application/json",
-    }
-
-    async with session.get(
-        f"{settings.API_URL}/microscopes", headers=headers, params={"name": name}
-    ) as r:
-        r.raise_for_status()
-
-        json = await r.json()
-
-        if len(json) != 1:
-            raise Exception("Unable to fetch microscopy")
-
-        return Microscope(**json[0])
 
 
 def get_mode_handler(mode: WatchMode, session: aiohttp.ClientSession, microscope_id: int, host: str) -> ModeHandler:

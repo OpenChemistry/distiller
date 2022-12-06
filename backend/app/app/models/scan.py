@@ -1,5 +1,4 @@
-from sqlalchemy import (Column, DateTime, ForeignKey, Integer, String,
-                        UniqueConstraint)
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
@@ -10,7 +9,8 @@ class Scan(Base):
     id = Column(Integer, primary_key=True, index=True)
     scan_id = Column(Integer, index=True)
     sha = Column(String(length=64), nullable=True, index=True, unique=True)
-    log_files = Column(Integer, default=0)
+    uuid = Column(String(length=36), nullable=True, index=True, unique=True)
+    progress = Column(Integer, nullable=False, default=0)
     created = Column(DateTime(timezone=True), nullable=False, index=True)
     image_path = Column(String, nullable=True, default=None, index=True)
     notes = Column(String, nullable=True)
@@ -21,5 +21,3 @@ class Scan(Base):
 
     locations = relationship("Location", cascade="delete")
     jobs = relationship("Job", cascade="delete")
-
-    __table_args__ = (UniqueConstraint("scan_id", "created", name="scan_id_created"),)

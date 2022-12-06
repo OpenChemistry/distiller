@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional, Any, Dict
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class WatchMode(str, Enum):
@@ -34,12 +34,14 @@ class FileSystemEvent(BaseModel):
     src_path: str
     is_directory: bool
     created: Optional[datetime] = None
+    content: Optional[str] = None
 
 
 class File(BaseModel):
     host: str
     path: str
     created: Optional[datetime] = None
+    content: Optional[str] = None
 
 
 class SyncEvent(BaseModel):
@@ -55,16 +57,21 @@ class ScanFromFileMetadata(BaseModel):
     locations: List[Location]
     microscope_id: int
 
-
 class Microscope(BaseModel):
     id: int
     name: str
     config: Optional[Dict[str, Any]]
+    state: Optional[Dict[str, Any]]
 
 class Scan(BaseModel):
     id: int
     scan_id: Optional[int]
-    log_files: int
     locations: List[Location]
     created: datetime
     image_path: Optional[str] = None
+
+class ScanStatusFile(BaseModel):
+    progress: float
+
+class MicroscopeUpdate(BaseModel):
+    state: Dict[str, Any]

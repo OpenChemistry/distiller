@@ -110,7 +110,9 @@ async def create_scan_from_file(
         # Send event so the metadata get extracted etc.
         await send_scan_file_event_to_kafka(
             schemas.ScanFileUploaded(
-                path=str(upload_path), id=scan.id, filename=unquote(ser_file_upload.filename)
+                path=str(upload_path),
+                id=scan.id,
+                filename=unquote(ser_file_upload.filename),
             )
         )
 
@@ -197,8 +199,10 @@ def read_scans(
     end: Optional[datetime] = None,
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
+    uuid: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
+
     scans = crud.get_scans(
         db,
         skip=skip,
@@ -211,6 +215,7 @@ def read_scans(
         end=end,
         microscope_id=microscope_id,
         sha=sha,
+        uuid=uuid,
     )
 
     count = crud.get_scans_count(
@@ -224,6 +229,8 @@ def read_scans(
         start=start,
         end=end,
         microscope_id=microscope_id,
+        sha=sha,
+        uuid=uuid,
     )
 
     response.headers["X-Total-Count"] = str(count)
@@ -274,7 +281,7 @@ async def update_scan(
     (updated, scan) = crud.update_scan(
         db,
         id,
-        log_files=payload.log_files,
+        progress=payload.progress,
         locations=payload.locations,
         notes=payload.notes,
         metadata=payload.metadata,
@@ -282,8 +289,8 @@ async def update_scan(
 
     if updated:
         scan_updated_event = schemas.ScanUpdateEvent(id=id)
-        if scan.log_files == payload.log_files:
-            scan_updated_event.log_files = cast(int, scan.log_files)
+        if scan.progress == payload.progress:
+            scan_updated_event.progress = cast(int, scan.progress)
 
         scan_updated_event.locations = [
             schemas.scan.Location.from_orm(l) for l in scan.locations

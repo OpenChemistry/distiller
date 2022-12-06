@@ -6,7 +6,7 @@ from fabric import Connection
 
 import faust
 from config import settings
-from constants import TOPIC_CUSTODIAN_EVENT
+from constants import TOPIC_CUSTODIAN_EVENTS
 from faust_records import Scan
 
 # Setup logger
@@ -27,7 +27,7 @@ class RemoveScanFilesEvent(faust.Record):
 
 
 custodian_events_topic = app.topic(
-    TOPIC_CUSTODIAN_EVENT, value_type=RemoveScanFilesEvent
+    TOPIC_CUSTODIAN_EVENTS, value_type=RemoveScanFilesEvent
 )
 
 

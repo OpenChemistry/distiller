@@ -1,0 +1,3 @@
+-r requirements.txt
+ncempy
+h5py

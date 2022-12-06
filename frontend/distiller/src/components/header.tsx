@@ -2,15 +2,20 @@ import React from 'react';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
+import {
+  microscopesSelectors,
+  microscopesState,
+} from '../features/microscopes';
 
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import { Button, IconButton } from '@mui/material';
+import { Button, IconButton, Typography } from '@mui/material';
 import UserIcon from '@mui/icons-material/AccountCircle';
 import { styled } from '@mui/material/styles';
 
 import { isAuthenticated } from '../features/auth';
 import { AUTH_PATH } from '../routes';
+import { getMicroscope } from '../utils/microscopes';
 
 import logo from '../logo.png';
 
@@ -43,12 +48,26 @@ const HeaderComponent: React.FC = () => {
     navigate(`${AUTH_PATH}`, { state: { from: location } });
   };
 
+  let microscope = null;
+  const microscopes = useAppSelector((state) =>
+    microscopesSelectors.selectAll(microscopesState(state))
+  );
+  if (authenticated) {
+    const microscopeName = location.pathname.split('/')[1];
+    microscope = getMicroscope(microscopes, microscopeName);
+  }
+
   return (
     <AppBar color="transparent" position="static">
       <Toolbar>
         <Button onClick={onLogoClick}>
           <LogoImage src={logo} alt="logo" />
         </Button>
+        {authenticated && (
+          <Typography variant="h5" color="text.secondary">
+            {microscope !== null ? microscope.name : ''}
+          </Typography>
+        )}
         <Title />
         {authenticated ? (
           <IconButton onClick={onUserClick} size="large">

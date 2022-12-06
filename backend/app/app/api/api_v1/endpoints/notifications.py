@@ -12,6 +12,7 @@ from app.api.deps import get_current_user, get_db
 from app.core.logging import logger
 from app.crud import scan as scan_crud
 from app.kafka import consumer
+from app.schemas.microscope import MicroscopeEventType
 
 router = APIRouter()
 
@@ -21,7 +22,7 @@ from fastapi import WebSocket
 scan_id_to_microscope_id = LRUCache(maxsize=1000)
 
 
-def get_microscope_id(db: Session, scan_id: int):
+def get_microscope_id_by_scan_id(db: Session, scan_id: int):
     if scan_id in scan_id_to_microscope_id:
         return scan_id_to_microscope_id[scan_id]
 
@@ -82,9 +83,11 @@ class WebsocketConsumer(WebSocketEndpoint):
                 microscope_id = None
                 if "microscope_id" in event:
                     microscope_id = event["microscope_id"]
+                elif event.get("event_type") == MicroscopeEventType.UPDATED:
+                    microscope_id = event["id"]
                 elif "id" in event:
                     with contextmanager(get_db)() as db:
-                        microscope_id = get_microscope_id(db, event["id"])
+                        microscope_id = get_microscope_id_by_scan_id(db, event["id"])
 
                 # Only send the message for the associated microscope
                 if microscope_id is None or microscope_id == self.microscope_id:

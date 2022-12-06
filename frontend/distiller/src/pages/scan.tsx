@@ -41,7 +41,6 @@ import {
   getMachineState,
 } from '../features/machines';
 import LocationComponent from '../components/location';
-import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
 import { IdType, JobType, Scan, ScanJob, Microscope } from '../types';
 import JobStateComponent from '../components/job-state';
@@ -311,10 +310,10 @@ const ScanPage: React.FC<Props> = () => {
                     <TableRow>
                       <TableHeaderCell>Progress</TableHeaderCell>
                       <TableCell align="right">
-                        {scan.log_files < MAX_LOG_FILES ? (
+                        {scan.progress < 100 ? (
                           <LinearProgress
                             variant="determinate"
-                            value={(100 * scan.log_files) / MAX_LOG_FILES}
+                            value={scan.progress}
                           />
                         ) : (
                           <CompleteIcon color="primary" />

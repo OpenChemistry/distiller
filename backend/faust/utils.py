@@ -14,7 +14,7 @@ from schemas import (Job, JobUpdate, Machine, Microscope, Scan, ScanCreate,
 logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)
 
-pattern = re.compile(r"^log_scan([0-9]*)_.*\.data")
+pattern = re.compile(r"^4dstem_rec_status_[0123]{1}_scan_([0-9]*)\.json")
 
 
 def extract_scan_id(path: str) -> int:
@@ -80,17 +80,23 @@ async def update_scan(session: aiohttp.ClientSession, event: ScanUpdate) -> Scan
 )
 async def get_scans(
     session: aiohttp.ClientSession,
-    scan_id: int,
+    scan_id: Optional[int] = None,
     state: Optional[str] = None,
     created: Optional[datetime] = None,
     sha: Optional[str] = None,
+    uuid: Optional[str] = None,
+    microscope_id: Optional[int] = None,
+    limit: Optional[int] = None,
 ) -> List[Scan]:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,
         "Content-Type": "application/json",
     }
 
-    params: Dict[str, Any] = {"scan_id": scan_id}
+    params: Dict[str, Any] = {}
+
+    if scan_id is not None:
+        params["scan_id"] = scan_id
 
     if state is not None:
         params["state"] = state
@@ -100,6 +106,15 @@ async def get_scans(
 
     if sha is not None:
         params["sha"] = sha
+
+    if uuid is not None:
+        params["uuid"] = uuid
+
+    if microscope_id is not None:
+        params["microscope_id"] = microscope_id
+
+    if limit is not None:
+        params["limit"] = limit
 
     async with session.get(
         f"{settings.API_URL}/scans", headers=headers, params=params

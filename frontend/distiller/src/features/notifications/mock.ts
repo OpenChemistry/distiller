@@ -7,7 +7,7 @@ function makeCreatedEvent(id: IdType): ScanCreatedEvent {
     id,
     scan_id: id,
     created: new Date().toISOString(),
-    log_files: 0,
+    progress: 0,
     microscope_id: 1,
     locations: [
       {
@@ -55,10 +55,10 @@ async function mockScanUpdates(ws: WebSocket, id: IdType) {
     ws.dispatchEvent(ev);
   }
 
-  for (let log_files of [10, 20, 30, 40, 50, 60, 72]) {
+  for (let progress of [10, 20, 30, 40, 50, 70, 100]) {
     await sleep(500);
     const ev: any = new Event('message');
-    ev.data = JSON.stringify(makeUpdatedEvent(id, { log_files }));
+    ev.data = JSON.stringify(makeUpdatedEvent(id, { progress }));
     ws.dispatchEvent(ev);
   }
 

@@ -5,7 +5,6 @@ from sqlalchemy import desc, or_, update
 from sqlalchemy.orm import Session
 
 from app import models, schemas
-from app.core import constants
 from app.crud import microscope
 
 
@@ -29,6 +28,7 @@ def _get_scans_query(
     end: Optional[datetime] = None,
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
+    uuid: Optional[str] = None,
 ):
     query = db.query(models.Scan)
     if scan_id > -1:
@@ -36,10 +36,10 @@ def _get_scans_query(
 
     if state is not None:
         if state == schemas.ScanState.TRANSFER:
-            query = query.filter(models.Scan.log_files < constants.NUMBER_OF_LOG_FILES)
+            query = query.filter(models.Scan.progress < 100)
         elif state == schemas.ScanState.COMPLETE:
 
-            query = query.filter(models.Scan.log_files == constants.NUMBER_OF_LOG_FILES)
+            query = query.filter(models.Scan.progress == 100)
 
     if created is not None:
         query = query.filter(models.Scan.created == created)
@@ -62,6 +62,9 @@ def _get_scans_query(
     if sha is not None:
         query = query.filter(models.Scan.sha == sha)
 
+    if uuid is not None:
+        query = query.filter(models.Scan.uuid == uuid)
+
     return query
 
 
@@ -77,6 +80,7 @@ def get_scans(
     end: Optional[datetime] = None,
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
+    uuid: Optional[str] = None,
 ):
     query = _get_scans_query(
         db,
@@ -90,6 +94,7 @@ def get_scans(
         end,
         microscope_id,
         sha,
+        uuid,
     )
 
     return query.order_by(desc(models.Scan.created)).offset(skip).limit(limit).all()
@@ -107,6 +112,7 @@ def get_scans_count(
     end: Optional[datetime] = None,
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
+    uuid: Optional[str] = None,
 ):
     query = _get_scans_query(
         db,
@@ -120,6 +126,7 @@ def get_scans_count(
         end,
         microscope_id,
         sha,
+        uuid,
     )
 
     return query.count()
@@ -155,7 +162,7 @@ def create_scan(
 def update_scan(
     db: Session,
     id: int,
-    log_files: Optional[int] = None,
+    progress: Optional[int] = None,
     locations: Optional[List[schemas.LocationCreate]] = None,
     image_path: Optional[str] = None,
     notes: Optional[str] = None,
@@ -163,17 +170,17 @@ def update_scan(
 ):
     updated = False
 
-    if log_files is not None:
+    if progress is not None:
         statement = (
             update(models.Scan)
             .where(models.Scan.id == id)
-            .where(models.Scan.log_files < log_files)
-            .values(log_files=log_files)
+            .where(models.Scan.progress < progress)
+            .values(progress=progress)
         )
 
         resultsproxy = db.execute(statement)
-        log_files_updated = resultsproxy.rowcount == 1
-        updated = updated or log_files_updated
+        progress_updated = resultsproxy.rowcount == 1
+        updated = updated or progress_updated
 
     if locations is not None:
         locations_updated = False

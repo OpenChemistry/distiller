@@ -1,12 +1,12 @@
 from enum import Enum
 
-TOPIC_LOG_FILE_EVENTS = "log_file_events"
+TOPIC_STATUS_FILE_EVENTS = "status_file_events"
+TOPIC_STATUS_FILE_SYNC_EVENTS = "status_file_sync_events"
 TOPIC_SCAN_EVENTS = "scan_events"
-TOPIC_LOG_FILE_SYNC_EVENTS = "log_file_sync_events"
 TOPIC_HAADF_FILE_EVENTS = "haadf_file_events"
 TOPIC_SCAN_FILE_EVENTS = "scan_file_events"
 TOPIC_JOB_SUBMIT_EVENTS = "job_events"
-TOPIC_CUSTODIAN_EVENT = "custodian_events"
+TOPIC_CUSTODIAN_EVENTS = "custodian_events"
 TOPIC_SCAN_METADATA_EVENTS = "scan_metadata_events"
 
 FILE_EVENT_TYPE_DELETED = "deleted"
@@ -14,9 +14,8 @@ FILE_EVENT_TYPE_CREATED = "created"
 FILE_EVENT_TYPE_CLOSED = "closed"
 FILE_EVENT_TYPE_MODIFIED = "modified"
 
-PRIMARY_LOG_FILE_REGEX = r".*module0to1_dst0.*"
+PRIMARY_STATUS_FILE_REGEX = r"4dstem_rec_status_0.*\.json"
 
-LOG_PREFIX = "log_scan"
 SFAPI_TOKEN_URL = "https://oidc.nersc.gov/c2id/token"
 SFAPI_BASE_URL = "https://api.nersc.gov/api/v1.2"
 
@@ -84,4 +83,5 @@ class JobType(str, Enum):
         return self.value
 
 
+STATUS_PREFIX = "4dstem_rec_status"
 NERSC_LOCATION = "NERSC"

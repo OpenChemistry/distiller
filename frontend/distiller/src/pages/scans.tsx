@@ -11,11 +11,14 @@ import {
   TableContainer,
   TablePagination,
   Paper,
-  LinearProgress,
   IconButton,
   Checkbox,
+  Box,
+  Typography,
 } from '@mui/material';
-
+import LinearProgress, {
+  linearProgressClasses,
+} from '@mui/material/LinearProgress';
 import { styled } from '@mui/material/styles';
 import CompleteIcon from '@mui/icons-material/CheckCircle';
 import ImageIcon from '@mui/icons-material/Image';
@@ -33,7 +36,6 @@ import {
   totalCount,
   removeScan,
 } from '../features/scans';
-import { MAX_LOG_FILES } from '../constants';
 import EditableField from '../components/editable-field';
 import { IdType, Microscope, Scan } from '../types';
 import { staticURL } from '../client';
@@ -95,6 +97,17 @@ const TableScanRow = styled(TableRow)(({ theme }) => ({
   cursor: 'pointer',
 }));
 
+const bytesToSize = (bytes: number): string => {
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  if (bytes === 0) return 'n/a';
+  const i = Math.min(
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+    sizes.length - 1
+  );
+  if (i === 0) return `${bytes} ${sizes[i]}`;
+  return `${(bytes / 1024 ** i).toFixed(1)} ${sizes[i]}`;
+};
+
 const ScansPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -122,6 +135,7 @@ const ScansPage: React.FC = () => {
     new Set<IdType>()
   );
 
+  let microscope: Microscope | null = null;
   const microscopes = useAppSelector((state) =>
     microscopesSelectors.selectAll(microscopesState(state))
   );
@@ -142,12 +156,13 @@ const ScansPage: React.FC = () => {
     microscopeId = microscopes[0].id;
   }
 
-  const microscope = useParams().microscope;
+  const microscopeName = useParams().microscope;
   if (microscope !== undefined) {
-    const canonicalName = canonicalMicroscopeName(microscope as string);
+    const canonicalName = canonicalMicroscopeName(microscopeName as string);
 
     if (canonicalName in microscopesByCanonicalName) {
-      microscopeId = microscopesByCanonicalName[canonicalName].id;
+      microscope = microscopesByCanonicalName[canonicalName];
+      microscopeId = microscope.id;
     }
   }
 
@@ -403,8 +418,56 @@ const ScansPage: React.FC = () => {
     }
   };
 
+  const disk_usage = microscope?.state?.disk_usage;
+  const percentageDiskUsed = disk_usage
+    ? (disk_usage.used / disk_usage.total) * 100
+    : 0;
+
+  const DiskUsage = styled(LinearProgress)(({ theme }) => {
+    let barColor = theme.palette.success.light;
+
+    if (percentageDiskUsed > 75) {
+      barColor = theme.palette.error.light;
+    } else if (percentageDiskUsed > 50) {
+      barColor = theme.palette.warning.light;
+    }
+
+    return {
+      height: 15,
+      borderRadius: 5,
+      [`&.${linearProgressClasses.colorPrimary}`]: {
+        backgroundColor:
+          theme.palette.grey[theme.palette.mode === 'light' ? 300 : 800],
+      },
+      [`& .${linearProgressClasses.bar}`]: {
+        borderRadius: 5,
+        backgroundColor: barColor,
+      },
+    };
+  });
+
   return (
     <React.Fragment>
+      {disk_usage && (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ minWidth: 105 }}>
+            <Typography variant="body2" color="text.secondary">
+              Storage Usage
+            </Typography>
+          </Box>
+          <Box sx={{ width: '100%', mr: 1 }}>
+            <DiskUsage
+              variant="determinate"
+              value={percentageDiskUsed}
+            ></DiskUsage>
+          </Box>
+          <Box sx={{ minWidth: 105 }}>
+            <Typography variant="body2" color="text.secondary">
+              {bytesToSize(disk_usage.free)} Free
+            </Typography>
+          </Box>
+        </Box>
+      )}
       <ScansToolbar
         onFilter={onFilter}
         onExport={onExport}
@@ -490,10 +553,10 @@ const ScansPage: React.FC = () => {
                     </Tooltip>
                   </TableCell>
                   <TableProgressCell align="right">
-                    {scan.scan_id && scan.log_files < MAX_LOG_FILES ? (
+                    {scan.scan_id && scan.progress < 100 ? (
                       <LinearProgress
                         variant="determinate"
-                        value={(100 * scan.log_files) / MAX_LOG_FILES}
+                        value={scan.progress}
                       />
                     ) : (
                       <CompleteIcon color="primary" />

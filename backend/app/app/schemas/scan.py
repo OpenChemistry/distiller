@@ -46,7 +46,7 @@ def metadata_infinity(metadata):
 class Scan(BaseModel):
     id: int
     scan_id: Optional[int]
-    log_files: int
+    progress: int
     created: datetime
     locations: List[Location]
     image_path: Optional[str]
@@ -54,6 +54,7 @@ class Scan(BaseModel):
     jobs: List[Job]
     metadata: Optional[Dict[str, Any]] = Field(alias="metadata_")
     microscope_id: int
+    uuid: Optional[str]
 
     _metadata_infinity = validator("metadata", allow_reuse=True)(metadata_infinity)
 
@@ -64,6 +65,7 @@ class Scan(BaseModel):
 class Scan4DCreate(BaseModel):
     scan_id: int
     created: datetime
+    uuid: str
     locations: List[LocationCreate]
     metadata: Optional[Dict[str, Any]]
     microscope_id: Optional[int]
@@ -88,7 +90,7 @@ class ScanFromFile(BaseModel):
 
 
 class ScanUpdate(BaseModel):
-    log_files: Optional[int] = None
+    progress: Optional[int] = None
     locations: Optional[List[LocationCreate]] = None
     notes: Optional[str]
     image_path: Optional[str]
@@ -110,7 +112,7 @@ class ScanEventType(str, Enum):
 
 class ScanEvent(BaseModel):
     id: int
-    log_files: Optional[int]
+    progress: Optional[int]
     locations: Optional[List[Location]]
     event_type: ScanEventType
 

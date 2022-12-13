@@ -29,7 +29,7 @@ import CountIcon from '@mui/icons-material/BlurOn';
 import OutputIcon from '@mui/icons-material/Terminal';
 import LeftIcon from '@mui/icons-material/ArrowLeft';
 import RightIcon from '@mui/icons-material/ArrowRight';
-import Note from '@mui/icons-material/Note';
+import TextSnippetOutlined from '@mui/icons-material/TextSnippetOutlined';
 import { pink } from '@mui/material/colors';
 import Tooltip from '@mui/material/Tooltip';
 import humanizeDuration from 'humanize-duration';
@@ -68,7 +68,6 @@ import {
 import { canonicalMicroscopeName } from '../utils/microscopes';
 import ImageDialog from '../components/image-dialog';
 import { stopPropagation } from '../utils';
-import { NoteOutlined, Notes, TextSnippetOutlined } from '@mui/icons-material';
 import { JUPYTER_USER_REDIRECT_URL } from '../constants';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({

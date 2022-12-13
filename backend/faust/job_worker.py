@@ -20,17 +20,18 @@ import faust
 from config import settings
 from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
                        SFAPI_BASE_URL, SFAPI_TOKEN_URL, SLURM_RUNNING_STATES,
-                       TOPIC_JOB_SUBMIT_EVENTS, TRANSFER_JOB_SCRIPT_TEMPLATE,
-                       JobState)
+                       TOPIC_JOB_SUBMIT_EVENTS, TOPIC_SCAN_EVENTS,
+                       TRANSFER_JOB_SCRIPT_TEMPLATE, JobState)
 from faust_records import Scan as ScanRecord
+from faust_records import ScanUpdatedEvent
 from schemas import JobUpdate
 from schemas import Location as LocationRest
 from schemas import Machine, Scan, ScanUpdate, SfapiJob
-from utils import get_job
+from utils import generate_ncemhub_scan_path, get_job
 from utils import get_machine
 from utils import get_machine as fetch_machine
 from utils import get_machines as fetch_machines
-from utils import get_scan
+from utils import get_notebooks, get_scan
 from utils import update_job as update_job_request
 from utils import update_scan
 
@@ -419,6 +420,45 @@ async def read_slurm_out(slurm_id: int, workdir: str) -> Union[str, bytes, None]
     return None
 
 
+async def render_counted_notebook(scan: Scan, scan_created_date: str) -> str:
+    template_loader = jinja2.FileSystemLoader(
+        searchpath=Path(__file__).parent / "templates"
+    )
+    template_env = jinja2.Environment(loader=template_loader, enable_async=True)
+    template = template_env.get_template("counted.ipynb.j2")
+
+    return await template.render_async(
+        settings=settings, scan=scan, scan_created_date=scan_created_date
+    )
+
+
+async def generate_counted_notebook(
+    session: aiohttp.ClientSession, scan: Scan, scan_created_date: str
+):
+    notebook_path = (
+        await generate_ncemhub_scan_path(
+            session, settings.NCEMHUB_NOTEBOOK_PATH, scan_created_date, scan.id
+        )
+        / "counted.ipynb"
+    )
+    await notebook_path.parent.mkdir(parents=True, exist_ok=True)
+
+    notebook_contents = await render_counted_notebook(scan, scan_created_date)
+    async with notebook_path.open("w") as fp:
+        await fp.write(notebook_contents)
+
+    return notebook_path
+
+
+scan_events = app.topic(TOPIC_SCAN_EVENTS, value_type=ScanUpdatedEvent)
+
+
+async def send_scan_notebooks_update_event(session: aiohttp.ClientSession, id: int):
+    notebooks = await get_notebooks(session, id)
+
+    await scan_events.send(value=ScanUpdatedEvent(id, notebooks))
+
+
 completed_jobs = set()
 
 
@@ -531,6 +571,15 @@ async def monitor_jobs():
                         ],
                     )
                     await update_scan(session, update)
+                elif job.state == JobState.COMPLETED and JobType.COUNT in job.name:
+                    job = await get_job(session, id)
+                    scan = await get_scan(session, job.scan_id)
+                    scan_created_date = scan.created.astimezone().strftime(
+                        DATE_DIR_FORMAT
+                    )
+
+                    await generate_counted_notebook(session, scan, scan_created_date)
+                    await send_scan_notebooks_update_event(session, scan.id)
 
         except httpx.ReadTimeout as ex:
             logger.warning("Job monitoring request timed out", ex)

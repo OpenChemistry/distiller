@@ -23,7 +23,8 @@ from constants import (DATE_DIR_FORMAT, NERSC_LOCATION,
                        TOPIC_SCAN_METADATA_EVENTS)
 from faust_records import ScanMetadata
 from schemas import Location
-from utils import ScanUpdate, get_microscope_by_id, get_scan, update_scan
+from utils import (ScanUpdate, generate_ncemhub_scan_path,
+                   get_microscope_by_id, get_scan, update_scan)
 
 DATA_FILE_FORMATS = [".dm3", ".dm4", ".ser", ".emd"]
 
@@ -121,14 +122,19 @@ async def generate_ncemhub_scan_file_path(
     # First get the microscope name to use for the directory
     scan = await get_scan(session, id)
     microscope = await get_microscope_by_id(session, scan.microscope_id)
-    name = microscope.name.lower().replace(" ", "")
+    microscope.name.lower().replace(" ", "")
 
     stat_info = await src_path.stat()
     created_datetime = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
 
-    date_dir = AsyncPath(created_datetime.astimezone().strftime(DATE_DIR_FORMAT))
+    created_date = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
 
-    return AsyncPath(settings.NCEMHUB_DATA_PATH) / name / date_dir / str(id) / filename
+    return (
+        await generate_ncemhub_scan_path(
+            session, settings.NCEMHUB_DATA_PATH, created_date, id
+        )
+        / filename
+    )
 
 
 @tenacity.retry(

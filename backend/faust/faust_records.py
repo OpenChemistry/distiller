@@ -33,3 +33,9 @@ codecs.register("json_numpy", json_numpy())
 class ScanMetadata(faust.Record, serializer="json_numpy"):
     scan_id: int
     metadata: Dict[str, Any]
+
+
+class ScanUpdatedEvent(faust.Record):
+    id: int
+    notebooks: Optional[List[str]]
+    event_type: str = "scan.updated"

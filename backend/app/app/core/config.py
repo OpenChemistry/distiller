@@ -70,6 +70,7 @@ class Settings(BaseSettings):
     SENTRY_DSN_URL: AnyHttpUrl = None
 
     MACHINES: List[Machine]
+    NCEMHUB_NOTEBOOK_PATH: str
 
     class Config:
         case_sensitive = True

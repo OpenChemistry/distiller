@@ -11,3 +11,5 @@ TOPIC_MICROSCOPE_EVENTS = "microscope_events"
 NERSC_STATUS_URL_PREFIX = "https://api.nersc.gov/api/v1.2/status/"
 
 BLOCKSIZE = 1024 * 1024  # 1M
+
+DATE_DIR_FORMAT = "%Y.%m.%d"

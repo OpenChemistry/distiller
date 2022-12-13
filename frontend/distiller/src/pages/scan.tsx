@@ -4,6 +4,8 @@ import { useParams as useUrlParams, useNavigate } from 'react-router-dom';
 
 import useLocalStorageState from 'use-local-storage-state';
 
+import path from 'path-browserify';
+
 import {
   Card,
   Grid,
@@ -27,6 +29,7 @@ import CountIcon from '@mui/icons-material/BlurOn';
 import OutputIcon from '@mui/icons-material/Terminal';
 import LeftIcon from '@mui/icons-material/ArrowLeft';
 import RightIcon from '@mui/icons-material/ArrowRight';
+import Note from '@mui/icons-material/Note';
 import { pink } from '@mui/material/colors';
 import Tooltip from '@mui/material/Tooltip';
 import humanizeDuration from 'humanize-duration';
@@ -34,7 +37,12 @@ import { DateTime } from 'luxon';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
-import { getScan, scansSelector, patchScan } from '../features/scans';
+import {
+  getScan,
+  scansSelector,
+  patchScan,
+  getNotebooks,
+} from '../features/scans';
 import {
   machineState,
   machineSelectors,
@@ -60,6 +68,8 @@ import {
 import { canonicalMicroscopeName } from '../utils/microscopes';
 import ImageDialog from '../components/image-dialog';
 import { stopPropagation } from '../utils';
+import { NoteOutlined, Notes, TextSnippetOutlined } from '@mui/icons-material';
+import { JUPYTER_USER_REDIRECT_URL } from '../constants';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
@@ -154,7 +164,14 @@ const ScanPage: React.FC<Props> = () => {
   }
 
   useEffect(() => {
-    dispatch(getScan({ id: scanId }));
+    const fetchScan = async () => {
+      await dispatch(getScan({ id: scanId }));
+
+      // Separate dispatch to get the notebooks, we may not need them
+      await dispatch(getNotebooks({ id: scanId }));
+    };
+
+    fetchScan();
   }, [dispatch, scanId]);
 
   const onSaveNotes = (id: IdType, notes: string) => {
@@ -363,6 +380,22 @@ const ScanPage: React.FC<Props> = () => {
               Count
             </Button>
           )}
+          {scan?.notebooks &&
+            scan?.notebooks.map((p: string) => {
+              return (
+                <Button
+                  onClick={() =>
+                    window.open(`${JUPYTER_USER_REDIRECT_URL}${p}`, '_blank')
+                  }
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  startIcon={<TextSnippetOutlined />}
+                >
+                  Launch {path.basename(p)} notebook
+                </Button>
+              );
+            })}
           <Spacer />
           <Button
             onClick={onNavigatePrev}

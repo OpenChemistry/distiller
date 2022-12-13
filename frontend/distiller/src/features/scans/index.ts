@@ -12,6 +12,7 @@ import {
   patchScan as patchScanAPI,
   removeScanFiles as removeScanFilesAPI,
   removeScan as removeScanAPI,
+  getNotebooks as getNotebooksAPI,
 } from './api';
 import { Scan, IdType, ScansRequestResult } from '../../types';
 import { DateTime } from 'luxon';
@@ -52,6 +53,16 @@ export const getScan = createAsyncThunk<Scan, { id: IdType }>(
     const scan = await getScanAPI(id);
 
     return scan;
+  }
+);
+
+export const getNotebooks = createAsyncThunk<string[], { id: IdType }>(
+  'notebooks/fetch',
+  async (payload, _thunkAPI) => {
+    const { id } = payload;
+    const result = await getNotebooksAPI(id);
+
+    return result;
   }
 );
 
@@ -123,6 +134,18 @@ export const scansSlice = createSlice({
         const update = {
           id: action.payload.id,
           changes: action.payload,
+        };
+        scansAdapter.updateOne(state, update);
+      })
+      .addCase(getNotebooks.fulfilled, (state, action) => {
+        const notebooks = action.payload;
+        const { id } = action.meta.arg;
+
+        const update = {
+          id,
+          changes: {
+            notebooks,
+          },
         };
         scansAdapter.updateOne(state, update);
       })

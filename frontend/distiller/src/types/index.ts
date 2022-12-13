@@ -103,6 +103,7 @@ export type Scan = {
   nextScanId?: IdType;
   metadata?: Metadata;
   microscope_id: IdType;
+  notebooks?: string[];
 };
 
 export type ScansRequestResult = {

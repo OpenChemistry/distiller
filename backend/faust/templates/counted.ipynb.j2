@@ -96,7 +96,7 @@
     "scan_date = '{{ scan_created_date }}'\n",
     "th = 4.0\n",
     "distiller_path = Path('{{ settings.NCEMHUB_PATH }}')\n",
-    "scan_path = get_scan_path(distiller_path / 'counted'  / scan_date)\n",
+    "scan_path = get_scan_path(distiller_path / 'counted'  / scan_date, scan_num, scan_id, th)\n",
     "haadf_path = distiller_path / 'dm4' / scan_date / f'scan{scan_num}.dm4'"
    ]
   },

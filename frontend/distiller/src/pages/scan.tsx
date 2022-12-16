@@ -391,7 +391,7 @@ const ScanPage: React.FC<Props> = () => {
                   variant="outlined"
                   startIcon={<TextSnippetOutlined />}
                 >
-                  Launch {path.basename(p)} notebook
+                  Launch {path.basename(p, '.ipynb')} notebook
                 </Button>
               );
             })}

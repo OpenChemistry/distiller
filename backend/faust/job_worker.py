@@ -21,7 +21,7 @@ from config import settings
 from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
                        SFAPI_BASE_URL, SFAPI_TOKEN_URL, SLURM_RUNNING_STATES,
                        TOPIC_JOB_SUBMIT_EVENTS, TOPIC_SCAN_EVENTS,
-                       TRANSFER_JOB_SCRIPT_TEMPLATE, JobState)
+                       TRANSFER_JOB_SCRIPT_TEMPLATE, COUNTED_NOTEBOOK_NAME, JobState)
 from faust_records import Scan as ScanRecord
 from faust_records import ScanUpdatedEvent
 from schemas import JobUpdate
@@ -425,7 +425,7 @@ async def render_counted_notebook(scan: Scan, scan_created_date: str) -> str:
         searchpath=Path(__file__).parent / "templates"
     )
     template_env = jinja2.Environment(loader=template_loader, enable_async=True)
-    template = template_env.get_template("counted.ipynb.j2")
+    template = template_env.get_template(f"{COUNTED_NOTEBOOK_NAME}.j2")
 
     return await template.render_async(
         settings=settings, scan=scan, scan_created_date=scan_created_date
@@ -439,7 +439,7 @@ async def generate_counted_notebook(
         await generate_ncemhub_scan_path(
             session, settings.NCEMHUB_NOTEBOOK_PATH, scan_created_date, scan.id
         )
-        / "counted.ipynb"
+        / COUNTED_NOTEBOOK_NAME
     )
     await notebook_path.parent.mkdir(parents=True, exist_ok=True)
 

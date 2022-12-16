@@ -85,3 +85,4 @@ class JobType(str, Enum):
 
 STATUS_PREFIX = "4dstem_rec_status"
 NERSC_LOCATION = "NERSC"
+COUNTED_NOTEBOOK_NAME = "DPC.ipynb"

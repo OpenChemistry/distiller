@@ -8,7 +8,6 @@ from typing import List, Optional, cast
 from urllib.parse import unquote
 
 import aiofiles
-from aiopath import AsyncPath
 from fastapi import (APIRouter, Depends, File, HTTPException, Response,
                      UploadFile, status)
 from fastapi.security.api_key import APIKey
@@ -20,9 +19,7 @@ from app import schemas
 from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
 from app.api.utils import upload_to_file
 from app.core.config import settings
-from app.core.constants import DATE_DIR_FORMAT
 from app.core.logging import logger
-from app.crud import microscope as microscope_crud
 from app.crud import scan as crud
 from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
                                 send_scan_event_to_kafka,
@@ -423,34 +420,3 @@ async def upload_image(
         await send_scan_event_to_kafka(
             schemas.ScanUpdateEvent(image_path=image_path, id=id)
         )
-
-
-@router.get(
-    "/{id}/notebooks",
-    response_model=List[str],
-    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
-)
-async def read_notebooks(id: int, db: Session = Depends(get_db)):
-
-    db_scan = crud.get_scan(db, id=id)
-    if db_scan is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found"
-        )
-
-    microscope = microscope_crud.get_microscope(db, cast(int, db_scan.microscope_id))
-    if microscope is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found"
-        )
-
-    microscope_name = microscope.name.lower().replace(" ", "")
-    scan_created_date = db_scan.created.astimezone().strftime(DATE_DIR_FORMAT)
-    notebook_path = (
-        AsyncPath(settings.NCEMHUB_NOTEBOOK_PATH)
-        / microscope_name
-        / scan_created_date
-        / str(id)
-    )
-
-    return [str(p) async for p in notebook_path.glob("*.ipynb")]

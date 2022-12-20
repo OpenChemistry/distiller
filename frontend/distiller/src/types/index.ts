@@ -103,7 +103,6 @@ export type Scan = {
   nextScanId?: IdType;
   metadata?: Metadata;
   microscope_id: IdType;
-  notebooks?: string[];
 };
 
 export type ScansRequestResult = {
@@ -129,4 +128,10 @@ export type Microscope = {
   name: string;
   config: { [name: string]: any };
   state?: { [name: string]: any };
+};
+
+export type Notebook = {
+  name: string;
+  path: string;
+  scan_id: number;
 };

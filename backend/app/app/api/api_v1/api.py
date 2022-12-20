@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.api_v1.endpoints import (auth, files, jobs, machines, microscopes,
-                                      notifications, scans)
+                                      notebooks, notifications, scans)
 
 api_router = APIRouter()
 
@@ -14,3 +14,4 @@ api_router.include_router(machines.router, prefix="/machines", tags=["machines"]
 api_router.include_router(
     microscopes.router, prefix="/microscopes", tags=["microscopes"]
 )
+api_router.include_router(notebooks.router, prefix="/notebooks", tags=["notebooks"])

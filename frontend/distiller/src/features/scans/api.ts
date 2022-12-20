@@ -99,11 +99,3 @@ export function removeScan(
     })
     .then((_) => undefined);
 }
-
-export function getNotebooks(distillerScanId: IdType): Promise<string[]> {
-  return apiClient
-    .get({
-      url: `scans/${distillerScanId}/notebooks`,
-    })
-    .then((res) => res.json());
-}

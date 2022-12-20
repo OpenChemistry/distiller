@@ -70,7 +70,8 @@ class Settings(BaseSettings):
     SENTRY_DSN_URL: AnyHttpUrl = None
 
     MACHINES: List[Machine]
-    NCEMHUB_NOTEBOOK_PATH: str
+    NCEMHUB_PATH: str
+    NOTEBOOKS: List[str] = ["DPC"]
 
     class Config:
         case_sensitive = True

@@ -4,8 +4,6 @@ import { useParams as useUrlParams, useNavigate } from 'react-router-dom';
 
 import useLocalStorageState from 'use-local-storage-state';
 
-import path from 'path-browserify';
-
 import {
   Card,
   Grid,
@@ -37,12 +35,8 @@ import { DateTime } from 'luxon';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
-import {
-  getScan,
-  scansSelector,
-  patchScan,
-  getNotebooks,
-} from '../features/scans';
+import { getScan, scansSelector, patchScan } from '../features/scans';
+import { getNotebooks, selectNotebooks } from '../features/notebooks';
 import {
   machineState,
   machineSelectors,
@@ -55,6 +49,7 @@ import JobStateComponent from '../components/job-state';
 import TransferDialog from '../components/transfer-dialog';
 import CountDialog from '../components/count-dialog';
 import { createJob } from '../features/jobs/api';
+import { fetchOrCreateNotebook } from '../features/notebooks/api';
 import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
 import JobOutputDialog from '../components/job-output';
 import { isNil } from '../utils';
@@ -163,15 +158,12 @@ const ScanPage: React.FC<Props> = () => {
   }
 
   useEffect(() => {
-    const fetchScan = async () => {
-      await dispatch(getScan({ id: scanId }));
-
-      // Separate dispatch to get the notebooks, we may not need them
-      await dispatch(getNotebooks({ id: scanId }));
-    };
-
-    fetchScan();
+    dispatch(getScan({ id: scanId }));
   }, [dispatch, scanId]);
+
+  useEffect(() => {
+    dispatch(getNotebooks());
+  }, [dispatch]);
 
   const onSaveNotes = (id: IdType, notes: string) => {
     return dispatch(patchScan({ id, updates: { notes } }));
@@ -238,6 +230,8 @@ const ScanPage: React.FC<Props> = () => {
     scansSelector.selectById(state, scanId)
   );
 
+  const notebooks = useAppSelector((state) => selectNotebooks(state));
+
   const onNavigateNext = () => {
     if (microscope === null) {
       return;
@@ -268,6 +262,17 @@ const ScanPage: React.FC<Props> = () => {
 
   const onCloseDialog = () => {
     setMaximizeImg(false);
+  };
+
+  const onLaunchNotebook = (name: string) => {
+    fetchOrCreateNotebook(name, scan.id)
+      .then((notebook) => {
+        window.open(`${JUPYTER_USER_REDIRECT_URL}${notebook.path}`, '_blank');
+      })
+      .catch((error) => {
+        // Should display to user
+        console.error('Notebook creation failed');
+      });
   };
 
   return (
@@ -379,19 +384,18 @@ const ScanPage: React.FC<Props> = () => {
               Count
             </Button>
           )}
-          {scan?.notebooks &&
-            scan?.notebooks.map((p: string) => {
+          {notebooks &&
+            notebooks.map((name: string) => {
               return (
                 <Button
-                  onClick={() =>
-                    window.open(`${JUPYTER_USER_REDIRECT_URL}${p}`, '_blank')
-                  }
+                  key={name}
+                  onClick={() => onLaunchNotebook(name)}
                   size="small"
                   color="primary"
                   variant="outlined"
                   startIcon={<TextSnippetOutlined />}
                 >
-                  Launch {path.basename(p, '.ipynb')} notebook
+                  Launch {name} notebook
                 </Button>
               );
             })}

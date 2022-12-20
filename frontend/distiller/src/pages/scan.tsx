@@ -64,6 +64,8 @@ import { canonicalMicroscopeName } from '../utils/microscopes';
 import ImageDialog from '../components/image-dialog';
 import { stopPropagation } from '../utils';
 import { JUPYTER_USER_REDIRECT_URL } from '../constants';
+import CircularProgress from '@mui/material/CircularProgress';
+import { Box } from '@mui/system';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
@@ -111,6 +113,7 @@ function jobTypeToIcon(type: JobType) {
 
 const ScanPage: React.FC<Props> = () => {
   const [maximizeImg, setMaximizeImg] = useState(false);
+  const [notebookLoading, setNotebookLoading] = React.useState(false);
   const scanIdParam = useUrlParams().scanId;
 
   const scanId = parseInt(scanIdParam as string);
@@ -265,6 +268,7 @@ const ScanPage: React.FC<Props> = () => {
   };
 
   const onLaunchNotebook = (name: string) => {
+    setNotebookLoading(true);
     fetchOrCreateNotebook(name, scan.id)
       .then((notebook) => {
         window.open(`${JUPYTER_USER_REDIRECT_URL}${notebook.path}`, '_blank');
@@ -272,7 +276,8 @@ const ScanPage: React.FC<Props> = () => {
       .catch((error) => {
         // Should display to user
         console.error('Notebook creation failed');
-      });
+      })
+      .finally(() => setNotebookLoading(false));
   };
 
   return (
@@ -387,16 +392,31 @@ const ScanPage: React.FC<Props> = () => {
           {notebooks &&
             notebooks.map((name: string) => {
               return (
-                <Button
-                  key={name}
-                  onClick={() => onLaunchNotebook(name)}
-                  size="small"
-                  color="primary"
-                  variant="outlined"
-                  startIcon={<TextSnippetOutlined />}
-                >
-                  Launch {name} notebook
-                </Button>
+                <Box sx={{ m: 1, position: 'relative' }}>
+                  <Button
+                    key={name}
+                    onClick={() => onLaunchNotebook(name)}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    startIcon={<TextSnippetOutlined />}
+                  >
+                    Launch {name} notebook
+                  </Button>
+                  {notebookLoading && (
+                    <CircularProgress
+                      size={24}
+                      sx={{
+                        color: 'primary',
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        marginTop: '-12px',
+                        marginLeft: '-12px',
+                      }}
+                    />
+                  )}
+                </Box>
               );
             })}
           <Spacer />

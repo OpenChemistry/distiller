@@ -1,0 +1,20 @@
+
+FROM openchemistry/distiller-faust-base:latest
+
+RUN ls -la /tmp
+
+WORKDIR /app
+
+COPY requirements.notebook.txt /app/requirements.txt
+
+RUN pip install -r /app/requirements.txt
+
+COPY *.py /app/
+COPY *.env /app/
+COPY templates/ /app/templates/
+
+ENV WORKER notebook
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+
+ENTRYPOINT [ "/docker-entrypoint.sh" ]

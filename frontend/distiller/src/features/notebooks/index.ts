@@ -1,14 +1,6 @@
-import {
-  createAsyncThunk,
-  createSlice,
-  createEntityAdapter,
-  PayloadAction,
-  createSelector,
-} from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import { getNotebooks as getNotebooksAPI } from './api';
-import { Scan, IdType, ScansRequestResult } from '../../types';
-import { DateTime } from 'luxon';
 
 export interface NotebooksState {
   notebooks: string[];

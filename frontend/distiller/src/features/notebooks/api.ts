@@ -1,7 +1,5 @@
 import { apiClient } from '../../client';
-import { IdType, Notebook } from '../../types';
-import { pickNil } from '../../utils';
-import { DateTime } from 'luxon';
+import { Notebook } from '../../types';
 
 export function getNotebooks(): Promise<string[]> {
   return apiClient

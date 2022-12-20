@@ -1,4 +1,5 @@
-faust-streaming
-python-rocksdb
-pydantic[dotenv]
-numpy
+jinja2
+tenacity
+aiohttp
+aiopath
+python-dotenv

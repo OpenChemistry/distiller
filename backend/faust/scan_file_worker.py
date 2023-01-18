@@ -118,12 +118,6 @@ async def copy_file_to_ncemhub(src_path: AsyncPath, dest_path: AsyncPath):
 async def generate_ncemhub_scan_file_path(
     session: aiohttp.ClientSession, src_path: AsyncPath, id: int, filename: str
 ):
-    # ncemhub path are of the form <date dir>/microscope/<id>/<filename>
-    # First get the microscope name to use for the directory
-    scan = await get_scan(session, id)
-    microscope = await get_microscope_by_id(session, scan.microscope_id)
-    microscope.name.lower().replace(" ", "")
-
     stat_info = await src_path.stat()
     created_datetime = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
 

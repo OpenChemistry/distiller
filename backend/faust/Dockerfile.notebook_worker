@@ -1,8 +1,6 @@
 
 FROM openchemistry/distiller-faust-base:latest
 
-RUN ls -la /tmp
-
 WORKDIR /app
 
 COPY requirements.notebook.txt /app/requirements.txt

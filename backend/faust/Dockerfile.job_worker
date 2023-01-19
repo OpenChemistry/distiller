@@ -1,8 +1,6 @@
 
 FROM openchemistry/distiller-faust-base:latest
 
-RUN ls -la /tmp
-
 RUN mkdir -p /app/distiller-data && \
   chmod a+xrw /app/distiller-data
 

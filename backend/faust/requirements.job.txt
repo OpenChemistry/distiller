@@ -5,5 +5,4 @@ aiohttp
 aiopath
 python-dotenv
 numpy
-# Need a fix that went into 0.15.5
-authlib==0.15.5
+authlib

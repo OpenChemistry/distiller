@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import aiohttp
 import tenacity
+from aiopath import AsyncPath
 
 from config import settings
 from schemas import (Job, JobUpdate, Machine, Microscope, Scan, ScanCreate,
@@ -330,3 +331,44 @@ async def get_microscope_by_id(session: aiohttp.ClientSession, id: int) -> Micro
             raise Exception("Unable to fetch microscopy")
 
         return Microscope(**json)
+
+
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(
+        aiohttp.client_exceptions.ServerConnectionError
+    )
+    | tenacity.retry_if_exception_type(aiohttp.client_exceptions.ClientConnectionError),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+)
+async def get_notebooks(session: aiohttp.ClientSession, id: int) -> List[str]:
+    headers = {
+        settings.API_KEY_NAME: settings.API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    async with session.get(
+        f"{settings.API_URL}/scans/{id}/notebooks", headers=headers
+    ) as r:
+        r.raise_for_status()
+
+        json = await r.json()
+
+        if json is None:
+            raise Exception("Unable to fetch microscopy")
+
+        return json
+
+
+async def generate_ncemhub_scan_path(
+    session: aiohttp.ClientSession, base_path: str, created_date: str, id: int
+) -> AsyncPath:
+    # ncemhub path are of the form <created date dir>/microscope/<id>
+    # First get the microscope name to use for the directory
+    scan = await get_scan(session, id)
+    microscope = await get_microscope_by_id(session, scan.microscope_id)
+    name = microscope.name.lower().replace(" ", "")
+
+    date_dir = AsyncPath(created_date)
+
+    return AsyncPath(base_path) / name / date_dir / str(id)

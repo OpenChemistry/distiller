@@ -5,15 +5,15 @@ from aiokafka import AIOKafkaProducer
 from app.core.config import settings
 from app.core.constants import (TOPIC_CUSTODIAN_EVENTS,
                                 TOPIC_HAADF_FILE_EVENTS, TOPIC_JOB_EVENTS,
-                                TOPIC_MICROSCOPE_EVENTS, TOPIC_SCAN_EVENTS,
-                                TOPIC_SCAN_FILE_EVENTS,
+                                TOPIC_MICROSCOPE_EVENTS, TOPIC_NOTEBOOK_EVENTS,
+                                TOPIC_SCAN_EVENTS, TOPIC_SCAN_FILE_EVENTS,
                                 TOPIC_SCAN_FILE_SYNC_EVENTS,
                                 TOPIC_STATUS_FILE_EVENTS,
                                 TOPIC_STATUS_FILE_SYNC_EVENTS)
 from app.core.logging import logger
 from app.schemas import (FileSystemEvent, HaadfUploaded, MicroscopeUpdateEvent,
-                         ScanCreatedEvent, ScanFileUploaded, ScanUpdateEvent,
-                         SyncEvent)
+                         NotebookCreateEvent, ScanCreatedEvent,
+                         ScanFileUploaded, ScanUpdateEvent, SyncEvent)
 from app.schemas.events import RemoveScanFilesEvent, SubmitJobEvent
 
 
@@ -128,3 +128,13 @@ async def send_microscope_event_to_kafka(event: MicroscopeUpdateEvent) -> None:
         await producer.send(TOPIC_MICROSCOPE_EVENTS, event)
     except:
         logger.exception(f"Exception send on topic: {TOPIC_MICROSCOPE_EVENTS}")
+
+
+async def send_notebook_event_to_kafka(event: NotebookCreateEvent) -> None:
+    if producer is None:
+        raise Exception("Producer has not been initialized")
+
+    try:
+        await producer.send(TOPIC_NOTEBOOK_EVENTS, event)
+    except:
+        logger.exception(f"Exception send on topic: {TOPIC_NOTEBOOK_EVENTS}")

@@ -129,3 +129,9 @@ export type Microscope = {
   config: { [name: string]: any };
   state?: { [name: string]: any };
 };
+
+export type Notebook = {
+  name: string;
+  path: string;
+  scan_id: number;
+};

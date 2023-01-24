@@ -10,7 +10,7 @@
     "@mui/material": "^5.11.6",
     "@mui/x-date-pickers": "^5.0.15",
     "@reduxjs/toolkit": "^1.9.1",
-    "@sentry/react": "^7.11.1",
+    "@sentry/react": "^7.33.0",
     "@sentry/tracing": "^7.11.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",

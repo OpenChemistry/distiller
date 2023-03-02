@@ -1,8 +1,8 @@
 import { useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-export type Serializer<T> = (value: T) => string;
-export type Deserializer<T> = (value: string) => T;
+export type Serializer<T> = (value: T | undefined) => string;
+export type Deserializer<T> = (value: string) => T | undefined;
 export type Comparer<T> = (prevValue: T, currValue: T) => boolean;
 
 function defaultComparer<T>(prev: T, curr: T): boolean {
@@ -22,7 +22,9 @@ export function useUrlState<T>(
 
   const rawValue = searchParams.get(key);
 
-  const value: T = rawValue ? deserializer(rawValue) : initialValue;
+  const value: T = rawValue
+    ? deserializer(rawValue) || initialValue
+    : initialValue;
 
   if (!comparer(value, refValue.current)) {
     refValue.current = value;
@@ -32,10 +34,15 @@ export function useUrlState<T>(
     (newValue: T) => {
       const prevParams = new URLSearchParams(window.location.search);
 
-      const newParams = {
-        ...Object.fromEntries(prevParams),
-        [key]: serializer(newValue),
-      };
+      const newValueStr = serializer(newValue);
+
+      const newParams = Object.fromEntries(prevParams);
+
+      if (newValueStr === '') {
+        delete newParams[key];
+      } else {
+        newParams[key] = newValueStr;
+      }
 
       setSearchParams(newParams, { replace: true });
     },

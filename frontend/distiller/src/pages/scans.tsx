@@ -152,9 +152,13 @@ export const dateTimeComparer: Comparer<DateTime | null> = (a, b) => {
 
 export const intSerializer: Serializer<number> = (n) => {
   try {
-    return n.toString();
+    if (isNil(n)) {
+      return '';
+    } else {
+      return n.toString();
+    }
   } catch {
-    return '0';
+    return '';
   }
 };
 
@@ -162,7 +166,7 @@ export const intDeserializer: Deserializer<number> = (nStr) => {
   const n = parseInt(nStr);
 
   if (!Number.isFinite(n)) {
-    return 0;
+    return undefined;
   }
 
   return n;

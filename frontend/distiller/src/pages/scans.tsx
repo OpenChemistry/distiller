@@ -191,7 +191,12 @@ const ScansPage: React.FC = () => {
     intDeserializer
   );
 
-  const [rowsPerPage, setRowsPerPage] = React.useState(20);
+  const [rowsPerPage, setRowsPerPage] = useUrlState(
+    'rowsPerPage',
+    20,
+    intSerializer,
+    intDeserializer
+  );
   const [scanToDelete, setScanToDelete] = React.useState<Scan | null>(null);
   const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan | null>(
     null

@@ -150,6 +150,24 @@ export const dateTimeComparer: Comparer<DateTime | null> = (a, b) => {
   }
 };
 
+export const intSerializer: Serializer<number> = (n) => {
+  try {
+    return n.toString();
+  } catch {
+    return '0';
+  }
+};
+
+export const intDeserializer: Deserializer<number> = (nStr) => {
+  const n = parseInt(nStr);
+
+  if (!Number.isFinite(n)) {
+    return 0;
+  }
+
+  return n;
+};
+
 const ScansPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -162,7 +180,13 @@ const ScansPage: React.FC = () => {
 
   const [maximizeImg, setMaximizeImg] = useState(false);
   const [activeImg, setActiveImg] = useState('');
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = useUrlState(
+    'page',
+    0,
+    intSerializer,
+    intDeserializer
+  );
+
   const [rowsPerPage, setRowsPerPage] = React.useState(20);
   const [scanToDelete, setScanToDelete] = React.useState<Scan | null>(null);
   const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan | null>(
@@ -171,23 +195,21 @@ const ScansPage: React.FC = () => {
   const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] =
     React.useState<(params: { [key: string]: any }) => void | undefined>();
 
-  const [startDateFilter, setStartDateFilter] =
-    useUrlState<DateTime | null>(
-      'startDate',
-      null,
-      dateTimeSerializer,
-      dateTimeDeserializer,
-      dateTimeComparer
-    );
+  const [startDateFilter, setStartDateFilter] = useUrlState<DateTime | null>(
+    'startDate',
+    null,
+    dateTimeSerializer,
+    dateTimeDeserializer,
+    dateTimeComparer
+  );
 
-  const [endDateFilter, setEndDateFilter] =
-    useUrlState<DateTime | null>(
-      'endDate',
-      null,
-      dateTimeSerializer,
-      dateTimeDeserializer,
-      dateTimeComparer
-    );
+  const [endDateFilter, setEndDateFilter] = useUrlState<DateTime | null>(
+    'endDate',
+    null,
+    dateTimeSerializer,
+    dateTimeDeserializer,
+    dateTimeComparer
+  );
 
   const [selectedScanIDs, setSelectedScanIDs] = useState<Set<IdType>>(
     new Set<IdType>()

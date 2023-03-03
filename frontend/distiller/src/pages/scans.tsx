@@ -351,15 +351,21 @@ const ScansPage: React.FC = () => {
     setScanToDelete(null);
   };
 
-  const onStartDate = useCallback((date: DateTime | null) => {
-    setPage(0);
-    setStartDateFilter(date);
-  }, []);
+  const onStartDate = useCallback(
+    (date: DateTime | null) => {
+      setPage(0);
+      setStartDateFilter(date);
+    },
+    [setPage, setStartDateFilter]
+  );
 
-  const onEndDate = useCallback((date: DateTime | null) => {
-    setPage(0);
-    setEndDateFilter(date);
-  }, []);
+  const onEndDate = useCallback(
+    (date: DateTime | null) => {
+      setPage(0);
+      setEndDateFilter(date);
+    },
+    [setPage, setEndDateFilter]
+  );
 
   const selectedScans = () => {
     if (selectedScanIDs.size > 0) {

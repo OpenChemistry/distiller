@@ -49,13 +49,15 @@ import {
 import { machineSelectors, machineState } from '../features/machines';
 import { ExportFormat, Metadata } from '../types';
 
-import { isNil, isNull } from 'lodash';
-import { ScansToolbar, FilterCriteria } from '../components/scans-toolbar';
+import { isNil } from 'lodash';
+import { ScansToolbar } from '../components/scans-toolbar';
 import {
   microscopesSelectors,
   microscopesState,
 } from '../features/microscopes';
 import { canonicalMicroscopeName } from '../utils/microscopes';
+
+import { useUrlState, Serializer, Deserializer } from '../routes/url-state';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
@@ -108,6 +110,41 @@ const bytesToSize = (bytes: number): string => {
   return `${(bytes / 1024 ** i).toFixed(1)} ${sizes[i]}`;
 };
 
+export const dateTimeSerializer: Serializer<DateTime | null> = (dt) => {
+  if (!isNil(dt)) {
+    return dt.toString();
+  } else {
+    return '';
+  }
+};
+
+export const dateTimeDeserializer: Deserializer<DateTime | null> = (dtStr) => {
+  const dt = DateTime.fromISO(dtStr);
+  if (dt.isValid) {
+    return dt;
+  } else {
+    return null;
+  }
+};
+
+export const intSerializer: Serializer<number> = (n) => {
+  if (isNil(n)) {
+    return '';
+  } else {
+    return n.toString();
+  }
+};
+
+export const intDeserializer: Deserializer<number> = (nStr) => {
+  const n = parseInt(nStr);
+
+  if (!Number.isFinite(n)) {
+    return undefined;
+  }
+
+  return n;
+};
+
 const ScansPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -120,17 +157,40 @@ const ScansPage: React.FC = () => {
 
   const [maximizeImg, setMaximizeImg] = useState(false);
   const [activeImg, setActiveImg] = useState('');
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(20);
+  const [page, setPage] = useUrlState(
+    'page',
+    0,
+    intSerializer,
+    intDeserializer
+  );
+
+  const [rowsPerPage, setRowsPerPage] = useUrlState(
+    'rowsPerPage',
+    20,
+    intSerializer,
+    intDeserializer
+  );
   const [scanToDelete, setScanToDelete] = React.useState<Scan | null>(null);
   const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan | null>(
     null
   );
   const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] =
     React.useState<(params: { [key: string]: any }) => void | undefined>();
-  const [filterCriteria, setFilterCriteria] = useState<FilterCriteria | null>(
-    null
+
+  const [startDateFilter, setStartDateFilter] = useUrlState<DateTime | null>(
+    'startDate',
+    null,
+    dateTimeSerializer,
+    dateTimeDeserializer
   );
+
+  const [endDateFilter, setEndDateFilter] = useUrlState<DateTime | null>(
+    'endDate',
+    null,
+    dateTimeSerializer,
+    dateTimeDeserializer
+  );
+
   const [selectedScanIDs, setSelectedScanIDs] = useState<Set<IdType>>(
     new Set<IdType>()
   );
@@ -175,12 +235,19 @@ const ScansPage: React.FC = () => {
       getScans({
         skip: page * rowsPerPage,
         limit: rowsPerPage,
-        start: filterCriteria?.start,
-        end: filterCriteria?.end,
+        start: startDateFilter || undefined,
+        end: endDateFilter || undefined,
         microscopeId: microscopeId,
       })
     );
-  }, [dispatch, page, rowsPerPage, filterCriteria, microscopeId]);
+  }, [
+    dispatch,
+    page,
+    rowsPerPage,
+    startDateFilter,
+    endDateFilter,
+    microscopeId,
+  ]);
 
   useEffect(() => {
     setSelectedScanIDs(new Set<IdType>());
@@ -255,10 +322,21 @@ const ScansPage: React.FC = () => {
     setScanToDelete(null);
   };
 
-  const onFilter = useCallback((criteria: FilterCriteria | null) => {
-    setPage(0);
-    setFilterCriteria(criteria);
-  }, []);
+  const onStartDate = useCallback(
+    (date: DateTime | null) => {
+      setPage(0);
+      setStartDateFilter(date);
+    },
+    [setPage, setStartDateFilter]
+  );
+
+  const onEndDate = useCallback(
+    (date: DateTime | null) => {
+      setPage(0);
+      setEndDateFilter(date);
+    },
+    [setPage, setEndDateFilter]
+  );
 
   const selectedScans = () => {
     if (selectedScanIDs.size > 0) {
@@ -469,9 +547,12 @@ const ScansPage: React.FC = () => {
         </Box>
       )}
       <ScansToolbar
-        onFilter={onFilter}
+        startDate={startDateFilter}
+        endDate={endDateFilter}
+        onStartDate={onStartDate}
+        onEndDate={onEndDate}
         onExport={onExport}
-        showFilterBadge={!isNull(filterCriteria)}
+        showFilterBadge={!isNil(startDateFilter) || !isNil(endDateFilter)}
       />
       <TableContainer component={Paper}>
         <Table aria-label="scans table">

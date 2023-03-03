@@ -57,12 +57,7 @@ import {
 } from '../features/microscopes';
 import { canonicalMicroscopeName } from '../utils/microscopes';
 
-import {
-  useUrlState,
-  Serializer,
-  Deserializer,
-  Comparer,
-} from '../routes/url-state';
+import { useUrlState, Serializer, Deserializer } from '../routes/url-state';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
@@ -116,49 +111,27 @@ const bytesToSize = (bytes: number): string => {
 };
 
 export const dateTimeSerializer: Serializer<DateTime | null> = (dt) => {
-  try {
-    if (!isNil(dt)) {
-      return dt.toString();
-    } else {
-      return '';
-    }
-  } catch {
+  if (!isNil(dt)) {
+    return dt.toString();
+  } else {
     return '';
   }
 };
 
 export const dateTimeDeserializer: Deserializer<DateTime | null> = (dtStr) => {
-  try {
-    const dt = DateTime.fromISO(dtStr);
-    if (dt.isValid) {
-      return dt;
-    } else {
-      return null;
-    }
-  } catch {
+  const dt = DateTime.fromISO(dtStr);
+  if (dt.isValid) {
+    return dt;
+  } else {
     return null;
   }
 };
 
-export const dateTimeComparer: Comparer<DateTime | null> = (a, b) => {
-  if (isNil(a) && isNil(b)) {
-    return true;
-  } else if (isNil(a) || isNil(b)) {
-    return false;
-  } else {
-    return a.equals(b);
-  }
-};
-
 export const intSerializer: Serializer<number> = (n) => {
-  try {
-    if (isNil(n)) {
-      return '';
-    } else {
-      return n.toString();
-    }
-  } catch {
+  if (isNil(n)) {
     return '';
+  } else {
+    return n.toString();
   }
 };
 
@@ -208,16 +181,14 @@ const ScansPage: React.FC = () => {
     'startDate',
     null,
     dateTimeSerializer,
-    dateTimeDeserializer,
-    dateTimeComparer
+    dateTimeDeserializer
   );
 
   const [endDateFilter, setEndDateFilter] = useUrlState<DateTime | null>(
     'endDate',
     null,
     dateTimeSerializer,
-    dateTimeDeserializer,
-    dateTimeComparer
+    dateTimeDeserializer
   );
 
   const [selectedScanIDs, setSelectedScanIDs] = useState<Set<IdType>>(

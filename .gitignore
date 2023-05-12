@@ -1,3 +1,4 @@
 *.pyc
 backend/faust/distiller-data/
 node_modules/
+.vscode/settings.json

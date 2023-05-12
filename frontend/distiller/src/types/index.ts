@@ -13,6 +13,7 @@ export type ScanLocation = {
 export enum JobType {
   Transfer = 'transfer',
   Count = 'count',
+  Streaming = 'streaming',
 }
 
 export enum JobState {
@@ -76,16 +77,19 @@ export const FailedJobStates = new Set<JobState>([
   JobState.CANCELLED,
 ]);
 
-export type ScanJob = {
+export type Job = {
   id: IdType;
   job_type: JobType;
-  scan_id: IdType;
   slurm_id: IdType;
   elapsed: number;
   state: JobState;
   params: any;
   output?: string;
   machine?: string;
+}
+
+export type ScanJob = Job & {
+  scan_id: IdType | null;
 };
 
 export type Metadata = { [name: string]: any };

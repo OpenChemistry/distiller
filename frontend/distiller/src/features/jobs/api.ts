@@ -3,7 +3,7 @@ import { apiClient } from '../../client';
 
 export function createJob(
   type: JobType,
-  scanId: IdType,
+  scanId: IdType | null,
   machine: string,
   params: any
 ): Promise<ScanJob> {

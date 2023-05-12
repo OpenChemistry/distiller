@@ -1,0 +1,9 @@
+{% include "header.j2"  %}
+{%- if machine.bbcp_dest_dir == "${DW_JOB_STRIPED}" %}
+{% include "bb_allocation_header.j2"  %}
+{%- endif %}
+
+# Remove any // ($DW_JOB_STRIPED has a trailing slash)
+BBCP_DEST_DIR=`echo "{{machine.bbcp_dest_dir}}/{{job.id}}" |  sed 's/\/\//\//g'`
+
+srun --exclusive -c {{machine.cpus_per_task}} -n {{machine.ntasks}} podman-hpc run --mpi --env HDF5_USE_FILE_LOCKING=FALSE --rm -v ${BBCP_DEST_DIR}:/output -it samwelborn:stempy-streaming /4dstem/build/zmq/node -t {{threshold}} -d {{dest_dir}} || error_exit "Error: podman execution failed."

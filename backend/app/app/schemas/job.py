@@ -8,6 +8,7 @@ from pydantic import BaseModel
 class JobType(str, Enum):
     TRANSFER = "transfer"
     COUNT = "count"
+    STREAMING = "streaming"
 
     def __str__(self) -> str:
         return self.value
@@ -49,7 +50,7 @@ class JobState(str, Enum):
 class Job(BaseModel):
     id: int
     job_type: JobType
-    scan_id: int
+    scan_id: Optional[int]
     machine: str
     slurm_id: Optional[int]
     state: JobState = JobState.INITIALIZING
@@ -63,7 +64,7 @@ class Job(BaseModel):
 
 class JobCreate(BaseModel):
     job_type: JobType
-    scan_id: int
+    scan_id: Optional[int]
     params: Dict[str, Union[str, int, float]]
     machine: str
 

@@ -21,19 +21,22 @@ router = APIRouter()
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
 async def create_job(job: schemas.JobCreate, db: Session = Depends(get_db)):
-    scan = scan_crud.get_scan(db, job.scan_id)
-    if scan is None:
-        raise HTTPException(status_code=404, detail="Scan not found")
+    if job.scan_id is not None:
+        scan = scan_crud.get_scan(db, job.scan_id)
+        if scan is None:
+            raise HTTPException(status_code=404, detail="Scan not found")
+        scan = schemas.Scan.from_orm(scan)
+    else:
+        scan = None
 
     job = crud.create_job(db=db, job=job)
-
-    scan = schemas.Scan.from_orm(scan)
     job = schemas.Job.from_orm(job)
 
     await send_submit_job_event_to_kafka(SubmitJobEvent(scan=scan, job=job))
 
-    jobs = crud.get_jobs(db, scan_id=job.scan_id)
-    await send_scan_event_to_kafka(ScanUpdateEvent(id=job.scan_id, jobs=jobs))
+    if job.scan_id is not None:
+        jobs = crud.get_jobs(db, scan_id=job.scan_id)
+        await send_scan_event_to_kafka(ScanUpdateEvent(id=job.scan_id, jobs=jobs))
 
     return job
 

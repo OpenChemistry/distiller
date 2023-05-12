@@ -14,4 +14,4 @@ class Job(Base):
     output = Column(String, nullable=True)
     elapsed = Column(Interval, nullable=True)
     machine = Column(String, nullable=False)
-    scan_id = Column(Integer, ForeignKey("scans.id", ondelete="CASCADE"))
+    scan_id = Column(Integer, ForeignKey("scans.id", ondelete="CASCADE"), nullable=True)

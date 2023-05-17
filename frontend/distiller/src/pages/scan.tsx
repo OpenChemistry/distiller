@@ -27,6 +27,7 @@ import CountIcon from '@mui/icons-material/BlurOn';
 import OutputIcon from '@mui/icons-material/Terminal';
 import LeftIcon from '@mui/icons-material/ArrowLeft';
 import RightIcon from '@mui/icons-material/ArrowRight';
+import TextSnippetOutlined from '@mui/icons-material/TextSnippetOutlined';
 import { pink } from '@mui/material/colors';
 import Tooltip from '@mui/material/Tooltip';
 import humanizeDuration from 'humanize-duration';
@@ -35,6 +36,7 @@ import { DateTime } from 'luxon';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
 import { getScan, scansSelector, patchScan } from '../features/scans';
+import { getNotebooks, selectNotebooks } from '../features/notebooks';
 import {
   machineState,
   machineSelectors,
@@ -47,6 +49,7 @@ import JobStateComponent from '../components/job-state';
 import TransferDialog from '../components/transfer-dialog';
 import CountDialog from '../components/count-dialog';
 import { createJob } from '../features/jobs/api';
+import { fetchOrCreateNotebook } from '../features/notebooks/api';
 import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
 import JobOutputDialog from '../components/job-output';
 import { isNil } from '../utils';
@@ -60,6 +63,9 @@ import {
 import { canonicalMicroscopeName } from '../utils/microscopes';
 import ImageDialog from '../components/image-dialog';
 import { stopPropagation } from '../utils';
+import { JUPYTER_USER_REDIRECT_URL } from '../constants';
+import CircularProgress from '@mui/material/CircularProgress';
+import { Box } from '@mui/system';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
@@ -107,6 +113,7 @@ function jobTypeToIcon(type: JobType) {
 
 const ScanPage: React.FC<Props> = () => {
   const [maximizeImg, setMaximizeImg] = useState(false);
+  const [notebookLoading, setNotebookLoading] = React.useState(false);
   const scanIdParam = useUrlParams().scanId;
 
   const scanId = parseInt(scanIdParam as string);
@@ -156,6 +163,10 @@ const ScanPage: React.FC<Props> = () => {
   useEffect(() => {
     dispatch(getScan({ id: scanId }));
   }, [dispatch, scanId]);
+
+  useEffect(() => {
+    dispatch(getNotebooks());
+  }, [dispatch]);
 
   const onSaveNotes = (id: IdType, notes: string) => {
     return dispatch(patchScan({ id, updates: { notes } }));
@@ -222,6 +233,8 @@ const ScanPage: React.FC<Props> = () => {
     scansSelector.selectById(state, scanId)
   );
 
+  const notebooks = useAppSelector((state) => selectNotebooks(state));
+
   const onNavigateNext = () => {
     if (microscope === null) {
       return;
@@ -252,6 +265,19 @@ const ScanPage: React.FC<Props> = () => {
 
   const onCloseDialog = () => {
     setMaximizeImg(false);
+  };
+
+  const onLaunchNotebook = (name: string) => {
+    setNotebookLoading(true);
+    fetchOrCreateNotebook(name, scan.id)
+      .then((notebook) => {
+        window.open(`${JUPYTER_USER_REDIRECT_URL}${notebook.path}`, '_blank');
+      })
+      .catch((error) => {
+        // Should display to user
+        console.error('Notebook creation failed');
+      })
+      .finally(() => setNotebookLoading(false));
   };
 
   return (
@@ -363,6 +389,36 @@ const ScanPage: React.FC<Props> = () => {
               Count
             </Button>
           )}
+          {notebooks &&
+            notebooks.map((name: string) => {
+              return (
+                <Box sx={{ m: 1, position: 'relative' }}>
+                  <Button
+                    key={name}
+                    onClick={() => onLaunchNotebook(name)}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    startIcon={<TextSnippetOutlined />}
+                  >
+                    Launch {name} notebook
+                  </Button>
+                  {notebookLoading && (
+                    <CircularProgress
+                      size={24}
+                      sx={{
+                        color: 'primary',
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        marginTop: '-12px',
+                        marginLeft: '-12px',
+                      }}
+                    />
+                  )}
+                </Box>
+              );
+            })}
           <Spacer />
           <Button
             onClick={onNavigatePrev}

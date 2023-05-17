@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+import json
 
 import aiohttp
 import httpx
@@ -14,6 +15,7 @@ import tenacity
 from aiopath import AsyncPath
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
 from authlib.oauth2.rfc7523 import PrivateKeyJWT
+from authlib.jose import JsonWebKey
 from dotenv import dotenv_values
 
 import faust
@@ -48,9 +50,10 @@ _client = None
 async def get_oauth2_client() -> AsyncOAuth2Client:
     global _client
     if _client is None:
+        client_key = JsonWebKey.import_key(json.loads(settings.SFAPI_PRIVATE_KEY))
         _client = AsyncOAuth2Client(
             client_id=settings.SFAPI_CLIENT_ID,
-            client_secret=settings.SFAPI_PRIVATE_KEY,
+            client_secret=client_key,
             token_endpoint_auth_method=PrivateKeyJWT(SFAPI_TOKEN_URL),
             grant_type=settings.SFAPI_GRANT_TYPE,
             token_endpoint=SFAPI_TOKEN_URL,
@@ -190,7 +193,7 @@ def before_retry_client(retry_state) -> None:
 )
 async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
     client = await get_oauth2_client()
-    await client.ensure_active_token()
+    await client.ensure_active_token(client.token)
 
     r = await client.get(
         f"{SFAPI_BASE_URL}/{url}",
@@ -216,7 +219,7 @@ async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
 )
 async def sfapi_post(url: str, data: Dict[str, Any]) -> httpx.Response:
     client = await get_oauth2_client()
-    await client.ensure_active_token()
+    await client.ensure_active_token(client.token)
 
     r = await client.post(
         f"{SFAPI_BASE_URL}/{url}",

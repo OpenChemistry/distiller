@@ -8,6 +8,7 @@ TOPIC_SCAN_FILE_EVENTS = "scan_file_events"
 TOPIC_JOB_SUBMIT_EVENTS = "job_events"
 TOPIC_CUSTODIAN_EVENTS = "custodian_events"
 TOPIC_SCAN_METADATA_EVENTS = "scan_metadata_events"
+TOPIC_NOTEBOOK_EVENTS = "notebook_events"
 
 FILE_EVENT_TYPE_DELETED = "deleted"
 FILE_EVENT_TYPE_CREATED = "created"

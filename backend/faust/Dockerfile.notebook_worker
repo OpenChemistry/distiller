@@ -1,12 +1,9 @@
 
 FROM openchemistry/distiller-faust-base:latest
 
-RUN mkdir -p /app/distiller-data && \
-  chmod a+xrw /app/distiller-data
-
 WORKDIR /app
 
-COPY requirements.job.txt /app/requirements.txt
+COPY requirements.notebook.txt /app/requirements.txt
 
 RUN pip install -r /app/requirements.txt
 
@@ -14,7 +11,7 @@ COPY *.py /app/
 COPY *.env /app/
 COPY templates/ /app/templates/
 
-ENV WORKER job
+ENV WORKER notebook
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 

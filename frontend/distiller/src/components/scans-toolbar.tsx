@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import {
   Toolbar,
@@ -24,64 +24,38 @@ import { DateTime } from 'luxon';
 import { ExportFormat } from '../types';
 import { isNull } from 'lodash';
 
-export type FilterCriteria = {
-  start?: DateTime;
-  end?: DateTime;
-};
-
 type FilterPopoverProps = {
   anchorEl: HTMLElement | null;
+  startDate: DateTime | null;
+  endDate: DateTime | null;
   onClose: () => void;
-  onFilter: (criteria: FilterCriteria | null) => void;
+  onStartDate: (date: DateTime | null) => void;
+  onEndDate: (date: DateTime | null) => void;
 };
 
 const FilterPopover: React.FC<FilterPopoverProps> = (props) => {
-  const { anchorEl, onClose, onFilter } = props;
-  const [startDate, setStartDate] = useState<DateTime | null>(null);
-  const [endDate, setEndDate] = useState<DateTime | null>(null);
-  const [filterCriteria, setFilterCriteria] = useState<FilterCriteria | null>(
-    null
-  );
+  const { anchorEl, startDate, endDate, onClose, onStartDate, onEndDate } =
+    props;
 
-  useEffect(() => {
-    onFilter(filterCriteria);
-  }, [onFilter, filterCriteria]);
-
-  useEffect(() => {
-    if (
-      (!isNull(startDate) && !startDate.isValid) ||
-      (!isNull(endDate) && !endDate.isValid)
-    ) {
+  const onStartDateChange = (date: DateTime | null) => {
+    if (!isNull(date) && !date.isValid) {
       return;
     }
 
-    let criteria: FilterCriteria | null = null;
-    if (!isNull(startDate)) {
-      criteria = {};
-      criteria.start = startDate;
-    }
-
-    if (!isNull(endDate)) {
-      if (criteria === null) {
-        criteria = {};
-      }
-      criteria.end = endDate;
-    }
-
-    setFilterCriteria(criteria);
-  }, [startDate, endDate]);
-
-  const onStartDateChange = (date: DateTime | null) => {
-    setStartDate(date);
+    onStartDate(date);
   };
 
   const onEndDateChange = (date: DateTime | null) => {
-    setEndDate(date);
+    if (!isNull(date) && !date.isValid) {
+      return;
+    }
+
+    onEndDate(date);
   };
 
   const onResetFiltersClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setStartDate(null);
-    setEndDate(null);
+    onStartDate(null);
+    onEndDate(null);
   };
 
   return (
@@ -185,7 +159,10 @@ const ExportMenu: React.FC<ExportMenuProps> = (props) => {
 };
 
 type ScansToolbarProps = {
-  onFilter: (criteria: FilterCriteria | null) => void;
+  startDate: DateTime | null;
+  endDate: DateTime | null;
+  onStartDate: (date: DateTime | null) => void;
+  onEndDate: (date: DateTime | null) => void;
   onExport: (format: ExportFormat) => void;
   showFilterBadge: boolean;
 };
@@ -197,7 +174,14 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
   const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(
     null
   );
-  const { onFilter, showFilterBadge, onExport } = props;
+  const {
+    startDate,
+    endDate,
+    showFilterBadge,
+    onExport,
+    onStartDate,
+    onEndDate,
+  } = props;
 
   const onFilterClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setFilterAnchorEl(event.currentTarget);
@@ -256,7 +240,10 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
       <FilterPopover
         anchorEl={filterAnchorEl}
         onClose={onFilterClose}
-        onFilter={onFilter}
+        startDate={startDate}
+        endDate={endDate}
+        onStartDate={onStartDate}
+        onEndDate={onEndDate}
       />
       <ExportMenu
         anchorEl={exportAnchorEl}

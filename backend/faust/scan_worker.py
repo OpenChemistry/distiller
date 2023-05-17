@@ -184,6 +184,7 @@ async def process_status_file(
     if path not in scan_status.progress_by_path or scan_status.progress_by_path[path] < status_file.progress:
         scan_status.progress_by_path[path] = status_file.progress
         progress_updated = True
+
     scan_status.host = event.host
     paths = set(scan_status.paths)
     paths.add(path)

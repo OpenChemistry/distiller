@@ -72,7 +72,7 @@ class ScanStatus(faust.Record, coerce=True):
     host: Optional[str] = None
     paths: List[str] = []
     # map of path to progress for receiver
-    progress_by_path: Dict[str, int] = None
+    progress_by_path: Dict[str, int] = {}
     modified: Optional[datetime] = None
 
     def progress(self):

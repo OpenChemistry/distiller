@@ -76,7 +76,12 @@ class ScanStatus(faust.Record, coerce=True):
     modified: Optional[datetime] = None
 
     def progress(self):
-        return round(sum(self.progress_by_path.values())/4)
+        try:
+            return round(sum(self.progress_by_path.values())/4)
+        except OverflowError:
+            logger.warning("Overflow error processing progress.")
+            return 100
+
 
 # native scan id to distiller id
 scan_id_to_distiller_id = app.Table("scan_id_to_id", default=int)

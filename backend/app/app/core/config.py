@@ -71,7 +71,7 @@ class Settings(BaseSettings):
 
     MACHINES: List[Machine]
     NCEMHUB_PATH: str
-    NOTEBOOKS: List[str] = ["DPC"]
+    NOTEBOOKS: List[str] = ["DPC", "vacuum_scan_prepare", "vacuum_scan_subtract"]
 
     class Config:
         case_sensitive = True

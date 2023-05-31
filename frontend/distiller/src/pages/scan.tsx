@@ -30,6 +30,8 @@ import RightIcon from '@mui/icons-material/ArrowRight';
 import TextSnippetOutlined from '@mui/icons-material/TextSnippetOutlined';
 import { pink } from '@mui/material/colors';
 import Tooltip from '@mui/material/Tooltip';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import humanizeDuration from 'humanize-duration';
 import { DateTime } from 'luxon';
 
@@ -114,6 +116,9 @@ function jobTypeToIcon(type: JobType) {
 const ScanPage: React.FC<Props> = () => {
   const [maximizeImg, setMaximizeImg] = useState(false);
   const [notebookLoading, setNotebookLoading] = React.useState(false);
+  const [notebookMenuAnchorEl, setNotebookMenuAnchorEl] =
+    React.useState<null | HTMLElement>(null);
+  const showNotebookMenu = Boolean(notebookMenuAnchorEl);
   const scanIdParam = useUrlParams().scanId;
 
   const scanId = parseInt(scanIdParam as string);
@@ -269,6 +274,7 @@ const ScanPage: React.FC<Props> = () => {
 
   const onLaunchNotebook = (name: string) => {
     setNotebookLoading(true);
+    setNotebookMenuAnchorEl(null);
     fetchOrCreateNotebook(name, scan.id)
       .then((notebook) => {
         window.open(`${JUPYTER_USER_REDIRECT_URL}${notebook.path}`, '_blank');
@@ -389,36 +395,56 @@ const ScanPage: React.FC<Props> = () => {
               Count
             </Button>
           )}
-          {notebooks &&
-            notebooks.map((name: string) => {
-              return (
-                <Box sx={{ m: 1, position: 'relative' }}>
-                  <Button
-                    key={name}
-                    onClick={() => onLaunchNotebook(name)}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    startIcon={<TextSnippetOutlined />}
-                  >
-                    Launch {name} notebook
-                  </Button>
-                  {notebookLoading && (
-                    <CircularProgress
-                      size={24}
-                      sx={{
-                        color: 'primary',
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        marginTop: '-12px',
-                        marginLeft: '-12px',
+          {notebooks && (
+            <Box sx={{ m: 1, position: 'relative' }}>
+              <Button
+                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                  setNotebookMenuAnchorEl(event.currentTarget);
+                }}
+                size="small"
+                color="primary"
+                variant="outlined"
+                startIcon={<TextSnippetOutlined />}
+              >
+                Launch notebook
+              </Button>
+              {notebookLoading && (
+                <CircularProgress
+                  size={24}
+                  sx={{
+                    color: 'primary',
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    marginTop: '-12px',
+                    marginLeft: '-12px',
+                  }}
+                />
+              )}
+              <Menu
+                anchorEl={notebookMenuAnchorEl}
+                open={showNotebookMenu}
+                onClose={() => {
+                  setNotebookMenuAnchorEl(null);
+                }}
+                MenuListProps={{
+                  'aria-labelledby': 'basic-button',
+                }}
+              >
+                {notebooks.map((name: string) => {
+                  return (
+                    <MenuItem
+                      onClick={() => {
+                        onLaunchNotebook(name);
                       }}
-                    />
-                  )}
-                </Box>
-              );
-            })}
+                    >
+                      {name.toUpperCase()}
+                    </MenuItem>
+                  );
+                })}
+              </Menu>
+            </Box>
+          )}
           <Spacer />
           <Button
             onClick={onNavigatePrev}

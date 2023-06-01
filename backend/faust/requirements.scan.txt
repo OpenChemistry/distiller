@@ -2,3 +2,4 @@ tenacity
 aiohttp
 pytz
 numpy
+aiopath

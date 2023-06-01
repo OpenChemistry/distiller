@@ -178,7 +178,11 @@ async def process_status_file(
     scan_status = scan_id_to_status[scan_id]
     scan_status.modified = datetime.utcnow()
     if scan_status.progress is None or scan_status.progress < status_file.progress:
-        scan_status.progress = round(status_file.progress)
+        try:
+            scan_status.progress = round(status_file.progress)
+        except OverflowError:
+            logger.warning("Overflow error processing progress, skipping process file.")
+            return
         progress_updated = True
     scan_status.host = event.host
     paths = set(scan_status.paths)

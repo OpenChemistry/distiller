@@ -187,7 +187,7 @@ class Scan4DFilesModeHandler(ModeHandler):
             update_receiver_progress = False
             if receiver in self._receiver_progress:
                 (change_time, previous_progress) = self._receiver_progress[receiver]
-                if progress == previous_progress:
+                if f"{status.uuid}/{progress}" == previous_progress:
                     if change_time + timedelta(minutes=5) < datetime.utcnow():
                         # we can stop sending events, wait until something changes
                         return
@@ -197,7 +197,7 @@ class Scan4DFilesModeHandler(ModeHandler):
                 update_receiver_progress = True
 
             if update_receiver_progress:
-                self._receiver_progress[receiver] = (datetime.utcnow(), progress)
+                self._receiver_progress[receiver] = (datetime.utcnow(), f"{status.uuid}/{progress}")
 
         model = FileSystemEventModel(
             event_type=event.event_type,

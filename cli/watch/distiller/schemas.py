@@ -72,6 +72,7 @@ class Scan(BaseModel):
 
 class ScanStatusFile(BaseModel):
     progress: float
+    uuid: str = Field(None, alias="UUID")
 
 class MicroscopeUpdate(BaseModel):
     state: Dict[str, Any]

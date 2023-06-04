@@ -343,7 +343,7 @@ async def process_submit_job_event(
 
     if event.scan is None:
         await process_submit_streaming_job_event(session, event)
-        return None
+        return
          
     # We need to fetch the machine specific configuration
     machine = await get_machine(session, event.job.machine)

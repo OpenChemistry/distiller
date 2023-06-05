@@ -86,7 +86,7 @@ export type Job = {
   params: any;
   output?: string;
   machine?: string;
-}
+};
 
 export type ScanJob = Job & {
   scan_id: IdType | null;

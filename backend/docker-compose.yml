@@ -37,6 +37,7 @@ services:
     depends_on:
       zoo1:
         condition: service_started
+    restart: on-failure
 
   fast-api:
     build: 

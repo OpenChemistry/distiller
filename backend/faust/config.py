@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     JOB_QOS_FILTER: str
     JOB_BBCP_EXECUTABLE_PATH: str
     JOB_MACHINE_OVERRIDES_PATH: Optional[str]
+    ZMQ_STREAMING_CONFIG_FILEPATH: Optional[str]
 
     IMAGE_UPLOAD_DIR: str
     HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS: int

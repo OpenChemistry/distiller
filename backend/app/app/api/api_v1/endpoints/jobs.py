@@ -87,6 +87,7 @@ async def update_job(
 
     if updated:
         jobs = crud.get_jobs(db, scan_id=cast(int, job.scan_id))
-        await send_scan_event_to_kafka(ScanUpdateEvent(id=job.scan_id, jobs=jobs))
+        if job.scan_id is not None:
+            await send_scan_event_to_kafka(ScanUpdateEvent(id=job.scan_id, jobs=jobs))
 
     return job

@@ -104,7 +104,14 @@
     "        raise FileNotFoundError('No file with those parameters can be found.')\n",
     "    return file_path, scan_num, scan_id\n",
     "\n",
-    "distiller_path = Path('/global/cfs/cdirs/ncemhub/distiller/')"
+    "distiller_path = Path('{{ settings.NCEMHUB_PATH }}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Load the experimental data to be fixed"
    ]
   },
   {
@@ -119,7 +126,7 @@
     "scan_id = {{ scan.id }}\n",
     "threshold = None\n",
     "\n",
-    "fname = get_scan_path(distiller_path / Path('counted') / Path(date), scan_num)\n",
+    "fname, scan_num, scan_id = get_scan_path(distiller_path / Path('counted') / Path(date), scan_num)\n",
     "\n",
     "# Load the data\n",
     "experiment = stio.load_electron_counts(fname)\n",
@@ -141,12 +148,31 @@
     "        print(f'Camera length = {camera_length} mm')\n",
     "        print(f'STEM magnification = {stem_magnification} kx')\n",
     "else:\n",
-    "    print('No HAADF available')\n",
-    "    \n",
+    "    print('No HAADF available')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Load the output from the vacuum scan subtraction\n",
+    " - This is output from the vacuum_scan_prepare.ipynb\n",
+    " - The user must enter the scan_id and scan_number of the vacuum subtraction data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
     "# Load the offsets for the vacuum scan subtraction\n",
-    "offsets_path = Path('/mnt/nvme1/percius/microED/2023.05.15/data_scan666_id9913_electrons_centered_offsets.emd')\n",
-    "com2_filt = ncempy.read(offsets_path)['data']\n",
-    "    "
+    "vacuum_scan_id = 9918\n",
+    "vacuum_scan_num = 671\n",
+    "\n",
+    "offsets_path = distiller_path / Path(f'counted/{date}/data_scan{vacuum_scan_num}_id{vacuum_scan_id}_electrons_offsets.emd')\n",
+    "print(offsets_path)\n",
+    "com2_filt = ncempy.read(offsets_path)['data']"
    ]
   },
   {
@@ -321,6 +347,13 @@
     "experiment_centered.write_to_hdf5(out_path)\n",
     "print(out_path)"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {
@@ -339,7 +372,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.8.10"
+   "version": "3.7.3"
   },
   "widgets": {
    "application/vnd.jupyter.widget-state+json": {

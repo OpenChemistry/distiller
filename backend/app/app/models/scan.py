@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
+from .association import scan_job_table
 
 
 class Scan(Base):
@@ -20,4 +21,4 @@ class Scan(Base):
     )
 
     locations = relationship("Location", cascade="delete")
-    jobs = relationship("Job", cascade="delete")
+    jobs = relationship("Job", secondary=scan_job_table)

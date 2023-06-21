@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     HAADF_NCEMHUB_DM4_DATA_PATH: str
     NCEMHUB_PATH: str
     NCEMHUB_DATA_PATH: str
+    ZMQ_STREAMING_CONFIG_FILEPATH: Optional[str]
 
     # Max age a scan can be to still have a HAADF metadata associated with it (hours)
     # This is need to avoid associate a metadata with a old scan if the scan ids

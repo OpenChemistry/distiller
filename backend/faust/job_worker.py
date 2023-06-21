@@ -3,6 +3,7 @@ import copy
 import json
 import logging
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 import json
@@ -21,7 +22,8 @@ import faust
 from config import settings
 from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
                        SFAPI_BASE_URL, SFAPI_TOKEN_URL, SLURM_RUNNING_STATES,
-                       TOPIC_JOB_SUBMIT_EVENTS, TRANSFER_JOB_SCRIPT_TEMPLATE,
+                       TOPIC_JOB_SUBMIT_EVENTS, TOPIC_JOB_CANCEL_EVENTS,
+                       TRANSFER_JOB_SCRIPT_TEMPLATE,STREAMING_JOB_SCRIPT_TEMPLATE,
                        JobState)
 from faust_records import Job, JobType, SubmitJobEvent, CancelJobEvent
 from schemas import JobUpdate
@@ -110,6 +112,8 @@ async def render_job_script(
 ) -> str:
     if job.job_type == JobType.COUNT:
         template_name = COUNT_JOB_SCRIPT_TEMPLATE
+    elif job.job_type == JobType.STREAMING:
+        template_name = STREAMING_JOB_SCRIPT_TEMPLATE
     else:
         template_name = TRANSFER_JOB_SCRIPT_TEMPLATE
 
@@ -120,8 +124,9 @@ async def render_job_script(
     template = template_env.get_template(template_name)
 
     # Make a copy and filter out machines from locations
-    scan = copy.deepcopy(scan)
-    scan.locations = [x for x in scan.locations if x.host not in machine_names]
+    if scan is not None:
+        scan = copy.deepcopy(scan)
+        scan.locations = [x for x in scan.locations if x.host not in machine_names]
 
     try:
         output = await template.render_async(
@@ -213,6 +218,31 @@ async def sfapi_post(url: str, data: Dict[str, Any]) -> httpx.Response:
     return r
 
 
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(httpx.TimeoutException)
+    | tenacity.retry_if_exception_type(httpx.ConnectError)
+    | tenacity.retry_if_exception_type(httpx.HTTPStatusError),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+    before=before_retry_client,
+    before_sleep=tenacity.before_sleep_log(logger, logging.INFO),
+)
+async def sfapi_delete(url: str) -> httpx.Response:
+    client = await get_oauth2_client()
+    await client.ensure_active_token(client.token)
+
+    r = await client.delete(
+        f"{SFAPI_BASE_URL}/{url}",
+        headers={
+            "Authorization": client.token["access_token"],
+            "accept": "application/json",
+        }
+    )
+    r.raise_for_status()
+
+    return r
+
+
 class SfApiError(Exception):
     def __init__(self, message):
         self.message = message
@@ -265,9 +295,61 @@ async def update_slurm_job_id(
     await update_job_request(session, update)
 
 
+async def process_submit_streaming_job_event(
+    session: aiohttp.ClientSession, event: SubmitJobEvent
+) -> None:
+
+    # We need to fetch the machine specific configuration
+    machine = await get_machine(session, event.job.machine)
+
+    # Not sure why by created comes in as a str, so convert to datetime
+    created_datetime = datetime.now()
+    date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
+    base_dir = settings.JOB_NCEMHUB_COUNT_DATA_PATH
+
+    # Ensure we have the output directory created
+    dest_path = AsyncPath(base_dir) / date_dir
+    await dest_path.mkdir(parents=True, exist_ok=True)
+    dest_dir = str(dest_path)
+
+    # Render the scripts
+    machines = await get_machines(session)
+    job_script_output = await render_job_script(
+        scan=event.scan,
+        job=event.job,
+        machine=machine,
+        dest_dir=dest_dir,
+        machine_names=list(machines.keys()),
+    )
+
+    submission_script_path = (
+        AsyncPath(settings.JOB_SCRIPT_DIRECTORY)
+        / str(event.job.id)
+        / f"{event.job.job_type}-{event.job.id}.sh"
+    )
+
+    if await submission_script_path.parent.exists():
+        logger.warning(f"Job dir exists overriding: '{submission_script_path.parent}")
+
+    await submission_script_path.parent.mkdir(parents=True, exist_ok=True)
+
+    async with submission_script_path.open("w") as fp:
+        await fp.write(job_script_output)
+
+    # Submit the job
+    slurm_id = await submit_job(machine.name, str(submission_script_path))
+
+    # Update the job model with the slurm id
+    await update_slurm_job_id(session, event.job.id, slurm_id)
+
+
 async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
+    
+    if event.job.job_type == JobType.STREAMING:
+        await process_submit_streaming_job_event(session, event)
+        return None
 
     # We need to fetch the machine specific configuration
     machine = await get_machine(session, event.job.machine)
@@ -354,9 +436,10 @@ async def update_job(
     job_id: int,
     state: str,
     elapsed: timedelta,
+    submit: datetime,
     output: Optional[str] = None,
 ) -> None:
-    update = JobUpdate(id=job_id, state=state, output=output, elapsed=elapsed)
+    update = JobUpdate(id=job_id, state=state, output=output, elapsed=elapsed, submit=submit)
     await update_job_request(session, update)
 
 
@@ -369,6 +452,10 @@ def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
         elapsed = timedelta(
             hours=elapsed.hour, minutes=elapsed.minute, seconds=elapsed.second
         )
+        submit = job["submit"]
+        _submit = datetime.strptime(submit, "%Y-%m-%dT%H:%M:%S")
+        la_tz = ZoneInfo('America/Los_Angeles')
+        submit = _submit.replace(tzinfo=la_tz)
 
         jobs.append(
             SfapiJob(
@@ -377,6 +464,7 @@ def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
                 name=job["jobname"],
                 slurm_id=int(job["jobid"]),
                 elapsed=elapsed,
+                submit=submit,
             )
         )
 
@@ -483,7 +571,7 @@ async def monitor_jobs():
 
                 try:
                     await update_job(
-                        session, id, job.state, elapsed=job.elapsed, output=output
+                        session, id, job.state, elapsed=job.elapsed, output=output, submit=job.submit
                     )
                 except aiohttp.client_exceptions.ClientResponseError as ex:
                     # Ignore 404, this is not a job we created.

@@ -59,15 +59,19 @@ class JobUpdate(BaseModel):
     state: Optional[str]
     output: Optional[str]
     elapsed: Optional[timedelta]
+    submit: Optional[datetime]
+    notes: Optional[str]
 
 
 class Job(BaseModel):
     id: int
     job_type: str
-    scan_id: int
+    scanIds: Optional[List[int]]
     slurm_id: Optional[int]
     state: str
     machine: str
+    submit: Optional[datetime]
+    notes: Optional[str]
 
 
 class SfapiJob(BaseModel):
@@ -76,6 +80,7 @@ class SfapiJob(BaseModel):
     workdir: str
     state: str
     elapsed: timedelta
+    submit: datetime
 
 
 class Machine(BaseModel):
@@ -91,6 +96,7 @@ class Machine(BaseModel):
     cpu_bind: Optional[str]
     bbcp_dest_dir: str
     reservation: Optional[str]
+    zmq_dest_dir: Optional[str]
 
 
 class Microscope(BaseModel):

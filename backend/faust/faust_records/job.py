@@ -8,6 +8,7 @@ from .scan import Scan
 class JobType(str, Enum):
     COUNT = "count"
     TRANSFER = "transfer"
+    STREAMING = "streaming"
 
     def __str__(self) -> str:
         return self.value

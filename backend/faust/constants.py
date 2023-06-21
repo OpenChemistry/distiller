@@ -22,6 +22,7 @@ SFAPI_BASE_URL = "https://api.nersc.gov/api/v1.2"
 
 TRANSFER_JOB_SCRIPT_TEMPLATE = "transfer.sh.j2"
 COUNT_JOB_SCRIPT_TEMPLATE = "count.sh.j2"
+STREAMING_JOB_SCRIPT_TEMPLATE = "streaming.sh.j2"
 DW_JOB_STRIPED_VAR = "${DW_JOB_STRIPED}"
 
 DATE_DIR_FORMAT = "%Y.%m.%d"

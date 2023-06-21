@@ -13,6 +13,7 @@ from app.core.logging import logger
 from app.crud import scan as scan_crud
 from app.kafka import consumer
 from app.schemas.microscope import MicroscopeEventType
+from app.schemas.events import JobEventType
 
 router = APIRouter()
 
@@ -85,6 +86,8 @@ class WebsocketConsumer(WebSocketEndpoint):
                     microscope_id = event["microscope_id"]
                 elif event.get("event_type") == MicroscopeEventType.UPDATED:
                     microscope_id = event["id"]
+                elif event.get("event_type") in [e.value for e in JobEventType]:
+                    microscope_id = None
                 elif "id" in event:
                     with contextmanager(get_db)() as db:
                         microscope_id = get_microscope_id_by_scan_id(db, event["id"])

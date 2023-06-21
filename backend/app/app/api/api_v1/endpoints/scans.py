@@ -21,9 +21,11 @@ from app.api.utils import upload_to_file
 from app.core.config import settings
 from app.core.logging import logger
 from app.crud import scan as crud
+from app.crud import job as job_crud
 from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
                                 send_scan_event_to_kafka,
-                                send_scan_file_event_to_kafka)
+                                send_scan_file_event_to_kafka,
+                                send_job_event_to_kafka)
 from app.models import Scan
 from app.schemas.events import RemoveScanFilesEvent
 from app.schemas.scan import Scan4DCreate, ScanCreatedEvent
@@ -178,7 +180,7 @@ async def create_scan(
         ScanCreatedEvent(**schemas.Scan.from_orm(scan).dict())
     )
 
-    return scan
+    return schemas.Scan.from_orm(scan)
 
 
 @router.get(
@@ -235,7 +237,7 @@ def read_scans(
 
     response.headers["X-Total-Count"] = str(count)
 
-    return scans
+    return [schemas.Scan.from_orm(scan) for scan in scans]
 
 
 @router.get(
@@ -259,7 +261,24 @@ def read_scan(response: Response, id: int, db: Session = Depends(get_db)):
     if next_scan is not None:
         response.headers["X-Next-Scan"] = str(next_scan)
 
-    return db_scan
+    return schemas.Scan.from_orm(db_scan)
+
+
+@router.get(
+    "/{id}/jobs",
+    response_model=List[schemas.Job],
+    response_model_by_alias=False,
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
+)
+def read_scan_jobs(id: int, db: Session = Depends(get_db)):
+    db_scan = crud.get_scan(db, id=id)
+    if db_scan is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found"
+        )
+
+    jobs = crud.get_scan_jobs(db, db_scan)
+    return [schemas.Job.from_orm(job) for job in jobs]
 
 
 @router.patch(
@@ -285,6 +304,7 @@ async def update_scan(
         locations=payload.locations,
         notes=payload.notes,
         metadata=payload.metadata,
+        job_id=payload.job_id,
     )
 
     if updated:
@@ -296,12 +316,21 @@ async def update_scan(
             schemas.scan.Location.from_orm(l) for l in scan.locations
         ]
 
+        if payload.job_id:
+            scan_updated_event.jobIds = schemas.Scan.from_orm(scan).jobIds
+            job = job_crud.get_job(db, payload.job_id)
+            scanIds = schemas.Job.from_orm(job).scanIds
+            job_updated_event = schemas.UpdateJobEvent(
+                id=payload.job_id, scanIds=scanIds
+            )
+            await send_job_event_to_kafka(job_updated_event)
+
         if scan.notes is not None and scan.notes == payload.notes:
             scan_updated_event.notes = cast(str, scan.notes)
 
         await send_scan_event_to_kafka(scan_updated_event)
 
-    return scan
+    return schemas.Scan.from_orm(scan)
 
 
 async def _remove_scan_files(db_scan: Scan, host: Optional[str] = None):

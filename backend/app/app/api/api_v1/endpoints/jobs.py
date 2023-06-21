@@ -1,16 +1,14 @@
-from typing import List, cast
+from typing import List, cast, Optional
+from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
 from app import schemas
 from app.api.deps import get_db, oauth2_password_bearer_or_api_key
 from app.crud import job as crud
-from app.crud import scan as scan_crud
-from app.kafka.producer import (send_scan_event_to_kafka,
-                                send_submit_job_event_to_kafka)
-from app.schemas import SubmitJobEvent
-from app.schemas.scan import ScanUpdateEvent
+from app.kafka.producer import send_job_event_to_kafka
+from app.schemas import SubmitJobEvent, UpdateJobEvent, CancelJobEvent
 
 router = APIRouter()
 
@@ -20,38 +18,54 @@ router = APIRouter()
     response_model=schemas.Job,
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
-async def create_job(job: schemas.JobCreate, db: Session = Depends(get_db)):
-    scan = scan_crud.get_scan(db, job.scan_id)
-    if scan is None:
-        raise HTTPException(status_code=404, detail="Scan not found")
+async def create_job(job_create: schemas.JobCreate, db: Session = Depends(get_db)):
+    scan_id = job_create.scan_id
+    job = crud.create_job(db=db, job=job_create)
 
-    job = crud.create_job(db=db, job=job)
+    if scan_id is not None:
+        job_update = schemas.JobUpdate(scan_id=scan_id)
+        (updated, job) = crud.update_job(db, cast(int, job.id), job_update)
 
-    scan = schemas.Scan.from_orm(scan)
+    db.refresh(job)
+
+    job = crud.get_job(db, cast(int, job.id))
+    scans = crud.get_job_scans(db, job)
+    scans = [schemas.Scan.from_orm(scan) for scan in scans]
     job = schemas.Job.from_orm(job)
 
-    await send_submit_job_event_to_kafka(SubmitJobEvent(scan=scan, job=job))
+    if scans:
+        scan = scans[0]
+    else:
+        scan = None
 
-    jobs = crud.get_jobs(db, scan_id=job.scan_id)
-    await send_scan_event_to_kafka(ScanUpdateEvent(id=job.scan_id, jobs=jobs))
+    await send_job_event_to_kafka(SubmitJobEvent(job=job, scan=scan))
 
     return job
 
 
 @router.get(
     "",
-    response_model=List[schemas.Scan],
+    response_model=List[schemas.Job],
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
 def read_jobs(
+    response: Response,
     skip: int = 0,
     limit: int = 100,
-    scan_id: int = -1,
+    job_type: Optional[schemas.JobType] = None,
+    start: Optional[datetime] = None,
+    end: Optional[datetime] = None,
     db: Session = Depends(get_db),
 ):
-    jobs = crud.get_jobs(db, skip=skip, limit=limit, scan_id=scan_id)
+    db_jobs = crud.get_jobs(
+        db, skip=skip, limit=limit, job_type=job_type, start=start, end=end
+    )
+    count = crud.get_jobs_count(
+        db, skip=skip, limit=limit, job_type=job_type, start=start, end=end
+    )
+    response.headers["X-Total-Count"] = str(count)
 
-    return jobs
+    return [schemas.Job.from_orm(job) for job in db_jobs]
 
 
 @router.get(
@@ -59,12 +73,34 @@ def read_jobs(
     response_model=schemas.Job,
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
-def read_job(id: int, db: Session = Depends(get_db)):
+def read_job(response: Response, id: int, db: Session = Depends(get_db)):
     db_job = crud.get_job(db, id=id)
     if db_job is None:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    return db_job
+    (prev_job, next_job) = crud.get_prev_next_job(db, id)
+
+    if prev_job is not None:
+        response.headers["X-Previous-Job"] = str(prev_job)
+
+    if next_job is not None:
+        response.headers["X-Next-Job"] = str(next_job)
+
+    return schemas.Job.from_orm(db_job)
+
+
+@router.get(
+    "/{id}/scans",
+    response_model=List[schemas.Scan],
+    response_model_by_alias=False,
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
+)
+def read_job_scans(id: int, db: Session = Depends(get_db)):
+    db_job = crud.get_job(db, id=id)
+    if db_job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    scans = crud.get_job_scans(db, db_job)
+    return [schemas.Scan.from_orm(scan) for scan in scans]
 
 
 @router.patch(
@@ -81,9 +117,24 @@ async def update_job(
         raise HTTPException(status_code=404, detail="Job not found")
 
     (updated, job) = crud.update_job(db, id, payload)
-
+    job = schemas.Job.from_orm(job)
     if updated:
-        jobs = crud.get_jobs(db, scan_id=cast(int, job.scan_id))
-        await send_scan_event_to_kafka(ScanUpdateEvent(id=job.scan_id, jobs=jobs))
+        await send_job_event_to_kafka(UpdateJobEvent.from_job(job))
+
+    return job
+
+
+@router.delete(
+    "/{id}",
+    response_model=schemas.Job,
+    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
+)
+async def cancel_job(id: int, db: Session = Depends(get_db)):
+    db_job = crud.get_job(db, id=id)
+    if db_job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    job = schemas.Job.from_orm(db_job)
+    await send_job_event_to_kafka(CancelJobEvent(job=job))
 
     return job

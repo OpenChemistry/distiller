@@ -1,6 +1,6 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from enum import Enum
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -8,6 +8,7 @@ from pydantic import BaseModel
 class JobType(str, Enum):
     TRANSFER = "transfer"
     COUNT = "count"
+    STREAMING = "streaming"
 
     def __str__(self) -> str:
         return self.value
@@ -49,21 +50,28 @@ class JobState(str, Enum):
 class Job(BaseModel):
     id: int
     job_type: JobType
-    scan_id: int
+    scanIds: Optional[List[int]]
     machine: str
     slurm_id: Optional[int]
     state: JobState = JobState.INITIALIZING
     params: Dict[str, Union[str, int, float]]
     output: Optional[str]
     elapsed: Optional[timedelta]
+    submit: Optional[datetime]
+    notes: Optional[str]
 
     class Config:
         orm_mode = True
 
+    @classmethod
+    def from_orm(cls, obj) -> "Job":
+        scanIds = [scan.id for scan in obj.scans]
+        return cls(**obj.__dict__, scanIds=scanIds)
+
 
 class JobCreate(BaseModel):
     job_type: JobType
-    scan_id: int
+    scan_id: Optional[int]
     params: Dict[str, Union[str, int, float]]
     machine: str
 
@@ -73,3 +81,6 @@ class JobUpdate(BaseModel):
     state: Optional[JobState]
     output: Optional[str]
     elapsed: Optional[timedelta]
+    scan_id: Optional[int]
+    submit: Optional[datetime]
+    notes: Optional[str]

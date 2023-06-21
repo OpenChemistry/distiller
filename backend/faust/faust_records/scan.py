@@ -4,12 +4,8 @@ from typing import Any, Dict, List, Optional
 
 import faust
 from faust.serializers import codecs
+from .location import Location
 from json_utils import NumpyEncoder
-
-
-class Location(faust.Record):
-    host: str
-    path: str
 
 
 class Scan(faust.Record):

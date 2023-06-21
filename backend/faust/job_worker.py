@@ -3,7 +3,6 @@ import copy
 import json
 import logging
 from datetime import datetime, timedelta
-from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 import json
@@ -24,7 +23,7 @@ from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
                        SFAPI_BASE_URL, SFAPI_TOKEN_URL, SLURM_RUNNING_STATES,
                        TOPIC_JOB_SUBMIT_EVENTS, TRANSFER_JOB_SCRIPT_TEMPLATE,
                        JobState)
-from faust_records import Scan as ScanRecord
+from faust_records import Job, JobType, SubmitJobEvent, CancelJobEvent
 from schemas import JobUpdate
 from schemas import Location as LocationRest
 from schemas import Machine, Scan, ScanUpdate, SfapiJob
@@ -69,26 +68,6 @@ def reset_oauth2_client():
     global _client
 
     _client = None
-
-
-class JobType(str, Enum):
-    COUNT = "count"
-    TRANSFER = "transfer"
-
-    def __str__(self) -> str:
-        return self.value
-
-
-class Job(faust.Record):
-    id: int
-    job_type: JobType
-    machine: str
-    params: Dict[str, Union[str, int, float]]
-
-
-class SubmitJobEvent(faust.Record):
-    job: Job
-    scan: ScanRecord
 
 
 submit_job_events_topic = app.topic(TOPIC_JOB_SUBMIT_EVENTS, value_type=SubmitJobEvent)

@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-import json
 
 import aiohttp
 import httpx
@@ -73,6 +72,7 @@ def reset_oauth2_client():
 
 
 submit_job_events_topic = app.topic(TOPIC_JOB_SUBMIT_EVENTS, value_type=SubmitJobEvent)
+cancel_job_events_topic = app.topic(TOPIC_JOB_CANCEL_EVENTS, value_type=CancelJobEvent)
 
 # Cache to store machines, we only need to fetch them once
 _machines = None
@@ -287,6 +287,18 @@ async def submit_job(machine: str, batch_submit_file: str) -> int:
 
         return int(slurm_id)
 
+async def cancel_job(machine: str, jobid: str) -> None:
+
+    # jobid is slurm job id
+    logger.info("Trying to cancel job: ", jobid, 
+                " on machine: ", machine, " ...")
+    r = await sfapi_delete(f"compute/jobs/{machine}/{jobid}")
+    r.raise_for_status()
+
+    sfapi_response = r.json()
+
+    if sfapi_response["status"].lower() != "ok":
+        raise SfApiError(sfapi_response["error"])
 
 async def update_slurm_job_id(
     session: aiohttp.ClientSession, job_id: int, slurm_id: int
@@ -421,6 +433,23 @@ async def process_submit_job_event(
     await update_slurm_job_id(session, event.job.id, slurm_id)
 
 
+async def process_cancel_job_event(
+    session: aiohttp.ClientSession, event: CancelJobEvent
+) -> None:
+
+    # We need to fetch the machine specific configuration
+    machine = await get_machine(session, event.job.machine)
+
+    # Get job from database
+    job = await get_job(session, event.job.id)
+
+    if job.slurm_id is None:
+        raise Exception(f"Job {job.id} does not have a slurm id")
+
+    # Cancel the job
+    await cancel_job(machine.name, str(job.slurm_id))
+
+
 @app.agent(submit_job_events_topic)
 async def watch_for_submit_job_events(submit_jobs_events):
     async with aiohttp.ClientSession() as session:
@@ -429,6 +458,16 @@ async def watch_for_submit_job_events(submit_jobs_events):
                 await process_submit_job_event(session, event)
             except SfApiError as ex:
                 logger.error(f"Error submitting job: {ex.message}")
+
+
+@app.agent(cancel_job_events_topic)
+async def watch_for_cancel_job_events(cancel_job_events):
+    async with aiohttp.ClientSession() as session:
+        async for event in cancel_job_events:
+            try:
+                await process_cancel_job_event(session, event)
+            except SfApiError as ex:
+                logger.error(f"Error cancelling job: {ex.message}")
 
 
 async def update_job(

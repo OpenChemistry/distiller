@@ -41,3 +41,7 @@ class JobEvent(faust.Record):
 class SubmitJobEvent(JobEvent):
     scan: Optional[Scan]
     event_type: JobEventType = JobEventType.SUBMIT
+
+
+class CancelJobEvent(JobEvent):
+    event_type: JobEventType = JobEventType.CANCEL

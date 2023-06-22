@@ -36,6 +36,11 @@ import { DateTime } from 'luxon';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
 import { getScan, scansSelector, patchScan } from '../features/scans';
+import {
+  getScanJobs,
+  jobsExistInStore,
+  nonStreamingJobsSelector,
+} from '../features/jobs';
 import { getNotebooks, selectNotebooks } from '../features/notebooks';
 import {
   machineState,
@@ -44,7 +49,7 @@ import {
 } from '../features/machines';
 import LocationComponent from '../components/location';
 import EditableField from '../components/editable-field';
-import { IdType, JobType, Scan, ScanJob, Microscope } from '../types';
+import { IdType, JobType, Scan, Job, Microscope } from '../types';
 import JobStateComponent from '../components/job-state';
 import TransferDialog from '../components/transfer-dialog';
 import CountDialog from '../components/count-dialog';
@@ -117,12 +122,20 @@ const ScanPage: React.FC<Props> = () => {
   const scanIdParam = useUrlParams().scanId;
 
   const scanId = parseInt(scanIdParam as string);
+  const scan = useAppSelector((state) =>
+    scansSelector.selectById(state, scanId)
+  );
+  const jobs = useAppSelector(nonStreamingJobsSelector(scanId));
+  const jobIds = scan?.jobIds || [];
+  const allJobsInStore = useAppSelector((state) =>
+    jobsExistInStore(state, jobIds)
+  );
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const [jobDialog, setJobDialog] = useState<JobType | undefined>();
-  const [jobOutputDialog, setJobOutputDialog] = useState<ScanJob | undefined>();
+  const [jobOutputDialog, setJobOutputDialog] = useState<Job | undefined>();
   const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan | null>(
     null
   );
@@ -164,6 +177,14 @@ const ScanPage: React.FC<Props> = () => {
     dispatch(getScan({ id: scanId }));
   }, [dispatch, scanId]);
 
+  // This effect handles fetching jobs related to the scan
+  useEffect(() => {
+    if (scanId && !allJobsInStore) {
+      // If any job is not in the store, fetch the jobs for the scan
+      dispatch(getScanJobs({ scanId: scanId }));
+    }
+  }, [dispatch, scanId, allJobsInStore]);
+
   useEffect(() => {
     dispatch(getNotebooks());
   }, [dispatch]);
@@ -196,7 +217,7 @@ const ScanPage: React.FC<Props> = () => {
     return createJob(type, scanId, machine, params);
   };
 
-  const onJobOutputClick = (job: ScanJob) => {
+  const onJobOutputClick = (job: Job) => {
     setJobOutputDialog(job);
   };
 
@@ -228,10 +249,6 @@ const ScanPage: React.FC<Props> = () => {
       });
     });
   };
-
-  const scan = useAppSelector((state) =>
-    scansSelector.selectById(state, scanId)
-  );
 
   const notebooks = useAppSelector((state) => selectNotebooks(state));
 
@@ -458,7 +475,7 @@ const ScanPage: React.FC<Props> = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {[...scan.jobs]
+                {[...jobs]
                   .sort((a, b) => b.id - a.id)
                   .map((job) => {
                     const Icon = jobTypeToIcon(job.job_type);
@@ -471,7 +488,9 @@ const ScanPage: React.FC<Props> = () => {
                         </TableCell>
                         <TableCell>{job.slurm_id}</TableCell>
                         <TableCell>
-                          {humanizeDuration(job.elapsed * 1000)}
+                          {humanizeDuration(
+                            job.elapsed ? job.elapsed * 1000 : 0
+                          )}
                         </TableCell>
                         <TableStateCell align="right">
                           <StateContent>
@@ -481,7 +500,9 @@ const ScanPage: React.FC<Props> = () => {
                             >
                               <OutputIcon />
                             </IconButton>
-                            <JobStateComponent state={job.state} />
+                            {job.state && (
+                              <JobStateComponent state={job.state} />
+                            )}
                           </StateContent>
                         </TableStateCell>
                       </TableRow>

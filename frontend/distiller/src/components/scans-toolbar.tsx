@@ -163,8 +163,9 @@ type ScansToolbarProps = {
   endDate: DateTime | null;
   onStartDate: (date: DateTime | null) => void;
   onEndDate: (date: DateTime | null) => void;
-  onExport: (format: ExportFormat) => void;
+  onExport?: (format: ExportFormat) => void;
   showFilterBadge: boolean;
+  showExportButton?: boolean;
 };
 
 export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
@@ -181,6 +182,7 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
     onExport,
     onStartDate,
     onEndDate,
+    showExportButton = true,
   } = props;
 
   const onFilterClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -208,18 +210,20 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
         justifyContent: 'flex-end',
       }}
     >
-      <Box pr={1}>
-        <Tooltip title="Export Scans">
-          <Button
-            onClick={onExportClick}
-            size="small"
-            color="primary"
-            startIcon={<DownloadIcon />}
-          >
-            Export
-          </Button>
-        </Tooltip>
-      </Box>
+      {showExportButton && onExport && (
+        <Box pr={1}>
+          <Tooltip title="Export Scans">
+            <Button
+              onClick={onExportClick}
+              size="small"
+              color="primary"
+              startIcon={<DownloadIcon />}
+            >
+              Export
+            </Button>
+          </Tooltip>
+        </Box>
+      )}
       <Box>
         <Tooltip title="Filter Scans">
           <Button
@@ -245,11 +249,13 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
         onStartDate={onStartDate}
         onEndDate={onEndDate}
       />
-      <ExportMenu
-        anchorEl={exportAnchorEl}
-        onClose={onExportClose}
-        onExport={onExport}
-      />
+      {showExportButton && onExport && (
+        <ExportMenu
+          anchorEl={exportAnchorEl}
+          onClose={onExportClose}
+          onExport={onExport}
+        />
+      )}
     </Toolbar>
   );
 };

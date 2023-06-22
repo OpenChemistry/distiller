@@ -10,12 +10,12 @@ import {
 import { styled } from '@mui/material/styles';
 import { lime } from '@mui/material/colors';
 
-import { ScanJob } from '../types';
+import { Job } from '../types';
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  job?: ScanJob;
+  job?: Job;
 };
 
 const OutputContainer = styled('div')(({ theme }) => ({

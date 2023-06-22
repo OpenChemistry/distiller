@@ -13,6 +13,7 @@ import {
   removeScanFiles as removeScanFilesAPI,
   removeScan as removeScanAPI,
 } from './api';
+import { getJobScans as getJobScansAPI } from '../jobs/api';
 import { Scan, IdType, ScansRequestResult } from '../../types';
 import { DateTime } from 'luxon';
 
@@ -54,6 +55,17 @@ export const getScan = createAsyncThunk<Scan, { id: IdType }>(
     return scan;
   }
 );
+
+export const getJobScans = createAsyncThunk<
+  Scan[],
+  {
+    jobId: IdType;
+  }
+>('scans/fetchByJobId', async (payload, _thunkAPI) => {
+  const { jobId } = payload;
+  const scans = await getJobScansAPI(jobId);
+  return scans;
+});
 
 export const patchScan = createAsyncThunk<
   Scan,
@@ -114,10 +126,13 @@ export const scansSlice = createSlice({
 
         state.status = 'complete';
         state.totalCount = totalCount;
-        scansAdapter.setAll(state, scans);
+        scansAdapter.upsertMany(state, scans);
       })
       .addCase(getScan.fulfilled, (state, action) => {
-        scansAdapter.setOne(state, action.payload);
+        scansAdapter.upsertOne(state, action.payload);
+      })
+      .addCase(getJobScans.fulfilled, (state, action) => {
+        scansAdapter.upsertMany(state, action.payload);
       })
       .addCase(patchScan.fulfilled, (state, action) => {
         const update = {
@@ -145,5 +160,52 @@ export const scanSelector = (id: IdType) => {
 export const totalCount = (state: RootState) => state.scans.totalCount;
 
 export const { setScan, updateScan } = scansSlice.actions;
+
+export const scansByJobIdSelector = (jobId: IdType) => {
+  return createSelector(scanState, (state) => {
+    return Object.values(state.entities).filter(
+      (scan): scan is Scan =>
+        scan !== undefined && scan.jobIds && scan.jobIds.includes(jobId)
+    );
+  });
+};
+
+export const selectScansByPageAndDate = (
+  page: number,
+  itemsPerPage: number,
+  startDateFilter: DateTime | null,
+  endDateFilter: DateTime | null
+) => {
+  return createSelector(
+    [scanState, (state: RootState) => state],
+    (scansState, state) => {
+      let scans = Object.values(scansState.entities) as Scan[];
+
+      // If start date is defined, filter scans created after start date
+      if (startDateFilter) {
+        scans = scans.filter(
+          (scan) =>
+            scan.created && DateTime.fromISO(scan.created) >= startDateFilter
+        );
+      }
+
+      // If end date is defined, filter scans created before end date
+      if (endDateFilter) {
+        scans = scans.filter(
+          (scan) =>
+            scan.created && DateTime.fromISO(scan.created) <= endDateFilter
+        );
+      }
+
+      scans = scans.sort((a, b) => b.created.localeCompare(a.created));
+
+      const start = page * itemsPerPage;
+      const end = start + itemsPerPage;
+      scans = scans.slice(start, end);
+
+      return scans;
+    }
+  );
+};
 
 export default scansSlice.reducer;

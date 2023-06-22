@@ -44,7 +44,8 @@ const LocationChip: React.FC<ChipProps> = React.forwardRef<
   ChipProps
 >((props, ref) => {
   const dispatch = useAppDispatch();
-  const { scan, host, confirmRemoval, machines } = props;
+  const { scan, host, machines } = props;
+  const { confirmRemoval, ...otherProps } = props;
   const [deletable, setDeletable] = React.useState(!isNil(scan.scan_id));
 
   const onDelete = async () => {
@@ -62,7 +63,7 @@ const LocationChip: React.FC<ChipProps> = React.forwardRef<
 
   return (
     <Chip
-      {...props}
+      {...otherProps}
       ref={ref}
       label={host}
       onDelete={deletable && !machines.includes(host) ? onDelete : undefined}

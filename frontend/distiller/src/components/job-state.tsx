@@ -64,7 +64,14 @@ const JobStateComponent: React.FC<Props> = ({ state }) => {
   const { Icon, color, className } = stateToStyle(state);
 
   return (
-    <div title={state}>
+    <div
+      title={state}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       <Icon className={className} style={{ color: color }} />
     </div>
   );

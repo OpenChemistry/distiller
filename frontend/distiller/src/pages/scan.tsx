@@ -98,6 +98,7 @@ const TableStateCell = styled(TableCell)(({ theme }) => ({
 const StateContent = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'end',
+  justifyContent: 'center',
 }));
 
 const Spacer = styled('div')(({ theme }) => ({

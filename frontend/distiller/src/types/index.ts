@@ -101,7 +101,7 @@ export type Scan = {
   locations: ScanLocation[];
   notes?: string;
   image_path?: string;
-  jobs: ScanJob[];
+  jobIds: IdType[];
   prevScanId?: IdType;
   nextScanId?: IdType;
   metadata?: Metadata;

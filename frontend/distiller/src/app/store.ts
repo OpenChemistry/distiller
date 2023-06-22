@@ -5,6 +5,7 @@ import notificationsReducer from '../features/notifications';
 import machinesReducer from '../features/machines';
 import microscopesReducer from '../features/microscopes';
 import notebooksReducer from '../features/notebooks';
+import jobsReducer from '../features/jobs';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     machines: machinesReducer,
     microscopes: microscopesReducer,
     notebooks: notebooksReducer,
+    jobs: jobsReducer,
   },
 });
 

@@ -58,7 +58,7 @@ import { fetchOrCreateNotebook } from '../features/notebooks/api';
 import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
 import JobOutputDialog from '../components/job-output';
 import { isNil } from '../utils';
-import { SCANS } from '../routes';
+import { SCANS, SESSIONS } from '../routes';
 import { canRunJobs } from '../utils/machine';
 import MetadataComponent from '../components/metadata';
 import {
@@ -270,6 +270,19 @@ const ScanPage: React.FC<Props> = () => {
     navigate(`/${microscopeName}/${SCANS}/${scan?.prevScanId}`);
   };
 
+  const jobId = useUrlParams().jobId;
+  const onNavigateBack = () => {
+    if (microscope === null) {
+      return;
+    }
+    const microscopeName = canonicalMicroscopeName(microscope.name);
+    if (jobId) {
+      navigate(`/${microscopeName}/${SESSIONS}/${jobId}`);
+    } else {
+      navigate(`/${microscopeName}/${SCANS}`);
+    }
+  };
+
   if (scan === undefined || microscope === null) {
     return null;
   }
@@ -299,6 +312,15 @@ const ScanPage: React.FC<Props> = () => {
 
   return (
     <React.Fragment>
+      <Button
+        onClick={onNavigateBack}
+        size="small"
+        color="primary"
+        sx={{ mb: 2 }}
+        variant="outlined"
+      >
+        {jobId ? `Session ${jobId}` : 'Scans'}
+      </Button>
       <Card sx={{ marginBottom: '2rem' }}>
         <CardContent>
           <Grid container spacing={3}>

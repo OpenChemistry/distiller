@@ -432,7 +432,7 @@ const ScanPage: React.FC<Props> = () => {
           {notebooks &&
             notebooks.map((name: string) => {
               return (
-                <Box sx={{ m: 1, position: 'relative' }}>
+                <Box key={name} sx={{ m: 1, position: 'relative' }}>
                   <Button
                     key={name}
                     onClick={() => onLaunchNotebook(name)}

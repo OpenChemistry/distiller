@@ -1,5 +1,5 @@
 import { apiClient } from '../../client';
-import { IdType, Scan, ScansRequestResult } from '../../types';
+import { IdType, Scan, ScansRequestResult, Job } from '../../types';
 import { pickNil } from '../../utils';
 import { DateTime } from 'luxon';
 
@@ -68,6 +68,14 @@ export function getScan(id: IdType): Promise<Scan> {
         return { ...scan, prevScanId, nextScanId };
       });
     });
+}
+
+export function getScanJobs(id: IdType): Promise<Job[]> {
+  return apiClient
+    .get({
+      url: `scans/${id}/jobs`,
+    })
+    .then((res) => res.json());
 }
 
 export function patchScan(id: IdType, updates: Partial<Scan>): Promise<Scan> {

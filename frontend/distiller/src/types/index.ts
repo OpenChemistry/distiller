@@ -13,6 +13,7 @@ export type ScanLocation = {
 export enum JobType {
   Transfer = 'transfer',
   Count = 'count',
+  Streaming = 'streaming',
 }
 
 export enum JobState {
@@ -76,7 +77,7 @@ export const FailedJobStates = new Set<JobState>([
   JobState.CANCELLED,
 ]);
 
-export type ScanJob = {
+export type Job = {
   id: IdType;
   job_type: JobType;
   scan_id: IdType;
@@ -108,6 +109,12 @@ export type Scan = {
 export type ScansRequestResult = {
   scans: Scan[];
   // The unfiltered number of scans, needed for pagination
+  totalCount: number;
+};
+
+export type JobsRequestResult = {
+  jobs: Job[];
+  // The unfiltered number of jobs
   totalCount: number;
 };
 

@@ -1,5 +1,5 @@
-from typing import List, cast, Optional
 from datetime import datetime
+from typing import List, Optional, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
@@ -8,7 +8,7 @@ from app import schemas
 from app.api.deps import get_db, oauth2_password_bearer_or_api_key
 from app.crud import job as crud
 from app.kafka.producer import send_job_event_to_kafka
-from app.schemas import SubmitJobEvent, UpdateJobEvent, CancelJobEvent
+from app.schemas import CancelJobEvent, SubmitJobEvent, UpdateJobEvent
 
 router = APIRouter()
 
@@ -111,7 +111,6 @@ def read_job_scans(id: int, db: Session = Depends(get_db)):
 async def update_job(
     id: int, payload: schemas.JobUpdate, db: Session = Depends(get_db)
 ):
-
     db_job = crud.get_job(db, id=id)
     if db_job is None:
         raise HTTPException(status_code=404, detail="Job not found")

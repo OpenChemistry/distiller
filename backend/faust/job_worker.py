@@ -3,9 +3,9 @@ import copy
 import json
 import logging
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+from zoneinfo import ZoneInfo
 
 import aiohttp
 import httpx
@@ -13,18 +13,18 @@ import jinja2
 import tenacity
 from aiopath import AsyncPath
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
-from authlib.oauth2.rfc7523 import PrivateKeyJWT
 from authlib.jose import JsonWebKey
+from authlib.oauth2.rfc7523 import PrivateKeyJWT
 from dotenv import dotenv_values
 
 import faust
 from config import settings
 from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
                        SFAPI_BASE_URL, SFAPI_TOKEN_URL, SLURM_RUNNING_STATES,
-                       TOPIC_JOB_SUBMIT_EVENTS, TOPIC_JOB_CANCEL_EVENTS,
-                       TRANSFER_JOB_SCRIPT_TEMPLATE,STREAMING_JOB_SCRIPT_TEMPLATE,
+                       STREAMING_JOB_SCRIPT_TEMPLATE, TOPIC_JOB_CANCEL_EVENTS,
+                       TOPIC_JOB_SUBMIT_EVENTS, TRANSFER_JOB_SCRIPT_TEMPLATE,
                        JobState)
-from faust_records import Job, JobType, SubmitJobEvent, CancelJobEvent
+from faust_records import CancelJobEvent, Job, JobType, SubmitJobEvent
 from schemas import JobUpdate
 from schemas import Location as LocationRest
 from schemas import Machine, Scan, ScanUpdate, SfapiJob
@@ -236,7 +236,7 @@ async def sfapi_delete(url: str) -> httpx.Response:
         headers={
             "Authorization": client.token["access_token"],
             "accept": "application/json",
-        }
+        },
     )
     r.raise_for_status()
 
@@ -287,11 +287,10 @@ async def submit_job(machine: str, batch_submit_file: str) -> int:
 
         return int(slurm_id)
 
-async def cancel_job(machine: str, jobid: str) -> None:
 
+async def cancel_job(machine: str, jobid: str) -> None:
     # jobid is slurm job id
-    logger.info("Trying to cancel job: ", jobid, 
-                " on machine: ", machine, " ...")
+    logger.info("Trying to cancel job: ", jobid, " on machine: ", machine, " ...")
     r = await sfapi_delete(f"compute/jobs/{machine}/{jobid}")
     r.raise_for_status()
 
@@ -299,6 +298,7 @@ async def cancel_job(machine: str, jobid: str) -> None:
 
     if sfapi_response["status"].lower() != "ok":
         raise SfApiError(sfapi_response["error"])
+
 
 async def update_slurm_job_id(
     session: aiohttp.ClientSession, job_id: int, slurm_id: int
@@ -310,7 +310,6 @@ async def update_slurm_job_id(
 async def process_submit_streaming_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
-
     # We need to fetch the machine specific configuration
     machine = await get_machine(session, event.job.machine)
 
@@ -358,7 +357,6 @@ async def process_submit_streaming_job_event(
 async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
-    
     if event.job.job_type == JobType.STREAMING:
         await process_submit_streaming_job_event(session, event)
         return None
@@ -436,7 +434,6 @@ async def process_submit_job_event(
 async def process_cancel_job_event(
     session: aiohttp.ClientSession, event: CancelJobEvent
 ) -> None:
-
     # We need to fetch the machine specific configuration
     machine = await get_machine(session, event.job.machine)
 
@@ -478,7 +475,9 @@ async def update_job(
     submit: datetime,
     output: Optional[str] = None,
 ) -> None:
-    update = JobUpdate(id=job_id, state=state, output=output, elapsed=elapsed, submit=submit)
+    update = JobUpdate(
+        id=job_id, state=state, output=output, elapsed=elapsed, submit=submit
+    )
     await update_job_request(session, update)
 
 
@@ -493,7 +492,7 @@ def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
         )
         submit = job["submit"]
         _submit = datetime.strptime(submit, "%Y-%m-%dT%H:%M:%S")
-        la_tz = ZoneInfo('America/Los_Angeles')
+        la_tz = ZoneInfo("America/Los_Angeles")
         submit = _submit.replace(tzinfo=la_tz)
 
         jobs.append(
@@ -610,7 +609,12 @@ async def monitor_jobs():
 
                 try:
                     await update_job(
-                        session, id, job.state, elapsed=job.elapsed, output=output, submit=job.submit
+                        session,
+                        id,
+                        job.state,
+                        elapsed=job.elapsed,
+                        output=output,
+                        submit=job.submit,
                     )
                 except aiohttp.client_exceptions.ClientResponseError as ex:
                     # Ignore 404, this is not a job we created.

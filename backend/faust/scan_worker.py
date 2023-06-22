@@ -105,7 +105,7 @@ def purge_scan_data(scan_id):
 
 
 def reap_scan_metadata():
-    for (key, record) in scan_id_to_metadata.items():
+    for key, record in scan_id_to_metadata.items():
         expiration = timedelta(hours=1)
         now = datetime.utcnow()
         if now - record.created > expiration:
@@ -113,7 +113,7 @@ def reap_scan_metadata():
 
 
 def reap_scan_status():
-    for (key, record) in scan_id_to_status.items():
+    for key, record in scan_id_to_status.items():
         expiration = timedelta(hours=1)
         now = datetime.utcnow()
         if (

@@ -23,8 +23,7 @@ from constants import (DATE_DIR_FORMAT, NERSC_LOCATION,
                        TOPIC_SCAN_METADATA_EVENTS)
 from faust_records import ScanMetadata
 from schemas import Location
-from utils import (ScanUpdate, generate_ncemhub_scan_path,
-                   get_microscope_by_id, get_scan, update_scan)
+from utils import ScanUpdate, generate_ncemhub_scan_path, get_scan, update_scan
 
 DATA_FILE_FORMATS = [".dm3", ".dm4", ".ser", ".emd"]
 
@@ -35,6 +34,7 @@ logger.setLevel(logging.INFO)
 app = faust.App(
     "distiller-haadf", store="rocksdb://", broker=settings.KAFKA_URL, topic_partitions=1
 )
+
 
 # 4D Scan associated HAADF DM4
 class HaadfEvent(faust.Record):
@@ -265,7 +265,6 @@ def extract_emi_metadata(emi_path: str):
 
 
 def extract_ncem_emd_metadata(emd_file):
-
     metadata = {}
 
     try:
@@ -435,7 +434,6 @@ scan_file_events_topic = app.topic(
 
 @app.agent(scan_file_events_topic)
 async def watch_for_scan_file_events(scan_file_events):
-
     async with aiohttp.ClientSession() as session:
         async for event in scan_file_events:
             path = event.path

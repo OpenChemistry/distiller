@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Dict, List, Optional, Union
 
 import faust
+
 from .scan import Scan
 
 

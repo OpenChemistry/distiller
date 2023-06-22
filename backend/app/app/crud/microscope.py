@@ -7,7 +7,6 @@ from app import models
 
 
 def get_microscopes(db: Session, name: Optional[str] = None):
-
     query = db.query(models.Microscope)
 
     if name is not None:

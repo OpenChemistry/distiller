@@ -20,12 +20,12 @@ from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
 from app.api.utils import upload_to_file
 from app.core.config import settings
 from app.core.logging import logger
-from app.crud import scan as crud
 from app.crud import job as job_crud
-from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
+from app.crud import scan as crud
+from app.kafka.producer import (send_job_event_to_kafka,
+                                send_remove_scan_files_event_to_kafka,
                                 send_scan_event_to_kafka,
-                                send_scan_file_event_to_kafka,
-                                send_job_event_to_kafka)
+                                send_scan_file_event_to_kafka)
 from app.models import Scan
 from app.schemas.events import RemoveScanFilesEvent
 from app.schemas.scan import Scan4DCreate, ScanCreatedEvent
@@ -204,7 +204,6 @@ def read_scans(
     uuid: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
-
     scans = crud.get_scans(
         db,
         skip=skip,
@@ -290,7 +289,6 @@ def read_scan_jobs(id: int, db: Session = Depends(get_db)):
 async def update_scan(
     id: int, payload: schemas.ScanUpdate, db: Session = Depends(get_db)
 ):
-
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(
@@ -356,7 +354,6 @@ async def _remove_scan_files(db_scan: Scan, host: Optional[str] = None):
 
 @router.delete("/{id}", dependencies=[Depends(oauth2_password_bearer_or_api_key)])
 async def delete_scan(id: int, remove_scan_files: bool, db: Session = Depends(get_db)):
-
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(

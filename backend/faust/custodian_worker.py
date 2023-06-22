@@ -32,7 +32,6 @@ custodian_events_topic = app.topic(
 
 
 def remove(scan: Scan, host: str, paths: List[str]):
-
     result = Connection(
         f"{host}",
         user=f"{settings.CUSTODIAN_USER}",

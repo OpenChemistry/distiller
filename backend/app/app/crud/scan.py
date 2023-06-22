@@ -43,7 +43,6 @@ def _get_scans_query(
         if state == schemas.ScanState.TRANSFER:
             query = query.filter(models.Scan.progress < 100)
         elif state == schemas.ScanState.COMPLETE:
-
             query = query.filter(models.Scan.progress == 100)
 
     if created is not None:
@@ -146,7 +145,6 @@ def create_scan(
     scan.locations = []
 
     if scan.microscope_id is None:
-
         microscope_ids = [m.id for m in microscope.get_microscopes(db)]
         # We default to the first ( 4D Camera )
         scan.microscope_id = microscope_ids[0]

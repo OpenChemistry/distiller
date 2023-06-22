@@ -1,11 +1,11 @@
-from typing import Tuple, Union, Optional
+from datetime import datetime
+from typing import Optional, Tuple, Union
 
 from sqlalchemy import desc, or_, update
 from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.crud import scan as scan_crud
-from datetime import datetime
 
 
 def get_job(db: Session, id: int):

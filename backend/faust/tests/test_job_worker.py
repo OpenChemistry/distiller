@@ -7,7 +7,6 @@ import job_worker
 async def test_cori_submission_script(
     mocker, scan, job, cori_machine, expected_cori_submission_script, machine_names
 ):
-
     dest_dir = "/tmp"
 
     cori_submission_script = await job_worker.render_job_script(

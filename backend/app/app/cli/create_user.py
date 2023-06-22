@@ -1,4 +1,5 @@
 import click
+from sqlalchemy.exc import IntegrityError
 
 from app.crud import user
 from app.db.session import SessionLocal
@@ -12,7 +13,10 @@ from app.schemas import UserCreate
 def create(username, fullname, password):
     user_info = UserCreate(username=username, full_name=fullname, password=password)
     with SessionLocal() as db:
-        user.create_user(db, user_info)
+        try:
+            user.create_user(db, user_info)
+        except IntegrityError:
+            print(f"User {username} already exists.")
 
 
 if __name__ == "__main__":

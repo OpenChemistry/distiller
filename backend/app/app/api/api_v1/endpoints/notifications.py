@@ -12,8 +12,8 @@ from app.api.deps import get_current_user, get_db
 from app.core.logging import logger
 from app.crud import scan as scan_crud
 from app.kafka import consumer
-from app.schemas.microscope import MicroscopeEventType
 from app.schemas.events import JobEventType
+from app.schemas.microscope import MicroscopeEventType
 
 router = APIRouter()
 

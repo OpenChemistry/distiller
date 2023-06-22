@@ -31,7 +31,6 @@ def read_machines():
     dependencies=[Depends(get_api_key)],
 )
 def read_machine(name: str):
-
     for m in settings.MACHINES:
         if m.name == name:
             return m

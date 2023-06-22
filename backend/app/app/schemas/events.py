@@ -1,11 +1,11 @@
-from typing import Optional, List
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 from app.schemas.job import Job, JobState
 from app.schemas.scan import Scan
-from enum import Enum
-from datetime import timedelta, datetime
 
 
 # Has to go in separate module rather the job.py because of circular import.

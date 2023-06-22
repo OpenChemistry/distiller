@@ -83,7 +83,6 @@ async def oauth2_password_bearer_or_api_key(
     api_key_header: str = Security(api_key_header),
     api_key_cookie: str = Security(api_key_cookie),
 ):
-
     if token is not None:
         return await get_current_user(db, token)
     else:

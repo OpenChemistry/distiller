@@ -5,19 +5,21 @@ from aiokafka import AIOKafkaProducer
 from app.core.config import settings
 from app.core.constants import (TOPIC_CUSTODIAN_EVENTS,
                                 TOPIC_HAADF_FILE_EVENTS,
+                                TOPIC_JOB_CANCEL_EVENTS,
+                                TOPIC_JOB_SUBMIT_EVENTS,
+                                TOPIC_JOB_UPDATE_EVENTS,
                                 TOPIC_MICROSCOPE_EVENTS, TOPIC_NOTEBOOK_EVENTS,
                                 TOPIC_SCAN_EVENTS, TOPIC_SCAN_FILE_EVENTS,
                                 TOPIC_SCAN_FILE_SYNC_EVENTS,
                                 TOPIC_STATUS_FILE_EVENTS,
-                                TOPIC_STATUS_FILE_SYNC_EVENTS,
-                                TOPIC_JOB_SUBMIT_EVENTS,
-                                TOPIC_JOB_UPDATE_EVENTS,
-                                TOPIC_JOB_CANCEL_EVENTS)
+                                TOPIC_STATUS_FILE_SYNC_EVENTS)
 from app.core.logging import logger
 from app.schemas import (FileSystemEvent, HaadfUploaded, MicroscopeUpdateEvent,
                          NotebookCreateEvent, ScanCreatedEvent,
                          ScanFileUploaded, ScanUpdateEvent, SyncEvent)
-from app.schemas.events import RemoveScanFilesEvent, SubmitJobEvent, UpdateJobEvent, CancelJobEvent, JobEventType
+from app.schemas.events import (CancelJobEvent, JobEventType,
+                                RemoveScanFilesEvent, SubmitJobEvent,
+                                UpdateJobEvent)
 
 
 def serializer(event: FileSystemEvent) -> bytes:
@@ -111,8 +113,8 @@ async def send_job_event_to_kafka(
     event_topic = {
         JobEventType.SUBMIT: TOPIC_JOB_SUBMIT_EVENTS,
         JobEventType.UPDATED: TOPIC_JOB_UPDATE_EVENTS,
-        JobEventType.CANCEL: TOPIC_JOB_CANCEL_EVENTS
-        }
+        JobEventType.CANCEL: TOPIC_JOB_CANCEL_EVENTS,
+    }
     if event.event_type not in event_topic:
         logger.exception(f"Topic not in event_topic map.")
         return

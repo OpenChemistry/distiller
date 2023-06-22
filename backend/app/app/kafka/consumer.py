@@ -4,13 +4,10 @@ import json
 from aiokafka import AIOKafkaConsumer
 
 from app.core.config import settings
-from app.core.constants import (
-    TOPIC_MICROSCOPE_EVENTS,
-    TOPIC_SCAN_EVENTS,
-    TOPIC_JOB_CANCEL_EVENTS,
-    TOPIC_JOB_SUBMIT_EVENTS,
-    TOPIC_JOB_UPDATE_EVENTS,
-)
+from app.core.constants import (TOPIC_JOB_CANCEL_EVENTS,
+                                TOPIC_JOB_SUBMIT_EVENTS,
+                                TOPIC_JOB_UPDATE_EVENTS,
+                                TOPIC_MICROSCOPE_EVENTS, TOPIC_SCAN_EVENTS)
 
 
 def deserializer(serialized):

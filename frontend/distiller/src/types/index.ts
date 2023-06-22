@@ -80,13 +80,15 @@ export const FailedJobStates = new Set<JobState>([
 export type Job = {
   id: IdType;
   job_type: JobType;
-  scan_id: IdType;
-  slurm_id: IdType;
-  elapsed: number;
-  state: JobState;
+  scanIds: IdType[];
+  slurm_id: IdType | null;
+  elapsed: number | null;
+  state: JobState | null;
   params: any;
-  output?: string;
+  output?: string | null;
   machine?: string;
+  submit?: string | null;
+  notes?: string;
 };
 
 export type Metadata = { [name: string]: any };

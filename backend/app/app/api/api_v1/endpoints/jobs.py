@@ -27,9 +27,9 @@ async def create_job(job_create: schemas.JobCreate, db: Session = Depends(get_db
         (updated, job) = crud.update_job(db, cast(int, job.id), job_update)
 
     db.refresh(job)
-
-    job = crud.get_job(db, cast(int, job.id))
-    scans = crud.get_job_scans(db, job)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    scans = job.scans
     scans = [schemas.Scan.from_orm(scan) for scan in scans]
     job = schemas.Job.from_orm(job)
 
@@ -99,7 +99,7 @@ def read_job_scans(id: int, db: Session = Depends(get_db)):
     db_job = crud.get_job(db, id=id)
     if db_job is None:
         raise HTTPException(status_code=404, detail="Job not found")
-    scans = crud.get_job_scans(db, db_job)
+    scans = db_job.scans
     return [schemas.Scan.from_orm(scan) for scan in scans]
 
 

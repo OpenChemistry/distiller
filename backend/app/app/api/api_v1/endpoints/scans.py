@@ -276,7 +276,7 @@ def read_scan_jobs(id: int, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found"
         )
 
-    jobs = crud.get_scan_jobs(db, db_scan)
+    jobs = db_scan.jobs
     return [schemas.Job.from_orm(job) for job in jobs]
 
 

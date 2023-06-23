@@ -12,10 +12,6 @@ def get_job(db: Session, id: int):
     return db.query(models.Job).filter(models.Job.id == id).first()
 
 
-def get_job_scans(db: Session, job: models.Job):
-    return [scan_crud.get_scan(db, scan.id) for scan in job.scans]
-
-
 def get_job_by_slurm_id(db: Session, slurm_id: int):
     return db.query(models.Job).filter(models.Job.slurm_id == slurm_id).first()
 

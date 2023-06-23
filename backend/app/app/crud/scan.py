@@ -17,10 +17,6 @@ def get_scan_by_scan_id(db: Session, scan_id: int):
     return db.query(models.Scan).filter(models.Scan.scan_id == scan_id).first()
 
 
-def get_scan_jobs(db: Session, scan: models.Scan):
-    return [job_crud.get_job(db, job.id) for job in scan.jobs]
-
-
 def _get_scans_query(
     db: Session,
     skip: int = 0,

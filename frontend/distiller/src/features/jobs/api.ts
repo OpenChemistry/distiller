@@ -74,15 +74,10 @@ export function getJobs(
     });
 }
 
-export function getJob(id: IdType, withScans?: boolean): Promise<Job> {
-  const params: any = {};
-  if (withScans !== undefined) {
-    params['with_scans'] = withScans;
-  }
+export function getJob(id: IdType): Promise<Job> {
   return apiClient
     .get({
       url: `jobs/${id}`,
-      params,
     })
     .then((res) => res.json());
 }

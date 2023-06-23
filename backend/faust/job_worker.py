@@ -288,10 +288,9 @@ async def submit_job(machine: str, batch_submit_file: str) -> int:
         return int(slurm_id)
 
 
-async def cancel_job(machine: str, jobid: str) -> None:
-    # jobid is slurm job id
-    logger.info("Trying to cancel job: ", jobid, " on machine: ", machine, " ...")
-    r = await sfapi_delete(f"compute/jobs/{machine}/{jobid}")
+async def cancel_job(machine: str, slurm_id: str) -> None:
+    logger.info("Trying to cancel job: ", slurm_id, " on machine: ", machine, " ...")
+    r = await sfapi_delete(f"compute/jobs/{machine}/{slurm_id}")
     r.raise_for_status()
 
     sfapi_response = r.json()
@@ -313,7 +312,7 @@ async def process_submit_streaming_job_event(
     # We need to fetch the machine specific configuration
     machine = await get_machine(session, event.job.machine)
 
-    # Not sure why by created comes in as a str, so convert to datetime
+    # Created comes in as a str, so convert to datetime
     created_datetime = datetime.now()
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
     base_dir = settings.JOB_NCEMHUB_COUNT_DATA_PATH
@@ -367,7 +366,7 @@ async def process_submit_job_event(
     # Add job id to allow for simple clean up
     bbcp_dest_dir = str(Path(machine.bbcp_dest_dir) / str(event.job.id))
 
-    # Not sure why by created comes in as a str, so convert to datetime
+    # Created comes in as a str, so convert to datetime
     created_datetime = datetime.fromisoformat(event.scan.created)
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
 

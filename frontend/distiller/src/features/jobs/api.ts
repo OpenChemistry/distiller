@@ -1,6 +1,7 @@
 import { IdType, JobType, Job, JobsRequestResult, Scan } from '../../types';
 import { apiClient } from '../../client';
 import { DateTime } from 'luxon';
+import { isNil } from 'lodash';
 
 export function createJob(
   type: JobType,
@@ -31,19 +32,19 @@ export function getJobs(
   end?: DateTime
 ): Promise<JobsRequestResult> {
   const params: any = {};
-  if (skip !== undefined) {
+  if (!isNil(skip)) {
     params['skip'] = skip;
   }
-  if (limit !== undefined) {
+  if (!isNil(limit)) {
     params['limit'] = limit;
   }
-  if (jobType !== undefined) {
+  if (!isNil(jobType)) {
     params['job_type'] = jobType;
   }
-  if (start !== undefined) {
+  if (!isNil(start)) {
     params['start'] = start;
   }
-  if (end !== undefined) {
+  if (!isNil(end)) {
     params['end'] = end;
   }
 

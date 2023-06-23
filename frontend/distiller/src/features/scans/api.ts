@@ -2,6 +2,7 @@ import { apiClient } from '../../client';
 import { IdType, Scan, ScansRequestResult, Job } from '../../types';
 import { pickNil } from '../../utils';
 import { DateTime } from 'luxon';
+import { isNil } from 'lodash';
 
 export function getScans(
   microscopeId: IdType,
@@ -11,16 +12,16 @@ export function getScans(
   end?: DateTime
 ): Promise<ScansRequestResult> {
   const params: any = { microscope_id: microscopeId };
-  if (skip !== undefined) {
+  if (!isNil(skip)) {
     params['skip'] = skip;
   }
-  if (limit !== undefined) {
+  if (!isNil(limit)) {
     params['limit'] = limit;
   }
-  if (start !== undefined) {
+  if (!isNil(start)) {
     params['start'] = start;
   }
-  if (end !== undefined) {
+  if (!isNil(end)) {
     params['end'] = end;
   }
 

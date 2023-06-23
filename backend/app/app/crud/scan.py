@@ -262,7 +262,7 @@ def count(db: Session) -> int:
     return db.query(models.Scan).count()
 
 
-def delete_non_streaming_jobs(db: Session, id: int) -> None:
+def _delete_non_streaming_jobs(db: Session, id: int) -> None:
     scan = db.query(models.Scan).filter(models.Scan.id == id).first()
     if scan:
         for job in scan.jobs:
@@ -272,7 +272,7 @@ def delete_non_streaming_jobs(db: Session, id: int) -> None:
 
 
 def delete_scan(db: Session, id: int) -> None:
-    delete_non_streaming_jobs(db, id)
+    _delete_non_streaming_jobs(db, id)
     db.query(models.Scan).filter(models.Scan.id == id).delete()
     db.commit()
 

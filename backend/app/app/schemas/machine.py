@@ -15,4 +15,4 @@ class Machine(BaseModel):
     cpus_per_task: int
     bbcp_dest_dir: str
     reservation: Optional[str]
-    zmq_dest_dir: Optional[str]
+    streaming_dest_dir: Optional[str]

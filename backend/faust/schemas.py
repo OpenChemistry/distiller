@@ -96,7 +96,7 @@ class Machine(BaseModel):
     cpu_bind: Optional[str]
     bbcp_dest_dir: str
     reservation: Optional[str]
-    zmq_dest_dir: Optional[str]
+    streaming_dest_dir: Optional[str]
 
 
 class Microscope(BaseModel):

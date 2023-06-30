@@ -92,7 +92,7 @@ const AdvancedMetadata: React.FC<AdvancedMetadataProps> = (props) => {
               }
               onClick={() => setOpen(!open)}
             >
-              Advanced
+              Metadata
             </Button>
           </Grid>
         </TableAdvancedHeaderCell>

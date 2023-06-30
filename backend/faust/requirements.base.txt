@@ -1,4 +1,4 @@
 faust-streaming
 python-rocksdb
-pydantic[dotenv]
+pydantic[dotenv]==v1.10.10
 numpy

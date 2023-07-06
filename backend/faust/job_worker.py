@@ -5,7 +5,7 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-from zoneinfo import ZoneInfo
+import pytz
 
 import aiohttp
 import httpx
@@ -491,8 +491,8 @@ def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
         )
         submit = job["submit"]
         _submit = datetime.strptime(submit, "%Y-%m-%dT%H:%M:%S")
-        la_tz = ZoneInfo("America/Los_Angeles")
-        submit = _submit.replace(tzinfo=la_tz)
+        la_tz = pytz.timezone("America/Los_Angeles")
+        submit = la_tz.localize(_submit)
 
         jobs.append(
             SfapiJob(

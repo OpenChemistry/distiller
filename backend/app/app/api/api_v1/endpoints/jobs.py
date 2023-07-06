@@ -56,12 +56,13 @@ def read_jobs(
     start: Optional[datetime] = None,
     end: Optional[datetime] = None,
     db: Session = Depends(get_db),
+    scan_id: Optional[int] = None
 ):
     db_jobs = crud.get_jobs(
-        db, skip=skip, limit=limit, job_type=job_type, start=start, end=end
+        db, skip=skip, limit=limit, job_type=job_type, start=start, end=end, scan_id=scan_id
     )
     count = crud.get_jobs_count(
-        db, skip=skip, limit=limit, job_type=job_type, start=start, end=end
+        db, skip=skip, limit=limit, job_type=job_type, start=start, end=end, scan_id=scan_id
     )
     response.headers["X-Total-Count"] = str(count)
 

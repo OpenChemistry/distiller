@@ -24,6 +24,7 @@ def _get_jobs_query(
     end: Optional[datetime] = None,
     slurm_id: Optional[int] = None,
     job_type: Optional[schemas.JobType] = None,
+    scan_id: Optional[int] = None
 ):
     query = db.query(models.Job)
 
@@ -39,6 +40,9 @@ def _get_jobs_query(
     if end is not None:
         query = query.filter(models.Job.submit < end)
 
+    if scan_id is not None:
+        query = query.filter(models.Job.scans.any(id=scan_id))
+
     return query
 
 
@@ -50,8 +54,9 @@ def get_jobs(
     end: Optional[datetime] = None,
     slurm_id: Optional[int] = None,
     job_type: Optional[schemas.JobType] = None,
+    scan_id: Optional[int] = None
 ):
-    query = _get_jobs_query(db, skip, limit, start, end, slurm_id, job_type)
+    query = _get_jobs_query(db, skip, limit, start, end, slurm_id, job_type, scan_id)
 
     return query.order_by(desc(models.Job.id)).offset(skip).limit(limit).all()
 
@@ -64,8 +69,9 @@ def get_jobs_count(
     end: Optional[datetime] = None,
     slurm_id: Optional[int] = None,
     job_type: Optional[schemas.JobType] = None,
+    scan_id: Optional[int] = None
 ):
-    query = _get_jobs_query(db, skip, limit, start, end, slurm_id, job_type)
+    query = _get_jobs_query(db, skip, limit, start, end, slurm_id, job_type, scan_id)
 
     return query.count()
 

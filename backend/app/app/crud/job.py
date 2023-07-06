@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, cast
 
 from sqlalchemy import desc, or_, update
 from sqlalchemy.orm import Session
@@ -78,13 +78,33 @@ def get_jobs_count(
 
 def create_job(db: Session, job: schemas.JobCreate):
     _job = job.dict()
-    del _job["scan_id"]
+    scan_id = _job.pop("scan_id")
     db_job = models.Job(**_job)
     db.add(db_job)
     db.commit()
     db.refresh(db_job)
 
+    if scan_id is not None:
+        add_scan_to_job(db, cast(int, db_job.id), scan_id)
+        db.commit()
+        db.refresh(db_job)
+
     return db_job
+
+def add_scan_to_job(db: Session, id: int, scan_id: int) -> bool:
+    scans_updated = False
+    scan = scan_crud.get_scan(db, scan_id)
+
+    if scan is None:
+        raise Exception(f"Scan with id {scan_id} does not exist.")
+    
+    job = get_job(db, id)
+
+    if job is not None and not any([s.id == scan_id for s in job.scans]):
+        job.scans.append(scan)
+        scans_updated = True
+
+    return scans_updated
 
 
 def update_job(
@@ -125,18 +145,7 @@ def update_job(
         or_comparisons.append(models.Job.notes == None)
 
     if updates.scan_id is not None:
-        scan = scan_crud.get_scan(db, updates.scan_id)
-
-        if scan is None:
-            raise Exception(f"Scan with id {updates.scan_id} does not exist.")
-
-        job = get_job(db, id)
-        scans_updated = False
-
-        if job is not None and not any([s.id == updates.scan_id for s in job.scans]):
-            job.scans.append(scan)
-            scans_updated = True
-
+        scans_updated = add_scan_to_job(db, id, updates.scan_id)
         updated = updated or scans_updated
 
     if or_comparisons:

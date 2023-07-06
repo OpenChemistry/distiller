@@ -1,25 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { styled } from '@mui/material';
-import ImageIcon from '@mui/icons-material/Image';
-import { pink } from '@mui/material/colors';
-import { Scan } from '../types';
 import { staticURL } from '../client';
+import { Scan } from '../types';
 import ImageDialog from './image-dialog';
-
-const ThumbnailImage = styled('img')(({ theme }) => ({
-  width: '10%',
-  height: '10%',
-  objectFit: 'cover',
-  cursor: 'pointer',
-}));
-
-const NoThumbnailImageIcon = styled(ImageIcon)(({ theme }) => ({
-  width: '10%',
-  height: '10%',
-  objectFit: 'cover',
-  color: pink.A400,
-}));
+import { NoThumbnailImageIcon } from './no-thumbnail-image-icon';
+import { ThumbnailImage } from './thumbnail-image';
 
 const ImageContainer = styled('div')({
   display: 'flex',
@@ -79,9 +65,11 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ scans }) => {
               src={`${staticURL}${scan.image_path}`}
               alt="scan thumbnail"
               onClick={(event) => onImgClick(event, scan)}
+              width="10%"
+              height="10%"
             />
           ) : (
-            <NoThumbnailImageIcon key={scan.id} />
+            <NoThumbnailImageIcon key={scan.id} width="10%" height="10%" />
           );
         })}
       </ImageContainer>

@@ -21,8 +21,6 @@ import LinearProgress, {
 } from '@mui/material/LinearProgress';
 import { styled } from '@mui/material/styles';
 import CompleteIcon from '@mui/icons-material/CheckCircle';
-import ImageIcon from '@mui/icons-material/Image';
-import { pink } from '@mui/material/colors';
 import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 
@@ -60,6 +58,8 @@ import { canonicalMicroscopeName } from '../utils/microscopes';
 import { useUrlState, Serializer, Deserializer } from '../routes/url-state';
 import { RootState } from '../app/store';
 import { SCANS, SESSIONS } from '../routes';
+import { NoThumbnailImageIcon } from '../components/no-thumbnail-image-icon';
+import { ThumbnailImage } from '../components/thumbnail-image';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
@@ -73,20 +73,6 @@ const TableImageCell = styled(TableCell)(({ theme }) => ({
   padding: '0.2rem',
   textAlign: 'center',
   color: theme.palette.secondary.light,
-}));
-
-const ThumbnailImage = styled('img')(({ theme }) => ({
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-  cursor: 'pointer',
-}));
-
-const NoThumbnailImageIcon = styled(ImageIcon)(({ theme }) => ({
-  width: '60%',
-  height: '60%',
-  objectFit: 'cover',
-  color: pink.A400,
 }));
 
 const TableNotesCell = styled(TableCell)(({ theme }) => ({
@@ -645,7 +631,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
                         onClick={stopPropagation(() => onImgClick(scan))}
                       />
                     ) : (
-                      <NoThumbnailImageIcon />
+                      <NoThumbnailImageIcon cursor="default" />
                     )}
                   </TableImageCell>
                   <TableCell>{scan.id}</TableCell>

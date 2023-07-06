@@ -21,14 +21,12 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import CompleteIcon from '@mui/icons-material/CheckCircle';
-import ImageIcon from '@mui/icons-material/Image';
 import TransferIcon from '@mui/icons-material/CompareArrows';
 import CountIcon from '@mui/icons-material/BlurOn';
 import OutputIcon from '@mui/icons-material/Terminal';
 import LeftIcon from '@mui/icons-material/ArrowLeft';
 import RightIcon from '@mui/icons-material/ArrowRight';
 import TextSnippetOutlined from '@mui/icons-material/TextSnippetOutlined';
-import { pink } from '@mui/material/colors';
 import Tooltip from '@mui/material/Tooltip';
 import humanizeDuration from 'humanize-duration';
 import { DateTime } from 'luxon';
@@ -71,24 +69,11 @@ import { stopPropagation } from '../utils';
 import { JUPYTER_USER_REDIRECT_URL } from '../constants';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Box } from '@mui/system';
+import { NoThumbnailImageIcon } from '../components/no-thumbnail-image-icon';
+import { ThumbnailImage } from '../components/thumbnail-image';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
-}));
-
-const ThumbnailImage = styled('img')(({ theme }) => ({
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-  cursor: 'pointer',
-}));
-
-const NoThumbnailImageIcon = styled(ImageIcon)(({ theme }) => ({
-  width: '60%',
-  height: '60%',
-  objectFit: 'cover',
-  color: pink.A400,
-  cursor: 'pointer',
 }));
 
 const TableStateCell = styled(TableCell)(({ theme }) => ({

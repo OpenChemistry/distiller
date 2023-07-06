@@ -202,6 +202,7 @@ def read_scans(
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
     uuid: Optional[str] = None,
+    job_id: Optional[int] = None,
     db: Session = Depends(get_db),
 ):
     scans = crud.get_scans(
@@ -217,6 +218,7 @@ def read_scans(
         microscope_id=microscope_id,
         sha=sha,
         uuid=uuid,
+        job_id=job_id,
     )
 
     count = crud.get_scans_count(
@@ -232,6 +234,7 @@ def read_scans(
         microscope_id=microscope_id,
         sha=sha,
         uuid=uuid,
+        job_id=job_id,
     )
 
     response.headers["X-Total-Count"] = str(count)

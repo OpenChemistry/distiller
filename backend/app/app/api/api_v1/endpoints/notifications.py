@@ -86,7 +86,7 @@ class WebsocketConsumer(WebSocketEndpoint):
                     microscope_id = event["microscope_id"]
                 elif event.get("event_type") == MicroscopeEventType.UPDATED:
                     microscope_id = event["id"]
-                elif event.get("event_type") in [e.value for e in JobEventType]:
+                elif event.get("event_type") in [JobEventType.SUBMIT, JobEventType.UPDATED]:
                     microscope_id = None
                 elif "id" in event:
                     with contextmanager(get_db)() as db:

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
   Card,
@@ -13,7 +13,7 @@ import OutputIcon from '@mui/icons-material/Terminal';
 
 import ScansPage from '../pages/scans';
 import styled from '@emotion/styled';
-import { IdType, Job, PendingJobStates, RunningJobStates } from '../types';
+import { IdType, Job, PendingJobStates, RunningJobStates, Scan } from '../types';
 import { DateTime } from 'luxon';
 import { jobSelector, patchJob } from '../features/jobs';
 import { scansByJobIdSelector } from '../features/scans';
@@ -22,6 +22,7 @@ import JobStateComponent from './job-state';
 import ImageGallery from './image-gallery';
 import { cancelJob } from '../features/jobs';
 import { Cancel } from '@mui/icons-material';
+import { SCANS, SESSIONS } from '../routes';
 
 interface HoverCardProps extends CardProps {
   isHoverable?: boolean;
@@ -64,6 +65,7 @@ const SessionCard = React.memo(
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const job = useAppSelector(jobSelector(jobId)) as Job;
+    const microscopeName = useParams().microscope;
 
     const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
       if (setHoveredJobId) setHoveredJobId(jobId);
@@ -101,6 +103,11 @@ const SessionCard = React.memo(
       }
     }, [job.state]);
 
+    const onScanClick = (event: React.MouseEvent, scan: Scan) => {
+      event.stopPropagation();
+      navigate(`/${microscopeName}/${SESSIONS}/${jobId}/${SCANS}/${scan.id}`);
+    };
+
     // Scans
     const scans = useAppSelector(scansByJobIdSelector(job.id));
 
@@ -110,6 +117,7 @@ const SessionCard = React.memo(
       showTablePagination: false,
       showDiskUsage: false,
       shouldFetchScans: false,
+      onScanClick: onScanClick
     };
 
     const isJobRunning =

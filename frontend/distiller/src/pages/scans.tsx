@@ -57,7 +57,7 @@ import { canonicalMicroscopeName } from '../utils/microscopes';
 
 import { useUrlState, Serializer, Deserializer } from '../routes/url-state';
 import { RootState } from '../app/store';
-import { SCANS, SESSIONS } from '../routes';
+import { SCANS } from '../routes';
 import { NoThumbnailImageIcon } from '../components/no-thumbnail-image-icon';
 import { ThumbnailImage } from '../components/thumbnail-image';
 
@@ -139,6 +139,7 @@ export interface ScansPageProps {
   showTablePagination?: boolean;
   showDiskUsage?: boolean;
   shouldFetchScans?: boolean;
+  onScanClick?: (event: React.MouseEvent, scan: Scan) => void;
 }
 
 const ScansPage: React.FC<ScansPageProps> = ({
@@ -147,12 +148,11 @@ const ScansPage: React.FC<ScansPageProps> = ({
   showTablePagination = true,
   showDiskUsage = true,
   shouldFetchScans = true,
+  onScanClick
 }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const totalScans = useAppSelector(totalCount);
-  const jobIdParam = useParams().jobId;
-  const jobId = parseInt(jobIdParam as string, 10);
   const machines = useAppSelector((state) =>
     machineSelectors.selectAll(machineState(state))
   );
@@ -296,18 +296,15 @@ const ScansPage: React.FC<ScansPageProps> = ({
     setMaximizeImg(false);
   };
 
-  const onScanClick = (event: React.MouseEvent, scan: Scan) => {
+  const defaultOnScanClick = (event: React.MouseEvent, scan: Scan) => {
     if (microscope === null) {
       return;
     }
     const canonicalName = canonicalMicroscopeName(microscopeName as string);
-    if (jobId) {
-      event.stopPropagation();
-      navigate(`/${canonicalName}/${SESSIONS}/${jobId}/${SCANS}/${scan.id}`);
-    } else {
-      navigate(`/${canonicalName}/${SCANS}/${scan.id}`);
-    }
+    navigate(`/${canonicalName}/${SCANS}/${scan.id}`);
   };
+
+  const handleScanClick = onScanClick || defaultOnScanClick;
 
   const onChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
@@ -613,7 +610,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
                 <TableScanRow
                   key={scan.id}
                   hover
-                  onClick={(event) => onScanClick(event, scan)}
+                  onClick={(event) => handleScanClick(event, scan)}
                 >
                   <TableCell className="selectCheckbox" padding="checkbox">
                     <Checkbox

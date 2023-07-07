@@ -56,15 +56,37 @@ export const getJob = createAsyncThunk<Job, { id: IdType }>(
 );
 
 export const getScanJobs = createAsyncThunk<
-  Job[],
+  { jobs: Job[] | null },
   {
     scanId: IdType;
-  }
+  },
+  { state: RootState }
 >('jobs/fetchByScanId', async (payload, _thunkAPI) => {
   const { scanId } = payload;
-  const jobs = await getScanJobsAPI(scanId);
+  const state = _thunkAPI.getState();
 
-  return jobs;
+  // First, check if scanId exists in state.scans
+  const scanExists = state.scans.ids.includes(scanId);
+
+  if (!scanExists) {
+    // If the scan does not exist in state, throw an error
+    throw new Error(`Scan with ID ${scanId} does not exist in state.`);
+  }
+
+  const jobIds = state.scans.entities[scanId]?.jobIds || [];
+
+  const jobsInState = jobIds.map((id) => selectById(state.jobs, id));
+
+  const allJobsInStore = jobsInState.every((job) => job !== undefined);
+
+  if (allJobsInStore) {
+    // If all jobs are already in the store, return null to avoid unnecessary reducer
+    return { jobs: null };
+  } else {
+    // If any job is not in the store, make the API call
+    const jobs = await getScanJobsAPI(scanId);
+    return { jobs };
+  }
 });
 
 export const patchJob = createAsyncThunk<
@@ -122,8 +144,10 @@ export const jobsSlice = createSlice({
         jobsAdapter.upsertOne(state, job);
       })
       .addCase(getScanJobs.fulfilled, (state, action) => {
-        const jobs = action.payload;
-        jobsAdapter.upsertMany(state, jobs);
+        const jobs = action.payload.jobs;
+        if (jobs !== null) {
+          jobsAdapter.upsertMany(state, jobs);
+        }
       })
       .addCase(patchJob.fulfilled, (state, action) => {
         const update = {

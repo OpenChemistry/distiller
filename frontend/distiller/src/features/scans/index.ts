@@ -57,14 +57,36 @@ export const getScan = createAsyncThunk<Scan, { id: IdType }>(
 );
 
 export const getJobScans = createAsyncThunk<
-  Scan[],
+  { scans: Scan[] | null },
   {
     jobId: IdType;
-  }
+  },
+  { state: RootState }
 >('scans/fetchByJobId', async (payload, _thunkAPI) => {
   const { jobId } = payload;
-  const scans = await getJobScansAPI(jobId);
-  return scans;
+  const state = _thunkAPI.getState();
+
+  const jobExists = state.jobs.ids.includes(jobId);
+
+  if (!jobExists) {
+    // If the scan does not exist in state, throw an error
+    throw new Error(`Job with ID ${jobId} does not exist in state.`);
+  }
+
+  const scanIds = state.jobs.entities[jobId]?.scanIds || [];
+
+  const scansInState = scanIds.map((id) => selectById(state.scans, id));
+
+  const allScansInStore = scansInState.every((scan) => scan !== undefined);
+
+  if (allScansInStore) {
+    // If all jobs are already in the store, return null to avoid unnecessary reducer
+    return { scans: null };
+  } else {
+    // If any job is not in the store, make the API call
+    const scans = await getJobScansAPI(jobId);
+    return { scans };
+  }
 });
 
 export const patchScan = createAsyncThunk<
@@ -132,7 +154,10 @@ export const scansSlice = createSlice({
         scansAdapter.upsertOne(state, action.payload);
       })
       .addCase(getJobScans.fulfilled, (state, action) => {
-        scansAdapter.upsertMany(state, action.payload);
+        const scans = action.payload.scans;
+        if (scans) {
+          scansAdapter.upsertMany(state, scans);
+        }
       })
       .addCase(patchScan.fulfilled, (state, action) => {
         const update = {
@@ -151,10 +176,12 @@ export const scansSelector = scansAdapter.getSelectors<RootState>(
   (state) => state.scans
 );
 
-const scanState = (rootState: RootState) => rootState.scans;
-const { selectById } = scansAdapter.getSelectors();
+const scansState = (rootState: RootState) => rootState.scans;
+
+const { selectById, selectAll } = scansAdapter.getSelectors();
+
 export const scanSelector = (id: IdType) => {
-  return createSelector(scanState, (state) => selectById(state, id));
+  return createSelector(scansState, (state) => selectById(state, id));
 };
 
 export const totalCount = (state: RootState) => state.scans.totalCount;

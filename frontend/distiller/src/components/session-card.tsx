@@ -111,8 +111,6 @@ const SessionCard = React.memo(
       shouldFetchScans: false,
     };
 
-    const fetchedJobIds = useAppSelector(fetchedJobIdsSelector);
-
     const isJobRunning =
       job.state &&
       ((PendingJobStates.has(job.state) && job.slurm_id) ||
@@ -199,30 +197,14 @@ const SessionCard = React.memo(
               }}
             ></div>
 
-            {fetchedJobIds?.includes(job.id) ? (
-              scans.length > 0 ? (
-                <div>
-                  {compactMode ? (
-                    <ImageGallery scans={scans} />
-                  ) : (
-                    <ScansPage {...scansPageProps} />
-                  )}
-                </div>
-              ) : (
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <Card>
-                    <CardContent>
-                      <Typography
-                        variant={'body1'}
-                        component="div"
-                        align="center"
-                      >
-                        No scans for this session...
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </div>
-              )
+            {scans.length > 0 ? (
+              <div>
+                {compactMode ? (
+                  <ImageGallery scans={scans} />
+                ) : (
+                  <ScansPage {...scansPageProps} />
+                )}
+              </div>
             ) : null}
           </CardContent>
         </HoverCard>

@@ -17,9 +17,9 @@ import useLocalStorageState from 'use-local-storage-state';
 // Internal dependencies
 import {
   getJobs,
-  selectJobsByPageAndDate,
   totalCount,
   allJobsSelector,
+  selectJobsByDateAndTypes,
 } from '../features/jobs';
 import { createJob } from '../features/jobs/api';
 import { getJobScans } from '../features/scans';
@@ -114,14 +114,14 @@ const SessionsPage: React.FC = () => {
     machineSelectors.selectAll(machineState(state))
   );
   const jobs = useAppSelector(
-    selectJobsByPageAndDate(
-      page,
-      rowsPerPage,
-      startDateFilter,
-      endDateFilter,
-      jobType
-    )
-  );
+    selectJobsByDateAndTypes(startDateFilter, endDateFilter, [jobType])
+  ).sort((a, b) => b.id - a.id);
+
+  const start = page * rowsPerPage;
+  const end = start + rowsPerPage;
+
+  const jobsOnThisPage = jobs.slice(start, end);
+
   const anyStreamingJobs = allJobs.some((job) => {
     if (job && job.state) {
       if (job.job_type === JobType.Streaming) {
@@ -139,7 +139,7 @@ const SessionsPage: React.FC = () => {
 
   // Jobs
   const [hoveredJobId, setHoveredJobId] = useState<IdType | null>(null);
-  const jobsGroupedByDate = groupBy(jobs, (job) =>
+  const jobsGroupedByDate = groupBy(jobsOnThisPage, (job) =>
     // @ts-ignore: Object is possibly 'null'.
     job.submit ? DateTime.fromISO(job.submit)?.toISO()?.split('T')[0] : 'Queued'
   );

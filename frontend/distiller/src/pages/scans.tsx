@@ -32,7 +32,7 @@ import {
   patchScan,
   totalCount,
   removeScan,
-  selectScansByPageAndDate,
+  selectScansByDate,
 } from '../features/scans';
 import EditableField from '../components/editable-field';
 import { IdType, Microscope, Scan } from '../types';
@@ -195,17 +195,18 @@ const ScansPage: React.FC<ScansPageProps> = ({
   );
 
   const defaultSelector = useMemo(
-    () =>
-      selectScansByPageAndDate(
-        page,
-        rowsPerPage,
-        startDateFilter,
-        endDateFilter
-      ),
-    [page, rowsPerPage, startDateFilter, endDateFilter]
+    () => selectScansByDate(startDateFilter, endDateFilter),
+    [startDateFilter, endDateFilter]
   );
 
-  const scans = useAppSelector(selector || defaultSelector);
+  const scans = useAppSelector(selector || defaultSelector).sort((a, b) => b.created.localeCompare(a.created));
+
+  const start = page * rowsPerPage;
+  const end = start + rowsPerPage;
+
+  const scansOnThisPage = useMemo(() => {
+    return scans.slice(start, end);
+  }, [scans, start, end]);
 
   const [selectedScanIDs, setSelectedScanIDs] = useState<Set<IdType>>(
     new Set<IdType>()
@@ -498,7 +499,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
 
   const onSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      setSelectedScanIDs(new Set<IdType>(scans.map((s) => s.id)));
+      setSelectedScanIDs(new Set<IdType>(scansOnThisPage.map((s) => s.id)));
     } else {
       setSelectedScanIDs(new Set<IdType>());
     }
@@ -591,9 +592,9 @@ const ScansPage: React.FC<ScansPageProps> = ({
                 <Checkbox
                   indeterminate={
                     selectedScanIDs.size > 0 &&
-                    selectedScanIDs.size < scans.length
+                    selectedScanIDs.size < scansOnThisPage.length
                   }
-                  checked={selectedScanIDs.size === scans.length}
+                  checked={selectedScanIDs.size === scansOnThisPage.length}
                   onChange={onSelectAllClick}
                 />
               </TableCell>
@@ -607,9 +608,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {[...scans]
-              .sort((a, b) => b.created.localeCompare(a.created))
-              .slice(0, rowsPerPage)
+            {[...scansOnThisPage]
               .map((scan) => (
                 <TableScanRow
                   key={scan.id}

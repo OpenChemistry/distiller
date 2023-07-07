@@ -171,78 +171,62 @@ export const jobSelector = (id: IdType) => {
   return createSelector(jobsState, (state) => selectById(state, id));
 };
 
-const filterJob =
-  (scanId: IdType, jobType: JobType | null) =>
-  (job: Job | undefined): job is Job =>
-    job !== undefined &&
-    job.scanIds &&
-    job.scanIds.includes(scanId) &&
-    job.job_type !== jobType;
 export const allJobsSelector = createSelector(jobsState, (jobsState) =>
   selectAll(jobsState)
 );
 
+const filterJobByScanId = (scanId: IdType) => (job: Job) =>
+  job.scanIds && job.scanIds.includes(scanId);
+
+const filterJobByTypes = (jobTypes: JobType[] | null) => (job: Job) => {
+  if (jobTypes) {
+    return jobTypes.includes(job.job_type);
+  }
+};
+
+const filterJobByDate =
+  (startDateFilter: DateTime | null, endDateFilter: DateTime | null) =>
+  (job: Job) => {
+    if (
+      startDateFilter &&
+      job.submit &&
+      DateTime.fromISO(job.submit) < startDateFilter
+    ) {
+      return false;
+    }
+    if (
+      endDateFilter &&
+      job.submit &&
+      DateTime.fromISO(job.submit) > endDateFilter
+    ) {
+      return false;
+    }
+    return true;
+  };
+
 export const jobsByScanIdSelector = (scanId: IdType) => {
-  return createSelector(jobState, (state) => {
-    return Object.values(state.entities).filter(filterJob(scanId, null));
+  return createSelector(allJobsSelector, (jobs) => {
+    return jobs.filter(filterJobByScanId(scanId));
   });
 };
 
-export const nonStreamingJobsSelector = (scanId: IdType) => {
-  return createSelector(jobState, (state) => {
-    return Object.values(state.entities).filter(
-      filterJob(scanId, JobType.Streaming)
-    );
+export const jobsByScanIdAndTypes = (scanId: IdType, jobTypes: JobType[]) => {
+  return createSelector(jobsByScanIdSelector(scanId), (jobs) => {
+    return jobs.filter(filterJobByTypes(jobTypes));
   });
 };
 
-export const jobsExistInStore = (state: RootState, jobIds: IdType[]) => {
-  const jobsInState = jobIds.map((id) =>
-    jobsAdapter.getSelectors().selectById(state.jobs, id)
-  );
-  return jobsInState.every((job) => job !== undefined);
-};
-
-export const selectJobsByPageAndDate = (
-  page: number,
-  itemsPerPage: number,
+export const selectJobsByDateAndTypes = (
   startDateFilter: DateTime | null,
   endDateFilter: DateTime | null,
-  jobType: JobType | null
+  jobTypes: JobType[] | null
 ) => {
-  return createSelector(
-    [jobState, (state: RootState) => state],
-    (jobsState, state) => {
-      let jobs = Object.values(jobsState.entities) as Job[];
-
-      if (startDateFilter) {
-        jobs = jobs.filter(
-          (job) => job.submit && DateTime.fromISO(job.submit) >= startDateFilter
-        );
-      }
-
-      if (endDateFilter) {
-        jobs = jobs.filter(
-          (job) => job.submit && DateTime.fromISO(job.submit) <= endDateFilter
-        );
-      }
-
-      if (jobType) {
-        jobs = jobs.filter((job) => job.job_type === jobType);
-      }
-
-      jobs.sort((a, b) => b.id - a.id);
-
-      const start = page * itemsPerPage;
-      const end = start + itemsPerPage;
-      jobs = jobs.slice(start, end);
-
-      return jobs;
-    }
-  );
-};
-
+  return createSelector([allJobsSelector], (jobs) => {
+    jobs = jobs.filter(filterJobByDate(startDateFilter, endDateFilter));
+    jobs = jobs.filter(filterJobByTypes(jobTypes));
+    return jobs;
   });
+};
 
 export const totalCount = (state: RootState) => state.jobs.totalCount;
 

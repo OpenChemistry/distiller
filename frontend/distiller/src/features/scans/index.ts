@@ -185,54 +185,51 @@ export const scanSelector = (id: IdType) => {
 };
 
 export const totalCount = (state: RootState) => state.scans.totalCount;
+export const allScansSelector = createSelector(scansState, (scansState) =>
+  selectAll(scansState)
+);
 
 export const { setScan, updateScan } = scansSlice.actions;
+const filterScanByJobId = (jobId: IdType) => (scan: Scan) =>
+  scan.jobIds && scan.jobIds.includes(jobId);
+
+const filterScanByDate =
+  (startDateFilter: DateTime | null, endDateFilter: DateTime | null) =>
+  (scan: Scan) => {
+    if (
+      startDateFilter &&
+      scan.created &&
+      DateTime.fromISO(scan.created) < startDateFilter
+    ) {
+      return false;
+    }
+    if (
+      endDateFilter &&
+      scan.created &&
+      DateTime.fromISO(scan.created) > endDateFilter
+    ) {
+      return false;
+    }
+    return true;
+  };
 
 export const scansByJobIdSelector = (jobId: IdType) => {
-  return createSelector(scanState, (state) => {
-    return Object.values(state.entities).filter(
-      (scan): scan is Scan =>
-        scan !== undefined && scan.jobIds && scan.jobIds.includes(jobId)
-    );
+  return createSelector(allScansSelector, (scans) => {
+    return scans.filter(filterScanByJobId(jobId));
   });
 };
 
-export const selectScansByPageAndDate = (
-  page: number,
-  itemsPerPage: number,
+export const selectScansByDate = (
   startDateFilter: DateTime | null,
   endDateFilter: DateTime | null
 ) => {
-  return createSelector(
-    [scanState, (state: RootState) => state],
-    (scansState, state) => {
-      let scans = Object.values(scansState.entities) as Scan[];
-
-      // If start date is defined, filter scans created after start date
-      if (startDateFilter) {
-        scans = scans.filter(
-          (scan) =>
-            scan.created && DateTime.fromISO(scan.created) >= startDateFilter
-        );
-      }
-
-      // If end date is defined, filter scans created before end date
-      if (endDateFilter) {
-        scans = scans.filter(
-          (scan) =>
-            scan.created && DateTime.fromISO(scan.created) <= endDateFilter
-        );
-      }
-
-      scans = scans.sort((a, b) => b.created.localeCompare(a.created));
-
-      const start = page * itemsPerPage;
-      const end = start + itemsPerPage;
-      scans = scans.slice(start, end);
-
-      return scans;
-    }
-  );
+  return createSelector([allScansSelector], (scans) => {
+    scans = scans.filter(filterScanByDate(startDateFilter, endDateFilter));
+    return scans;
+  });
 };
+
+
+
 
 export default scansSlice.reducer;

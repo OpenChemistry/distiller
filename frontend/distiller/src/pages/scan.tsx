@@ -36,7 +36,7 @@ import { staticURL } from '../client';
 import { getScan, scansSelector, patchScan } from '../features/scans';
 import {
   getScanJobs,
-  nonStreamingJobsSelector,
+  jobsByScanIdAndTypes,
 } from '../features/jobs';
 import { getNotebooks, selectNotebooks } from '../features/notebooks';
 import {
@@ -110,8 +110,7 @@ const ScanPage: React.FC<Props> = () => {
   const scan = useAppSelector((state) =>
     scansSelector.selectById(state, scanId)
   );
-  const jobs = useAppSelector(nonStreamingJobsSelector(scanId));
-  const jobIds = scan?.jobIds || [];
+  const jobs = useAppSelector(jobsByScanIdAndTypes(scanId, [JobType.Count, JobType.Transfer]));
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();

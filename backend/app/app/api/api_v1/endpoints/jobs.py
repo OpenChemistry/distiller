@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 from app import schemas
 from app.api.deps import get_db, oauth2_password_bearer_or_api_key
 from app.crud import job as crud
-from app.kafka.producer import send_job_event_to_kafka
+from app.crud import scan as scan_crud
+from app.kafka.producer import send_job_event_to_kafka, send_scan_event_to_kafka
 from app.schemas import CancelJobEvent, SubmitJobEvent, UpdateJobEvent
 
 router = APIRouter()
@@ -107,7 +108,14 @@ async def update_job(
     (updated, job) = crud.update_job(db, id, payload)
     job = schemas.Job.from_orm(job)
     if updated:
-        await send_job_event_to_kafka(UpdateJobEvent.from_job(job))
+        job_updated_event = UpdateJobEvent.from_job(job)
+        if payload.scan_id:
+            scan_updated_event = schemas.ScanUpdateEvent(id=payload.scan_id)
+            db_scan = scan_crud.get_scan(db, id=payload.scan_id)
+            scan_updated_event.jobIds = schemas.Scan.from_orm(db_scan).jobIds
+            await send_scan_event_to_kafka(scan_updated_event)
+
+        await send_job_event_to_kafka(job_updated_event)
 
     return job
 

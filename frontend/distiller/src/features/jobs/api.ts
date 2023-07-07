@@ -2,6 +2,7 @@ import { IdType, JobType, Job, JobsRequestResult, Scan } from '../../types';
 import { apiClient } from '../../client';
 import { DateTime } from 'luxon';
 import { isNil } from 'lodash';
+import { pickNil } from '../../utils';
 
 export function createJob(
   type: JobType,
@@ -79,7 +80,16 @@ export function getJob(id: IdType): Promise<Job> {
     .get({
       url: `jobs/${id}`,
     })
-    .then((res) => res.json());
+    .then((res) => {
+      return res.json().then((job: Job) => {
+        let prevJobId: any = pickNil(
+          res.headers.get('x-previous-job'),
+          undefined
+        );
+        let nextJobId: any = pickNil(res.headers.get('x-next-job'), undefined);
+        return { ...job, prevJobId, nextJobId };
+      });
+    });
 }
 
 export function getJobScans(id: IdType): Promise<Scan[]> {

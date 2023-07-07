@@ -89,6 +89,8 @@ export type Job = {
   machine?: string;
   submit?: string | null;
   notes?: string;
+  prevJobId?: IdType;
+  nextJobId?: IdType;
 };
 
 export type Metadata = { [name: string]: any };

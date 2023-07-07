@@ -274,7 +274,7 @@ const SessionsPage: React.FC = () => {
                 <ListItem key={job.id}>
                   <SessionCard
                     key={job.id}
-                    job={job}
+                    jobId={job.id}
                     setHoveredJobId={setHoveredJobId}
                     isHoverable={true}
                     compactMode={true}

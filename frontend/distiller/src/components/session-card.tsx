@@ -15,7 +15,7 @@ import ScansPage from '../pages/scans';
 import styled from '@emotion/styled';
 import { IdType, Job, PendingJobStates, RunningJobStates } from '../types';
 import { DateTime } from 'luxon';
-import { fetchedJobIdsSelector, patchJob } from '../features/jobs';
+import { jobSelector, patchJob } from '../features/jobs';
 import { scansByJobIdSelector } from '../features/scans';
 import JobOutputDialog from './job-output';
 import JobStateComponent from './job-state';
@@ -52,7 +52,7 @@ const HoverCard = styled(({ isHoverable, ...props }: HoverCardProps) => (
 );
 
 interface SessionCardProps {
-  job: Job;
+  jobId: IdType;
   setHoveredJobId?: React.Dispatch<React.SetStateAction<IdType | null>>;
   isHoverable?: boolean | undefined;
   compactMode?: boolean | undefined | null;
@@ -60,12 +60,13 @@ interface SessionCardProps {
 
 // SessionCard Component
 const SessionCard = React.memo(
-  ({ job, setHoveredJobId, isHoverable, compactMode }: SessionCardProps) => {
+  ({ jobId, setHoveredJobId, isHoverable, compactMode }: SessionCardProps) => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
+    const job = useAppSelector(jobSelector(jobId)) as Job;
 
     const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
-      if (setHoveredJobId) setHoveredJobId(job.id);
+      if (setHoveredJobId) setHoveredJobId(jobId);
     };
 
     const handleMouseLeave = () => {

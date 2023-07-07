@@ -30,7 +30,9 @@ const SessionPage: React.FC = () => {
 
   return (
     <React.Fragment>
-      {job && <SessionCard job={job} isHoverable={false} compactMode={false} />}
+      {job && (
+        <SessionCard jobId={job.id} isHoverable={false} compactMode={false} />
+      )}
     </React.Fragment>
   );
 };

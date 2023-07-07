@@ -165,11 +165,10 @@ const ScanPage: React.FC<Props> = () => {
 
   // This effect handles fetching jobs related to the scan
   useEffect(() => {
-    if (scanId && !allJobsInStore) {
-      // If any job is not in the store, fetch the jobs for the scan
+    if (scanId) {
       dispatch(getScanJobs({ scanId: scanId }));
     }
-  }, [dispatch, scanId, allJobsInStore]);
+  }, [dispatch, scanId]);
 
   useEffect(() => {
     dispatch(getNotebooks());

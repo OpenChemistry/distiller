@@ -17,12 +17,9 @@ import useLocalStorageState from 'use-local-storage-state';
 // Internal dependencies
 import {
   getJobs,
-  fetchedJobIdsSelector,
-  addFetchedJobId,
-  setSessionJobId,
-  anyStreamingJobsSelector,
   selectJobsByPageAndDate,
   totalCount,
+  allJobsSelector,
 } from '../features/jobs';
 import { createJob } from '../features/jobs/api';
 import { getJobScans } from '../features/scans';
@@ -37,7 +34,13 @@ import {
 } from '../features/microscopes';
 import { useUrlState } from '../routes/url-state';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { IdType, Job, JobType } from '../types';
+import {
+  IdType,
+  Job,
+  JobType,
+  PendingJobStates,
+  RunningJobStates,
+} from '../types';
 import { canRunJobs } from '../utils/machine';
 import StreamingDialog from '../components/streaming-dialog';
 import { dateTimeDeserializer, dateTimeSerializer } from './scans';
@@ -103,13 +106,13 @@ const SessionsPage: React.FC = () => {
 
   // Selectors
   const totalJobs = useAppSelector(totalCount);
+  const allJobs = useAppSelector(allJobsSelector);
   const microscopes = useAppSelector((state) =>
     microscopesSelectors.selectAll(microscopesState(state))
   );
   const machines = useAppSelector((state) =>
     machineSelectors.selectAll(machineState(state))
   );
-  const fetchedJobIds = useAppSelector(fetchedJobIdsSelector);
   const jobs = useAppSelector(
     selectJobsByPageAndDate(
       page,
@@ -119,7 +122,20 @@ const SessionsPage: React.FC = () => {
       jobType
     )
   );
-  const anyStreamingJobs = useAppSelector(anyStreamingJobsSelector);
+  const anyStreamingJobs = allJobs.some((job) => {
+    if (job && job.state) {
+      if (job.job_type === JobType.Streaming) {
+        // Check if job is in pending and has slurm id, or is in running state
+        if (
+          (PendingJobStates.has(job.state) && job.slurm_id) ||
+          RunningJobStates.has(job.state)
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  });
 
   // Jobs
   const [hoveredJobId, setHoveredJobId] = useState<IdType | null>(null);
@@ -159,9 +175,6 @@ const SessionsPage: React.FC = () => {
   const onJobClose = () => setJobDialog(undefined);
   const onJobSubmit = async (type: JobType, machine: string, params: any) => {
     const returnedJob: Job = await createJob(type, null, machine, params);
-    if (returnedJob) {
-      dispatch(setSessionJobId(returnedJob.id));
-    }
     return returnedJob;
   };
   const onStartDate = useCallback(
@@ -194,11 +207,10 @@ const SessionsPage: React.FC = () => {
 
   // Effects
   useEffect(() => {
-    if (hoveredJobId !== null && !fetchedJobIds.includes(hoveredJobId)) {
+    if (hoveredJobId !== null) {
       dispatch(getJobScans({ jobId: hoveredJobId }));
-      dispatch(addFetchedJobId(hoveredJobId));
     }
-  }, [dispatch, hoveredJobId, fetchedJobIds]);
+  }, [dispatch, hoveredJobId]);
 
   useEffect(() => {
     if (microscopeId === undefined) return;

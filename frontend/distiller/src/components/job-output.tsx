@@ -7,9 +7,8 @@ import {
   DialogContent,
   DialogTitle,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
 import { lime } from '@mui/material/colors';
-
+import { styled } from '@mui/material/styles';
 import { Job } from '../types';
 
 type Props = {

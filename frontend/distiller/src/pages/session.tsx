@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
-import { getJobScans } from '../features/scans';
-import { useNavigate, useParams as useUrlParams } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { getJob, jobSelector } from '../features/jobs';
-import SessionCard from '../components/session-card';
-import { Button } from '@mui/material';
-import { SESSIONS } from '../routes';
 import LeftIcon from '@mui/icons-material/ArrowLeft';
 import RightIcon from '@mui/icons-material/ArrowRight';
+import { Button } from '@mui/material';
+import React, { useEffect } from 'react';
+import { useNavigate, useParams as useUrlParams } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import SessionCard from '../components/session-card';
+import { getJob, jobSelector } from '../features/jobs';
+import { getJobScans } from '../features/scans';
+import { SESSIONS } from '../routes';
 import { isNil } from '../utils';
 
 const SessionPage: React.FC = () => {

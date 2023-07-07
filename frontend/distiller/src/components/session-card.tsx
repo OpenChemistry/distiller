@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../app/hooks';
+
+import styled from '@emotion/styled';
+import { Cancel } from '@mui/icons-material';
+import OutputIcon from '@mui/icons-material/Terminal';
 import {
   Card,
   CardContent,
@@ -8,21 +11,23 @@ import {
   IconButton,
   Typography,
 } from '@mui/material';
-import EditableField from './editable-field';
-import OutputIcon from '@mui/icons-material/Terminal';
-
-import ScansPage from '../pages/scans';
-import styled from '@emotion/styled';
-import { IdType, Job, PendingJobStates, RunningJobStates, Scan } from '../types';
 import { DateTime } from 'luxon';
-import { jobSelector, patchJob } from '../features/jobs';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { cancelJob, jobSelector, patchJob } from '../features/jobs';
 import { scansByJobIdSelector } from '../features/scans';
+import ScansPage from '../pages/scans';
+import { SCANS, SESSIONS } from '../routes';
+import {
+  IdType,
+  Job,
+  PendingJobStates,
+  RunningJobStates,
+  Scan,
+} from '../types';
+import EditableField from './editable-field';
+import ImageGallery from './image-gallery';
 import JobOutputDialog from './job-output';
 import JobStateComponent from './job-state';
-import ImageGallery from './image-gallery';
-import { cancelJob } from '../features/jobs';
-import { Cancel } from '@mui/icons-material';
-import { SCANS, SESSIONS } from '../routes';
 
 interface HoverCardProps extends CardProps {
   isHoverable?: boolean;
@@ -117,7 +122,7 @@ const SessionCard = React.memo(
       showTablePagination: false,
       showDiskUsage: false,
       shouldFetchScans: false,
-      onScanClick: onScanClick
+      onScanClick: onScanClick,
     };
 
     const isJobRunning =

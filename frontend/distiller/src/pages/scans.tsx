@@ -2,50 +2,47 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useNavigate, useParams } from 'react-router-dom';
 
+import CompleteIcon from '@mui/icons-material/CheckCircle';
+import DeleteIcon from '@mui/icons-material/Delete';
 import {
+  Box,
+  Checkbox,
+  IconButton,
+  Paper,
   Table,
-  TableHead,
   TableBody,
-  TableRow,
   TableCell,
   TableContainer,
+  TableHead,
   TablePagination,
-  Paper,
-  IconButton,
-  Checkbox,
-  Box,
+  TableRow,
   Typography,
 } from '@mui/material';
 import LinearProgress, {
   linearProgressClasses,
 } from '@mui/material/LinearProgress';
-import { styled } from '@mui/material/styles';
-import CompleteIcon from '@mui/icons-material/CheckCircle';
 import Tooltip from '@mui/material/Tooltip';
-import DeleteIcon from '@mui/icons-material/Delete';
-
+import { styled } from '@mui/material/styles';
 import { DateTime } from 'luxon';
-
 import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { staticURL } from '../client';
+import EditableField from '../components/editable-field';
+import ImageDialog from '../components/image-dialog';
+import LocationComponent from '../components/location';
+import {
+  RemoveScanFilesConfirmDialog,
+  ScanDeleteConfirmDialog,
+} from '../components/scan-confirm-dialog';
+import { machineSelectors, machineState } from '../features/machines';
 import {
   getScans,
   patchScan,
-  totalCount,
   removeScan,
   selectScansByDate,
+  totalCount,
 } from '../features/scans';
-import EditableField from '../components/editable-field';
-import { IdType, Microscope, Scan } from '../types';
-import { staticURL } from '../client';
-import ImageDialog from '../components/image-dialog';
-import LocationComponent from '../components/location';
+import { ExportFormat, IdType, Metadata, Microscope, Scan } from '../types';
 import { stopPropagation } from '../utils';
-import {
-  ScanDeleteConfirmDialog,
-  RemoveScanFilesConfirmDialog,
-} from '../components/scan-confirm-dialog';
-import { machineSelectors, machineState } from '../features/machines';
-import { ExportFormat, Metadata } from '../types';
 
 import { isNil } from 'lodash';
 import { ScansToolbar } from '../components/scans-toolbar';
@@ -55,11 +52,11 @@ import {
 } from '../features/microscopes';
 import { canonicalMicroscopeName } from '../utils/microscopes';
 
-import { useUrlState, Serializer, Deserializer } from '../routes/url-state';
 import { RootState } from '../app/store';
-import { SCANS } from '../routes';
 import { NoThumbnailImageIcon } from '../components/no-thumbnail-image-icon';
 import { ThumbnailImage } from '../components/thumbnail-image';
+import { SCANS } from '../routes';
+import { Deserializer, Serializer, useUrlState } from '../routes/url-state';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
@@ -148,7 +145,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
   showTablePagination = true,
   showDiskUsage = true,
   shouldFetchScans = true,
-  onScanClick
+  onScanClick,
 }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -199,7 +196,9 @@ const ScansPage: React.FC<ScansPageProps> = ({
     [startDateFilter, endDateFilter]
   );
 
-  const scans = useAppSelector(selector || defaultSelector).sort((a, b) => b.created.localeCompare(a.created));
+  const scans = useAppSelector(selector || defaultSelector).sort((a, b) =>
+    b.created.localeCompare(a.created)
+  );
 
   const start = page * rowsPerPage;
   const end = start + rowsPerPage;
@@ -605,79 +604,74 @@ const ScansPage: React.FC<ScansPageProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {[...scansOnThisPage]
-              .map((scan) => (
-                <TableScanRow
-                  key={scan.id}
-                  hover
-                  onClick={(event) => handleScanClick(event, scan)}
-                >
-                  <TableCell className="selectCheckbox" padding="checkbox">
-                    <Checkbox
-                      onClick={(event) => onSelectRowClick(event, scan.id)}
-                      className="selectCheckbox"
-                      checked={selectedScanIDs.has(scan.id)}
+            {[...scansOnThisPage].map((scan) => (
+              <TableScanRow
+                key={scan.id}
+                hover
+                onClick={(event) => handleScanClick(event, scan)}
+              >
+                <TableCell className="selectCheckbox" padding="checkbox">
+                  <Checkbox
+                    onClick={(event) => onSelectRowClick(event, scan.id)}
+                    className="selectCheckbox"
+                    checked={selectedScanIDs.has(scan.id)}
+                  />
+                </TableCell>
+                <TableImageCell>
+                  {scan.image_path ? (
+                    <ThumbnailImage
+                      src={`${staticURL}${scan.image_path}`}
+                      alt="scan thumbnail"
+                      onClick={stopPropagation(() => onImgClick(scan))}
                     />
-                  </TableCell>
-                  <TableImageCell>
-                    {scan.image_path ? (
-                      <ThumbnailImage
-                        src={`${staticURL}${scan.image_path}`}
-                        alt="scan thumbnail"
-                        onClick={stopPropagation(() => onImgClick(scan))}
-                      />
-                    ) : (
-                      <NoThumbnailImageIcon cursor="default" />
-                    )}
-                  </TableImageCell>
-                  <TableCell>{scan.id}</TableCell>
-                  {!isNil(scan.scan_id) && (
-                    <TableCell>{scan.scan_id}</TableCell>
+                  ) : (
+                    <NoThumbnailImageIcon cursor="default" />
                   )}
-                  <TableNotesCell>
-                    <EditableField
-                      value={scan.notes || ''}
-                      onSave={(value) => onSaveNotes(scan.id, value)}
+                </TableImageCell>
+                <TableCell>{scan.id}</TableCell>
+                {!isNil(scan.scan_id) && <TableCell>{scan.scan_id}</TableCell>}
+                <TableNotesCell>
+                  <EditableField
+                    value={scan.notes || ''}
+                    onSave={(value) => onSaveNotes(scan.id, value)}
+                  />
+                </TableNotesCell>
+                <TableCell>
+                  <LocationComponent
+                    confirmRemoval={confirmScanFilesRemoval}
+                    scan={scan}
+                    locations={scan.locations}
+                    machines={machineNames}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Tooltip
+                    title={DateTime.fromISO(scan.created).toISO()}
+                    followCursor
+                  >
+                    <div>{DateTime.fromISO(scan.created).toLocaleString()}</div>
+                  </Tooltip>
+                </TableCell>
+                <TableProgressCell align="right">
+                  {scan.scan_id && scan.progress < 100 ? (
+                    <LinearProgress
+                      variant="determinate"
+                      value={scan.progress}
                     />
-                  </TableNotesCell>
-                  <TableCell>
-                    <LocationComponent
-                      confirmRemoval={confirmScanFilesRemoval}
-                      scan={scan}
-                      locations={scan.locations}
-                      machines={machineNames}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Tooltip
-                      title={DateTime.fromISO(scan.created).toISO()}
-                      followCursor
-                    >
-                      <div>
-                        {DateTime.fromISO(scan.created).toLocaleString()}
-                      </div>
-                    </Tooltip>
-                  </TableCell>
-                  <TableProgressCell align="right">
-                    {scan.scan_id && scan.progress < 100 ? (
-                      <LinearProgress
-                        variant="determinate"
-                        value={scan.progress}
-                      />
-                    ) : (
-                      <CompleteIcon color="primary" />
-                    )}
-                  </TableProgressCell>
-                  <TableCell align="right">
-                    <IconButton
-                      aria-label="delete"
-                      onClick={stopPropagation(() => onDelete(scan))}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableScanRow>
-              ))}
+                  ) : (
+                    <CompleteIcon color="primary" />
+                  )}
+                </TableProgressCell>
+                <TableCell align="right">
+                  <IconButton
+                    aria-label="delete"
+                    onClick={stopPropagation(() => onDelete(scan))}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableScanRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>

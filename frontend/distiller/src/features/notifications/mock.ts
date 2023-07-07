@@ -1,5 +1,5 @@
-import { IdType, JobState, JobType, Scan, Job } from '../../types';
-import { ScanCreatedEvent, ScanUpdatedEvent, ScanEventType } from './events';
+import { IdType, Job, JobState, JobType, Scan } from '../../types';
+import { ScanCreatedEvent, ScanEventType, ScanUpdatedEvent } from './events';
 
 function makeCreatedEvent(id: IdType): ScanCreatedEvent {
   return {

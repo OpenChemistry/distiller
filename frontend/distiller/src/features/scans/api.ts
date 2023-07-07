@@ -1,8 +1,8 @@
-import { apiClient } from '../../client';
-import { IdType, Scan, ScansRequestResult, Job } from '../../types';
-import { pickNil } from '../../utils';
-import { DateTime } from 'luxon';
 import { isNil } from 'lodash';
+import { DateTime } from 'luxon';
+import { apiClient } from '../../client';
+import { IdType, Job, Scan, ScansRequestResult } from '../../types';
+import { pickNil } from '../../utils';
 
 export function getScans(
   microscopeId: IdType,

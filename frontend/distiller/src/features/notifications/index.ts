@@ -1,23 +1,23 @@
 import {
-  createAsyncThunk,
-  createSlice,
+  AnyAction,
   PayloadAction,
   ThunkDispatch,
-  AnyAction,
+  createAsyncThunk,
+  createSlice,
 } from '@reduxjs/toolkit';
 
 import { apiClient } from '../../client';
-import { startMockNotifications } from './mock';
+import { setJob, updateJob } from '../jobs';
+import { updateMicroscope } from '../microscopes';
+import { setScan, updateScan } from '../scans';
 import {
-  isJobUpdatedEvent,
   isJobSubmitEvent,
+  isJobUpdatedEvent,
   isMicroscopeUpdatedEvent,
   isScanCreatedEvent,
   isScanUpdatedEvent,
 } from './events';
-import { setScan, updateScan } from '../scans';
-import { updateMicroscope } from '../microscopes';
-import { updateJob, setJob } from '../jobs';
+import { startMockNotifications } from './mock';
 
 class NotificationHub {
   constructor(

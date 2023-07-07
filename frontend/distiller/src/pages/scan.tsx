@@ -1,74 +1,70 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams as useUrlParams } from 'react-router-dom';
 
-import { useParams as useUrlParams, useNavigate } from 'react-router-dom';
-
-import useLocalStorageState from 'use-local-storage-state';
-
-import {
-  Card,
-  Grid,
-  Table,
-  TableRow,
-  TableBody,
-  TableCell,
-  LinearProgress,
-  CardContent,
-  TableHead,
-  CardHeader,
-  CardActions,
-  Button,
-  IconButton,
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
-import CompleteIcon from '@mui/icons-material/CheckCircle';
-import TransferIcon from '@mui/icons-material/CompareArrows';
-import CountIcon from '@mui/icons-material/BlurOn';
-import OutputIcon from '@mui/icons-material/Terminal';
 import LeftIcon from '@mui/icons-material/ArrowLeft';
 import RightIcon from '@mui/icons-material/ArrowRight';
+import CountIcon from '@mui/icons-material/BlurOn';
+import CompleteIcon from '@mui/icons-material/CheckCircle';
+import TransferIcon from '@mui/icons-material/CompareArrows';
+import OutputIcon from '@mui/icons-material/Terminal';
 import TextSnippetOutlined from '@mui/icons-material/TextSnippetOutlined';
-import Tooltip from '@mui/material/Tooltip';
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Grid,
+  IconButton,
+  LinearProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Tooltip from '@mui/material/Tooltip';
+import { styled } from '@mui/material/styles';
+import { Box } from '@mui/system';
 import humanizeDuration from 'humanize-duration';
 import { DateTime } from 'luxon';
-
+import useLocalStorageState from 'use-local-storage-state';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
-import { getScan, scansSelector, patchScan } from '../features/scans';
-import { getScanJobs, jobsByScanIdAndTypes } from '../features/jobs';
-import { getNotebooks, selectNotebooks } from '../features/notebooks';
-import {
-  machineState,
-  machineSelectors,
-  getMachineState,
-} from '../features/machines';
-import LocationComponent from '../components/location';
-import EditableField from '../components/editable-field';
-import { IdType, JobType, Scan, Job, Microscope } from '../types';
-import JobStateComponent from '../components/job-state';
-import TransferDialog from '../components/transfer-dialog';
 import CountDialog from '../components/count-dialog';
-import { createJob } from '../features/jobs/api';
-import { fetchOrCreateNotebook } from '../features/notebooks/api';
-import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
+import EditableField from '../components/editable-field';
+import ImageDialog from '../components/image-dialog';
 import JobOutputDialog from '../components/job-output';
-import { isNil } from '../utils';
-import { SCANS, SESSIONS } from '../routes';
-import { canRunJobs } from '../utils/machine';
+import JobStateComponent from '../components/job-state';
+import LocationComponent from '../components/location';
 import MetadataComponent from '../components/metadata';
+import { NoThumbnailImageIcon } from '../components/no-thumbnail-image-icon';
+import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
+import { ThumbnailImage } from '../components/thumbnail-image';
+import TransferDialog from '../components/transfer-dialog';
+import { JUPYTER_USER_REDIRECT_URL } from '../constants';
+import { getScanJobs, jobsByScanIdAndTypes } from '../features/jobs';
+import { createJob } from '../features/jobs/api';
+import {
+  getMachineState,
+  machineSelectors,
+  machineState,
+} from '../features/machines';
 import {
   microscopesSelectors,
   microscopesState,
 } from '../features/microscopes';
+import { getNotebooks, selectNotebooks } from '../features/notebooks';
+import { fetchOrCreateNotebook } from '../features/notebooks/api';
+import { getScan, patchScan, scansSelector } from '../features/scans';
+import { SCANS, SESSIONS } from '../routes';
+import { IdType, Job, JobType, Microscope, Scan } from '../types';
+import { isNil, stopPropagation } from '../utils';
+import { canRunJobs } from '../utils/machine';
 import { canonicalMicroscopeName } from '../utils/microscopes';
-import ImageDialog from '../components/image-dialog';
-import { stopPropagation } from '../utils';
-import { JUPYTER_USER_REDIRECT_URL } from '../constants';
-import CircularProgress from '@mui/material/CircularProgress';
-import { Box } from '@mui/system';
-import { NoThumbnailImageIcon } from '../components/no-thumbnail-image-icon';
-import { ThumbnailImage } from '../components/thumbnail-image';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,

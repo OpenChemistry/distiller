@@ -1,35 +1,33 @@
 import React, { useEffect } from 'react';
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 import { CssBaseline } from '@mui/material';
-
-import './App.css';
-import PrivateRoute from './routes/private';
-import DefaultMicroscope from './routes/default';
 import {
-  HOME_PATH,
-  AUTH_PATH,
-  SCANS_PATH,
-  SCANS,
-  SESSIONS_PATH,
-  SESSIONS,
-} from './routes';
-import ScansPage from './pages/scans';
-import AuthPage from './pages/auth';
-import ScanPage from './pages/scan';
-import SessionPage from './pages/session';
-import SessionsPage from './pages/sessions';
-import HeaderComponent from './components/header';
-import FooterComponent from './components/footer';
-import NavigationComponent from './components/navigation';
-import { useAppDispatch, useShouldShowNavigation } from './app/hooks';
-import { restoreSession } from './features/auth';
-import {
-  ThemeProvider,
   StyledEngineProvider,
+  ThemeProvider,
   createTheme,
 } from '@mui/material/styles';
+import './App.css';
+import { useAppDispatch, useShouldShowNavigation } from './app/hooks';
+import FooterComponent from './components/footer';
+import HeaderComponent from './components/header';
+import NavigationComponent from './components/navigation';
+import { restoreSession } from './features/auth';
+import AuthPage from './pages/auth';
+import ScanPage from './pages/scan';
+import ScansPage from './pages/scans';
+import SessionPage from './pages/session';
+import SessionsPage from './pages/sessions';
+import {
+  AUTH_PATH,
+  HOME_PATH,
+  SCANS,
+  SCANS_PATH,
+  SESSIONS,
+  SESSIONS_PATH,
+} from './routes';
+import DefaultMicroscope from './routes/default';
+import PrivateRoute from './routes/private';
 
 const theme = createTheme();
 

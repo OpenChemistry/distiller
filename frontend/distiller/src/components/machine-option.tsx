@@ -1,8 +1,5 @@
-import React from 'react';
-
 import { Chip, MenuItem } from '@mui/material';
 import { styled } from '@mui/material/styles';
-
 import { Machine } from '../types';
 import { canRunJobs, statusColor } from '../utils/machine';
 

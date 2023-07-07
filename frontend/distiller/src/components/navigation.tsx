@@ -1,11 +1,10 @@
 import React from 'react';
-
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import ScansIcon from '@mui/icons-material/List';
+import StreamIcon from '@mui/icons-material/Stream';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
-import StreamIcon from '@mui/icons-material/Stream';
-import ScansIcon from '@mui/icons-material/List';
 
 import { SCANS_PATH, SESSIONS_PATH } from '../routes';
 

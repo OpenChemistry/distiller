@@ -1,5 +1,6 @@
 import React from 'react';
 
+import ContentCopy from '@mui/icons-material/ContentCopy';
 import {
   Chip,
   Grid,
@@ -9,14 +10,11 @@ import {
   Typography,
   tooltipClasses,
 } from '@mui/material';
-
-import { ScanLocation, Scan } from '../types';
-
+import { styled } from '@mui/material/styles';
+import { isNil } from 'lodash';
 import { useAppDispatch } from '../app/hooks';
 import { removeScanFiles } from '../features/scans';
-import { isNil } from 'lodash';
-import ContentCopy from '@mui/icons-material/ContentCopy';
-import { styled } from '@mui/material/styles';
+import { Scan, ScanLocation } from '../types';
 import { stopPropagation } from '../utils';
 
 type Props = {

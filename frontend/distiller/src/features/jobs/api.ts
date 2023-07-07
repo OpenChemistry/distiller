@@ -1,7 +1,8 @@
-import { IdType, JobType, Job, JobsRequestResult, Scan } from '../../types';
-import { apiClient } from '../../client';
-import { DateTime } from 'luxon';
 import { isNil } from 'lodash';
+import { DateTime } from 'luxon';
+
+import { apiClient } from '../../client';
+import { IdType, Job, JobType, JobsRequestResult, Scan } from '../../types';
 import { pickNil } from '../../utils';
 
 export function createJob(

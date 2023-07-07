@@ -1,15 +1,15 @@
 import React, { FormEvent, MouseEvent } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { login, logout, getUser, isAuthenticated } from '../features/auth';
+import { getUser, isAuthenticated, login, logout } from '../features/auth';
 
 const Paper = styled('div')(({ theme }) => ({
   marginTop: theme.spacing(8),

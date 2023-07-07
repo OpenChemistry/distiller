@@ -1,28 +1,26 @@
 import React, { useState } from 'react';
 
+import ClearIcon from '@mui/icons-material/Clear';
+import DownloadIcon from '@mui/icons-material/Download';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import {
-  Toolbar,
-  Popover,
-  TextField,
+  Badge,
   Box,
-  Grid,
   Button,
+  Grid,
   Menu,
   MenuItem,
-  Badge,
+  Popover,
+  TextField,
+  Toolbar,
 } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
-import ClearIcon from '@mui/icons-material/Clear';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import DownloadIcon from '@mui/icons-material/Download';
-
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { DateTime } from 'luxon';
-
-import { ExportFormat } from '../types';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { isNull } from 'lodash';
+import { DateTime } from 'luxon';
+import { ExportFormat } from '../types';
 
 type FilterPopoverProps = {
   anchorEl: HTMLElement | null;

@@ -1,4 +1,4 @@
-import { IdType, Job, Scan, ScanLocation, Microscope } from '../../types';
+import { IdType, Job, Microscope, Scan, ScanLocation } from '../../types';
 
 export enum ScanEventType {
   Created = 'scan.created',

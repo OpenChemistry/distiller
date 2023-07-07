@@ -1,19 +1,17 @@
 import React from 'react';
 
-import {
-  Grid,
-  Table,
-  TableRow,
-  TableBody,
-  TableCell,
-  Collapse,
-  Button,
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
-
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-
+import {
+  Button,
+  Collapse,
+  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { Metadata, Scan } from '../types';
 
 // Search for patterns of the form <prefix><number><suffix> or <prefix><X or Y><suffix>

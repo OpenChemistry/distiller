@@ -1,28 +1,29 @@
-// External dependencies
-import React, { useCallback, useEffect, useState } from 'react';
-import { isNil, groupBy } from 'lodash';
-import { DateTime } from 'luxon';
+import styled from '@emotion/styled';
 import { Add } from '@mui/icons-material';
 import {
   Box,
-  List,
-  TablePagination,
-  Divider,
   Chip,
+  Divider,
   Fab,
+  List,
   ListItem,
+  TablePagination,
 } from '@mui/material';
+import { groupBy, isNil } from 'lodash';
+import { DateTime } from 'luxon';
+import React, { useCallback, useEffect, useState } from 'react';
 import useLocalStorageState from 'use-local-storage-state';
-
-// Internal dependencies
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { ScansToolbar } from '../components/scans-toolbar';
+import SessionCard from '../components/session-card';
+import StreamingDialog from '../components/streaming-dialog';
 import {
-  getJobs,
-  totalCount,
   allJobsSelector,
+  getJobs,
   selectJobsByDateAndTypes,
+  totalCount,
 } from '../features/jobs';
 import { createJob } from '../features/jobs/api';
-import { getJobScans } from '../features/scans';
 import {
   getMachineState,
   machineSelectors,
@@ -32,8 +33,8 @@ import {
   microscopesSelectors,
   microscopesState,
 } from '../features/microscopes';
+import { getJobScans } from '../features/scans';
 import { useUrlState } from '../routes/url-state';
-import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
   IdType,
   Job,
@@ -42,12 +43,12 @@ import {
   RunningJobStates,
 } from '../types';
 import { canRunJobs } from '../utils/machine';
-import StreamingDialog from '../components/streaming-dialog';
-import { dateTimeDeserializer, dateTimeSerializer } from './scans';
-import { ScansToolbar } from '../components/scans-toolbar';
-import { intDeserializer, intSerializer } from './scans';
-import SessionCard from '../components/session-card';
-import styled from '@emotion/styled';
+import {
+  dateTimeDeserializer,
+  dateTimeSerializer,
+  intDeserializer,
+  intSerializer,
+} from './scans';
 
 const DateChip: React.FC<{ date: string }> = ({ date }) => (
   <Chip

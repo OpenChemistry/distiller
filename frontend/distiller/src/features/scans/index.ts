@@ -1,21 +1,21 @@
 import {
-  createAsyncThunk,
-  createSlice,
-  createEntityAdapter,
   PayloadAction,
+  createAsyncThunk,
+  createEntityAdapter,
   createSelector,
+  createSlice,
 } from '@reduxjs/toolkit';
-import { RootState } from '../../app/store';
-import {
-  getScans as getScansAPI,
-  getScan as getScanAPI,
-  patchScan as patchScanAPI,
-  removeScanFiles as removeScanFilesAPI,
-  removeScan as removeScanAPI,
-} from './api';
-import { getJobScans as getJobScansAPI } from '../jobs/api';
-import { Scan, IdType, ScansRequestResult } from '../../types';
 import { DateTime } from 'luxon';
+import { RootState } from '../../app/store';
+import { IdType, Scan, ScansRequestResult } from '../../types';
+import { getJobScans as getJobScansAPI } from '../jobs/api';
+import {
+  getScan as getScanAPI,
+  getScans as getScansAPI,
+  patchScan as patchScanAPI,
+  removeScan as removeScanAPI,
+  removeScanFiles as removeScanFilesAPI,
+} from './api';
 
 export const scansAdapter = createEntityAdapter<Scan>();
 
@@ -226,7 +226,6 @@ export const selectScansByDate = (
     return scans;
   });
 };
-
 
 export const totalCount = (state: RootState) => state.scans.totalCount;
 

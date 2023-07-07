@@ -1,20 +1,20 @@
 import {
-  createAsyncThunk,
-  createSlice,
-  createEntityAdapter,
   PayloadAction,
+  createAsyncThunk,
+  createEntityAdapter,
   createSelector,
+  createSlice,
 } from '@reduxjs/toolkit';
+import { DateTime } from 'luxon';
 import { RootState } from '../../app/store';
 import { IdType, Job, JobType, JobsRequestResult } from '../../types';
-import {
-  getJobs as getJobsAPI,
-  getJob as getJobAPI,
-  patchJob as patchJobAPI,
-  cancelJob as cancelJobAPI,
-} from './api';
 import { getScanJobs as getScanJobsAPI } from '../scans/api';
-import { DateTime } from 'luxon';
+import {
+  cancelJob as cancelJobAPI,
+  getJob as getJobAPI,
+  getJobs as getJobsAPI,
+  patchJob as patchJobAPI,
+} from './api';
 
 export const jobsAdapter = createEntityAdapter<Job>();
 

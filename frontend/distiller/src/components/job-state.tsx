@@ -12,11 +12,7 @@ import Done from '@mui/icons-material/CheckCircle';
 import Help from '@mui/icons-material/Help';
 import ReportProblem from '@mui/icons-material/ReportProblem';
 
-import { blue } from '@mui/material/colors';
-import { grey } from '@mui/material/colors';
-import { lightGreen } from '@mui/material/colors';
-import { red } from '@mui/material/colors';
-import { orange } from '@mui/material/colors';
+import { blue, grey, lightGreen, orange, red } from '@mui/material/colors';
 
 const blue500 = blue['500'];
 const red500 = red['500'];

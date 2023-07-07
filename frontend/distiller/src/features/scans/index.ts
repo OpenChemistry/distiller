@@ -184,12 +184,10 @@ export const scanSelector = (id: IdType) => {
   return createSelector(scansState, (state) => selectById(state, id));
 };
 
-export const totalCount = (state: RootState) => state.scans.totalCount;
 export const allScansSelector = createSelector(scansState, (scansState) =>
   selectAll(scansState)
 );
 
-export const { setScan, updateScan } = scansSlice.actions;
 const filterScanByJobId = (jobId: IdType) => (scan: Scan) =>
   scan.jobIds && scan.jobIds.includes(jobId);
 
@@ -230,6 +228,8 @@ export const selectScansByDate = (
 };
 
 
+export const totalCount = (state: RootState) => state.scans.totalCount;
 
+export const { setScan, updateScan } = scansSlice.actions;
 
 export default scansSlice.reducer;

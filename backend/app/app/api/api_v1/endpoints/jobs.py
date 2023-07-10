@@ -108,7 +108,8 @@ async def update_job(
     (updated, job) = crud.update_job(db, id, payload)
     job = schemas.Job.from_orm(job)
     if updated:
-        job_updated_event = UpdateJobEvent.from_job(job)
+        job_updated_event = UpdateJobEvent(**job.dict())
+
         if payload.scan_id:
             scan_updated_event = schemas.ScanUpdateEvent(id=payload.scan_id)
             db_scan = scan_crud.get_scan(db, id=payload.scan_id)

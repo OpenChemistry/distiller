@@ -40,7 +40,7 @@ class UpdateJobEvent(BaseModel):
     elapsed: Optional[timedelta]
     submit: Optional[datetime]
     notes: Optional[str]
-    scanIds: Optional[List[int]]
+    scan_ids: Optional[List[int]]
     event_type = JobEventType.UPDATED
 
 

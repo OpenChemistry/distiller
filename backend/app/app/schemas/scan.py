@@ -49,7 +49,7 @@ class Scan(BaseModel):
     locations: List[Location]
     image_path: Optional[str]
     notes: Optional[str]
-    jobIds: Optional[List[int]]
+    job_ids: Optional[List[int]]
     metadata: Optional[Dict[str, Any]] = Field(alias="metadata_")
     microscope_id: int
     uuid: Optional[str]
@@ -61,11 +61,11 @@ class Scan(BaseModel):
 
     @classmethod
     def from_orm(cls, obj) -> "Scan":
-        jobIds = [job.id for job in obj.jobs]
+        job_ids = [job.id for job in obj.jobs]
         locations = [Location.from_orm(location) for location in obj.locations]
         obj_dict = obj.__dict__.copy()
         obj_dict.pop("locations", None)
-        return cls(**obj_dict, jobIds=jobIds, locations=locations)
+        return cls(**obj_dict, job_ids=job_ids, locations=locations)
 
 
 class Scan4DCreate(BaseModel):
@@ -134,6 +134,6 @@ class ScanCreatedEvent(ScanEvent):
 
 class ScanUpdateEvent(ScanEvent):
     event_type = ScanEventType.UPDATED
-    jobIds: Optional[List[int]]
+    job_ids: Optional[List[int]]
     image_path: Optional[str]
     notes: Optional[str]

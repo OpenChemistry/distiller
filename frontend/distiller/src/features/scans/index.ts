@@ -73,9 +73,9 @@ export const getJobScans = createAsyncThunk<
     throw new Error(`Job with ID ${jobId} does not exist in state.`);
   }
 
-  const scanIds = state.jobs.entities[jobId]?.scanIds || [];
+  const scan_ids = state.jobs.entities[jobId]?.scan_ids || [];
 
-  const scansInState = scanIds.map((id) => selectById(state.scans, id));
+  const scansInState = scan_ids.map((id) => selectById(state.scans, id));
 
   const allScansInStore = scansInState.every((scan) => scan !== undefined);
 
@@ -189,7 +189,7 @@ export const allScansSelector = createSelector(scansState, (scansState) =>
 );
 
 const filterScanByJobId = (jobId: IdType) => (scan: Scan) =>
-  scan.jobIds && scan.jobIds.includes(jobId);
+  scan.job_ids && scan.job_ids.includes(jobId);
 
 const filterScanByDate =
   (startDateFilter: DateTime | null, endDateFilter: DateTime | null) =>

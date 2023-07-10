@@ -113,7 +113,7 @@ async def update_job(
         if payload.scan_id:
             scan_updated_event = schemas.ScanUpdateEvent(id=payload.scan_id)
             db_scan = scan_crud.get_scan(db, id=payload.scan_id)
-            scan_updated_event.jobIds = schemas.Scan.from_orm(db_scan).jobIds
+            scan_updated_event.job_ids = schemas.Scan.from_orm(db_scan).job_ids
             await send_scan_event_to_kafka(scan_updated_event)
 
         await send_job_event_to_kafka(job_updated_event)

@@ -50,7 +50,7 @@ class JobState(str, Enum):
 class Job(BaseModel):
     id: int
     job_type: JobType
-    scanIds: Optional[List[int]]
+    scan_ids: Optional[List[int]]
     machine: str
     slurm_id: Optional[int]
     state: JobState = JobState.INITIALIZING
@@ -65,8 +65,8 @@ class Job(BaseModel):
 
     @classmethod
     def from_orm(cls, obj) -> "Job":
-        scanIds = [scan.id for scan in obj.scans]
-        return cls(**obj.__dict__, scanIds=scanIds)
+        scan_ids = [scan.id for scan in obj.scans]
+        return cls(**obj.__dict__, scan_ids=scan_ids)
 
 
 class JobCreate(BaseModel):

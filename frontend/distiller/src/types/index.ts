@@ -80,7 +80,7 @@ export const FailedJobStates = new Set<JobState>([
 export type Job = {
   id: IdType;
   job_type: JobType;
-  scanIds: IdType[];
+  scan_ids: IdType[];
   slurm_id: IdType | null;
   elapsed: number | null;
   state: JobState | null;
@@ -103,7 +103,7 @@ export type Scan = {
   locations: ScanLocation[];
   notes?: string;
   image_path?: string;
-  jobIds: IdType[];
+  job_ids: IdType[];
   prevScanId?: IdType;
   nextScanId?: IdType;
   metadata?: Metadata;

@@ -20,7 +20,7 @@ class Job(faust.Record):
     job_type: JobType
     machine: str
     params: Dict[str, Union[str, int, float]]
-    scanIds: Optional[List[int]]
+    scan_ids: Optional[List[int]]
 
 
 class JobEventType(str, Enum):

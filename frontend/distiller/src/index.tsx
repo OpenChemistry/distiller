@@ -1,7 +1,5 @@
 import React from 'react';
 
-import * as Sentry from '@sentry/react';
-import { Integrations } from '@sentry/tracing';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 
@@ -9,13 +7,6 @@ import App from './App';
 import { store } from './app/store';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
-
-if (process.env.REACT_APP_SENTRY_DSN_URL !== undefined) {
-  Sentry.init({
-    dsn: process.env.REACT_APP_SENTRY_DSN_URL,
-    integrations: [new Integrations.BrowserTracing()],
-  });
-}
 
 const container = document.getElementById('root');
 const root = createRoot(container!);

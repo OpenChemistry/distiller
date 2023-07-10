@@ -110,13 +110,7 @@ async def get_machine(session: aiohttp.ClientSession, name: str) -> Machine:
 async def render_job_script(
     scan: Scan, job: Job, machine: Machine, dest_dir: str, machine_names: List[str]
 ) -> str:
-    if job.job_type == JobType.COUNT:
-        template_name = COUNT_JOB_SCRIPT_TEMPLATE
-    elif job.job_type == JobType.STREAMING:
-        template_name = STREAMING_JOB_SCRIPT_TEMPLATE
-    else:
-        template_name = TRANSFER_JOB_SCRIPT_TEMPLATE
-
+    template_name = f"{job.job_type}.sh.j2"
     template_loader = jinja2.FileSystemLoader(
         searchpath=Path(__file__).parent / "templates"
     )

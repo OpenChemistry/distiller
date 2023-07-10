@@ -490,9 +490,9 @@ def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
             hours=elapsed.hour, minutes=elapsed.minute, seconds=elapsed.second
         )
         submit = job["submit"]
-        _submit = datetime.strptime(submit, "%Y-%m-%dT%H:%M:%S")
-        la_tz = pytz.timezone("America/Los_Angeles")
-        submit = la_tz.localize(_submit)
+        _submit = datetime.strptime(submit, settings.SFAPI_SUBMIT_TIME_FORMAT)
+        tz = pytz.timezone(settings.SFAPI_TZ)
+        submit = tz.localize(_submit)
 
         jobs.append(
             SfapiJob(

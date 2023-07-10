@@ -249,7 +249,7 @@ def update_scan(
         jobs_updated = False
         scan = get_scan(db, id)
         if scan is None:
-            raise Exception(f"Job with id {id} does not exist.")
+            raise Exception(f"Scan with id {id} does not exist.")
         if not any([job.id == job_id for job in scan.jobs]):
             job = job_crud.get_job(db, job_id)
             scan.jobs.append(job)

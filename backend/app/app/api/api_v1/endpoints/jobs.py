@@ -23,7 +23,7 @@ async def create_job(job_create: schemas.JobCreate, db: Session = Depends(get_db
     job = crud.create_job(db=db, job=job_create)
 
     if job is None:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(status_code=500, detail="Job creation failed.")
     
     scan = job.scans[0] if job.scans else None
 

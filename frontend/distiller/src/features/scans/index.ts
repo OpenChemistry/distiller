@@ -217,7 +217,7 @@ export const scansByJobIdSelector = (jobId: IdType) => {
   });
 };
 
-export const selectScansByDate = (
+export const scansByDateSelector = (
   startDateFilter: DateTime | null,
   endDateFilter: DateTime | null
 ) => {

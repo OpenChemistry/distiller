@@ -38,7 +38,7 @@ import {
   getScans,
   patchScan,
   removeScan,
-  selectScansByDate,
+  scansByDateSelector,
   totalCount,
 } from '../features/scans';
 import { ExportFormat, IdType, Metadata, Microscope, Scan } from '../types';
@@ -192,7 +192,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
   );
 
   const defaultSelector = useMemo(
-    () => selectScansByDate(startDateFilter, endDateFilter),
+    () => scansByDateSelector(startDateFilter, endDateFilter),
     [startDateFilter, endDateFilter]
   );
 

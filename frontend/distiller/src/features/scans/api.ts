@@ -72,9 +72,13 @@ export function getScan(id: IdType): Promise<Scan> {
 }
 
 export function getScanJobs(id: IdType): Promise<Job[]> {
+  const params: any = {};
+  params['scan_id'] = id;
+
   return apiClient
     .get({
-      url: `scans/${id}/jobs`,
+      url: `jobs`,
+      params,
     })
     .then((res) => res.json());
 }

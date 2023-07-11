@@ -138,7 +138,7 @@ const MetadataComponent: React.FC<MetadataComponentProps> = (props) => {
           <React.Fragment>
             <TableRow>
               <TableNameCell>Size</TableNameCell>
-              <TableCell align="right">{`${scan.metadata['Dimensions.1']} x ${scan.metadata['Dimensions.2']}`}</TableCell>
+              <TableCell align="right">{`${scan.metadata['Dimensions 1']} x ${scan.metadata['Dimensions 2']}`}</TableCell>
             </TableRow>
           </React.Fragment>
         )}

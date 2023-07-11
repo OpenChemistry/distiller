@@ -12,7 +12,6 @@ RUN pip install -r /app/requirements.txt
 
 COPY *.py /app/
 COPY *.env /app/
-COPY faust_records/ /app/faust_records/
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 

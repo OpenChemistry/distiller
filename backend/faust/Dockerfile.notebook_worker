@@ -10,7 +10,6 @@ RUN pip install -r /app/requirements.txt
 COPY *.py /app/
 COPY *.env /app/
 COPY templates/ /app/templates/
-COPY faust_records/ /app/faust_records/
 
 ENV WORKER notebook
 

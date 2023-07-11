@@ -79,20 +79,6 @@ def read_job(response: Response, id: int, db: Session = Depends(get_db)):
     return schemas.Job.from_orm(db_job)
 
 
-@router.get(
-    "/{id}/scans",
-    response_model=List[schemas.Scan],
-    response_model_by_alias=False,
-    dependencies=[Depends(oauth2_password_bearer_or_api_key)],
-)
-def read_job_scans(id: int, db: Session = Depends(get_db)):
-    db_job = crud.get_job(db, id=id)
-    if db_job is None:
-        raise HTTPException(status_code=404, detail="Job not found")
-    scans = db_job.scans
-    return [schemas.Scan.from_orm(scan) for scan in scans]
-
-
 @router.patch(
     "/{id}",
     response_model=schemas.Job,

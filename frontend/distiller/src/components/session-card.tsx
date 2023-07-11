@@ -61,7 +61,7 @@ interface SessionCardProps {
   jobId: IdType;
   setHoveredJobId?: React.Dispatch<React.SetStateAction<IdType | null>>;
   isHoverable?: boolean | undefined;
-  compactMode?: boolean | undefined | null;
+  compactMode?: boolean | undefined;
 }
 
 // SessionCard Component

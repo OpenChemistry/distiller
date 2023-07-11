@@ -190,6 +190,7 @@ def extract_dm_metadata(dm_path: str):
         "Session Info",
         "4Dcamera",
         "DigiScan",
+        "Dimensions"
     ]
 
     # Use on_memory=False for now as it doesn't seem to work on spin

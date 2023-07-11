@@ -1,8 +1,7 @@
 FROM node:18.6.0 as build
 COPY ./distiller /distiller
 ARG REACT_APP_API_URL
-ARG REACT_APP_SENTRY_DSN_URL
-RUN cd /distiller && yarn && REACT_APP_API_URL=$REACT_APP_API_URL REACT_APP_SENTRY_DSN_URL=$REACT_APP_SENTRY_DSN_URL yarn build
+RUN cd /distiller && yarn && REACT_APP_API_URL=$REACT_APP_API_URL yarn build
 
 FROM nginx
 COPY --from=build /distiller/build/ /usr/share/nginx/html

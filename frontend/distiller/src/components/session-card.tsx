@@ -11,6 +11,7 @@ import {
   IconButton,
   Typography,
 } from '@mui/material';
+import humanizeDuration from 'humanize-duration';
 import { DateTime } from 'luxon';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { cancelJob, jobSelector, patchJob } from '../features/jobs';
@@ -151,6 +152,11 @@ const SessionCard = React.memo(
               <Typography variant="h5" component="div">
                 {job.id}
               </Typography>
+              <Typography variant="h5" component="div">
+                {isJobRunning &&
+                  humanizeDuration(job.elapsed ? job.elapsed * 1000 : 0)}
+              </Typography>
+
               <div
                 style={{
                   display: 'flex',

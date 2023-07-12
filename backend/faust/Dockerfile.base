@@ -1,5 +1,5 @@
 
-FROM python:3.9-slim
+FROM python:3.9-slim-bullseye
 
 RUN apt-get update -y --fix-missing \
   && apt-get install -y \

@@ -11,7 +11,6 @@ import {
   Menu,
   MenuItem,
   Popover,
-  TextField,
   Toolbar,
 } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
@@ -77,19 +76,17 @@ const FilterPopover: React.FC<FilterPopoverProps> = (props) => {
               <Grid item xs={6}>
                 <DatePicker
                   label="Start Date"
-                  inputFormat="MM/dd/yy"
+                  format="MM/dd/yy"
                   value={startDate}
                   onChange={onStartDateChange}
-                  renderInput={(params) => <TextField {...params} />}
                 />
               </Grid>
               <Grid item xs={6}>
                 <DatePicker
                   label="End Date"
-                  inputFormat="MM/dd/yy"
+                  format="MM/dd/yy"
                   value={endDate}
                   onChange={onEndDateChange}
-                  renderInput={(params) => <TextField {...params} />}
                 />
               </Grid>
             </Grid>

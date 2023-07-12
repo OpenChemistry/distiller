@@ -11,7 +11,11 @@
 #SBATCH --qos={{machine.qos}}
 #SBATCH --constraint={{machine.constraint}}
 #SBATCH --nodes={{machine.nodes}}
+{%- if duration %}
+#SBATCH --time={{ duration }}:00
+{%- else %}
 #SBATCH --time=00:30:00
+{%- endif %}
 #SBATCH --job-name=distiller-{{job.job_type}}-{{job.id}}
 #SBATCH --exclusive
 #SBATCH --account={{machine.account}}

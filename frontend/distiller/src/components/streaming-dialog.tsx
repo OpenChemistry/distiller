@@ -14,6 +14,9 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { LocalizationProvider, TimeField } from '@mui/x-date-pickers';
+import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon';
+import { DateTime, Duration } from 'luxon';
 import { Machine } from '../types';
 import MachineOptionComponent from './machine-option';
 
@@ -33,13 +36,46 @@ const StreamingDialog: React.FC<Props> = (props) => {
   const [threshold, setThreshold] = useLocalStorageState('threshold', {
     defaultValue: 4,
   });
+  const [time, setTime] = useState<DateTime | null>(
+    DateTime.fromObject({ year: 2023, month: 1, day: 1, hour: 1, minute: 0 })
+  );
+  const maxTime = DateTime.fromObject({
+    year: 2023,
+    month: 1,
+    day: 1,
+    hour: 23,
+    minute: 59,
+  });
+  const minTime = DateTime.fromObject({
+    year: 2023,
+    month: 1,
+    day: 1,
+    hour: 0,
+    minute: 0,
+  });
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
 
   const submitClick = () => {
+    if (!time) {
+      setError('Invalid time. Please set a time.');
+      return;
+    }
+    const duration = Duration.fromObject({
+      hours: time.hour,
+      minutes: time.minute,
+    });
+    console.log(duration.toISOTime({ suppressSeconds: true }));
+    if (!duration.isValid) {
+      setError('Invalid time format. Please use HH:MM.');
+      return;
+    }
     setPending(true);
     setError('');
-    onSubmit({ threshold })
+    onSubmit({
+      threshold,
+      duration: duration.toISOTime({ suppressSeconds: true }),
+    })
       .then(() => {
         setPending(false);
         onClose();
@@ -85,6 +121,18 @@ const StreamingDialog: React.FC<Props> = (props) => {
             variant="standard"
             margin="normal"
           />
+          <LocalizationProvider dateAdapter={AdapterLuxon}>
+            <TimeField
+              label="Session time (HH:MM)"
+              value={time}
+              onChange={(newTime) => setTime(newTime)}
+              format="HH:mm"
+              minTime={minTime}
+              maxTime={maxTime}
+              formatDensity="spacious"
+              variant="standard"
+            />
+          </LocalizationProvider>
           <Typography color="error" variant="caption">
             {error}
           </Typography>

@@ -7,10 +7,11 @@
 
 # Remove any // ($DW_JOB_STRIPED has a trailing slash)
 BBCP_DEST_DIR=`echo "{{machine.bbcp_dest_dir}}/{{job.id}}" |  sed 's/\/\//\//g'`
+CREATED_DATETIME="{{scan.created}}"
 
-srun --exclusive -c {{machine.cpus_per_task}} -n {{machine.nodes}} shifter python3 {{settings.JOB_COUNT_SCRIPT_PATH}} --pad -l $BBCP_DEST_DIR -t {{threshold}} -s {{scan.scan_id}} --multi-pass || error_exit "Error shifter execution failed."
+srun --exclusive -c {{machine.cpus_per_task}} -n {{machine.nodes}} shifter python3 {{settings.JOB_COUNT_SCRIPT_PATH}} --pad -l $BBCP_DEST_DIR -t {{threshold}} -s {{scan.scan_id}} -d {{scan.id}} --multi-pass --timestamp $CREATED_DATETIME || error_exit "Error shifter execution failed."
 
-cp ${BBCP_DEST_DIR}/data_scan*.h5  {{dest_dir}}/data_scan{{scan.scan_id}}_id{{scan.id}}_electrons.h5 || error_exit "Failed to copy counted data to ncemhub."
+cp ${BBCP_DEST_DIR}/FOURD_*.h5  {{dest_dir}} || error_exit "Failed to copy counted data to ncemhub."
 
 {%- if machine.bbcp_dest_dir == "$PSCRATCH/ncem" %}
 # Clean up

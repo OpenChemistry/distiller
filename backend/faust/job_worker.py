@@ -620,12 +620,17 @@ async def monitor_jobs():
                 # then update the location.
                 if job.state == JobState.COMPLETED and JobType.TRANSFER in job.name:
                     job = await get_job(session, id)
-                    scan = await get_scan(session, job.scan_id)
+                    
+                    if not job.scan_ids:
+                        raise ValueError(f"No scan_ids for job {id}")
+                    
+                    scan_id = job.scan_ids[0]
+                    scan = await get_scan(session, scan_id)
                     date_dir = scan.created.astimezone().strftime(DATE_DIR_FORMAT)
                     machine = job.machine
 
                     update = ScanUpdate(
-                        id=job.scan_id,
+                        id=scan_id,
                         locations=[
                             LocationRest(
                                 host=f"{machine}",

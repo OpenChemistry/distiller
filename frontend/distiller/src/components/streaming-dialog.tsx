@@ -43,8 +43,8 @@ const StreamingDialog: React.FC<Props> = (props) => {
     year: 2023,
     month: 1,
     day: 1,
-    hour: 23,
-    minute: 59,
+    hour: 2,
+    minute: 0,
   });
   const minTime = DateTime.fromObject({
     year: 2023,

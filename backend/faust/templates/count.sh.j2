@@ -9,7 +9,7 @@
 BBCP_DEST_DIR=`echo "{{machine.bbcp_dest_dir}}/{{job.id}}" |  sed 's/\/\//\//g'`
 CREATED_DATETIME="{{scan.created}}"
 
-srun --exclusive -c {{machine.cpus_per_task}} -n {{machine.nodes}} shifter python3 {{settings.JOB_COUNT_SCRIPT_PATH}} --pad -l $BBCP_DEST_DIR -t {{threshold}} -s {{scan.scan_id}} -d {{scan.id}} --multi-pass --timestamp $CREATED_DATETIME || error_exit "Error shifter execution failed."
+srun --exclusive -c {{machine.cpus_per_task}} -n {{machine.nodes}} shifter python3 {{settings.JOB_COUNT_SCRIPT_PATH}} --pad -l $BBCP_DEST_DIR -t {{threshold}} -c {{darkfield}} -s {{scan.scan_id}} -d {{scan.id}} --multi-pass --timestamp $CREATED_DATETIME || error_exit "Error shifter execution failed."
 
 cp ${BBCP_DEST_DIR}/FOURD_*.h5  {{dest_dir}} || error_exit "Failed to copy counted data to ncemhub."
 

@@ -28,7 +28,7 @@ def scan(locations, created):
 
 @pytest.fixture
 def job_params():
-    return {"threshold": 4.0}
+    return {"threshold": 4.0, "darkfield": "none"}
 
 
 @pytest.fixture

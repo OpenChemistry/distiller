@@ -10,16 +10,8 @@ jobs:
         run:
           working-directory: backend/faust
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.9"]
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
       - name: Install Ubuntu packages
         run: |
           sudo apt-get install -y \
@@ -29,13 +21,14 @@ jobs:
             libbz2-dev \
             liblz4-dev \
             zlib1g-dev \
-            librocksdb-dev
+            python3-rocksdb
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.base.txt -r requirements.job.txt -r requirements.dev.txt
-          # Install authlib separately as its not include in requirements as we are
-          # currently using a patched version in the docker image.
+          # The requirements from requirements.base.txt minus rocksdb which
+          # is install as a debian package above
+          pip install faust-streaming pydantic[dotenv]==v1.10.10 numpy
+          pip install -r requirements.job.txt -r requirements.dev.txt
           pip install authlib
       - name: Set PYTHONPATH
         run: |

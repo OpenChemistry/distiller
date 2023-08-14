@@ -51,7 +51,7 @@
     "plt.close('all')\n",
     "\n",
     "# Get the file paths\n",
-    "scan_path, scan_num, scan_id = get_scan_path(distiller_path / Path('counted') / Path(scan_date), scan_id=scan_id, version=1)\n",
+    "scan_path, scan_num, scan_id = get_scan_path(distiller_path / Path('counted') / Path(scan_date), scan_id=scan_id, scan_num=scan_num, version=1)\n",
     "haadf_path = distiller_path / 'dm4' / scan_date / f'scan{scan_num}.dm4'\n",
     "\n",
     "# Load the HAADF\n",

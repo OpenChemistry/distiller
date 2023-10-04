@@ -2,7 +2,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Setting the server API URL
 ```bash
-export REACT_APP_API_URL=http://...
+export VITE_API_URL=http://...
 ```
 
 ## Available Scripts

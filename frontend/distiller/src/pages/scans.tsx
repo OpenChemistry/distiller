@@ -134,6 +134,7 @@ export interface ScansPageProps {
   selector?: (state: RootState) => Scan[];
   showScansToolbar?: boolean;
   showTablePagination?: boolean;
+  totalScans?: number;
   showDiskUsage?: boolean;
   shouldFetchScans?: boolean;
   onScanClick?: (event: React.MouseEvent, scan: Scan) => void;
@@ -143,6 +144,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
   selector,
   showScansToolbar = true,
   showTablePagination = true,
+  totalScans: totalScansProp,
   showDiskUsage = true,
   shouldFetchScans = true,
   onScanClick,
@@ -679,7 +681,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
         <TablePagination
           rowsPerPageOptions={[10, 20, 100]}
           component="div"
-          count={totalScans}
+          count={totalScansProp !== undefined ? totalScansProp : totalScans}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={onChangePage}

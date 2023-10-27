@@ -120,7 +120,8 @@ const SessionCard = React.memo(
     const scansPageProps = {
       selector: scansByJobIdSelector(job.id),
       showScansToolbar: false,
-      showTablePagination: false,
+      showTablePagination: true,
+      totalScans: scans.length,
       showDiskUsage: false,
       shouldFetchScans: false,
       onScanClick: onScanClick,

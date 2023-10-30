@@ -6,3 +6,5 @@ aiopath
 python-dotenv
 numpy
 authlib
+pydantic~=2.0
+pydantic-settings

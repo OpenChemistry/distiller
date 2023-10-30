@@ -3,7 +3,8 @@ aiohttp
 watchdog
 coloredlogs
 cachetools
-pydantic[dotenv]
+pydantic~=2.0
+pydantic-settings
 tenacity
 h5py
 ncempy

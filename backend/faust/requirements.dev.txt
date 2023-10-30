@@ -6,3 +6,5 @@ aiopath
 pytest
 pytest-mock
 pytest-asyncio
+pydantic~=2.0
+pydantic-settings

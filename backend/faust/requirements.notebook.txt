@@ -3,3 +3,5 @@ tenacity
 aiohttp
 aiopath
 python-dotenv
+pydantic~=2.0
+pydantic-settings

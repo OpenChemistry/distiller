@@ -3,3 +3,5 @@ aiohttp
 pytz
 numpy
 aiopath
+pydantic~=2.0
+pydantic-settings

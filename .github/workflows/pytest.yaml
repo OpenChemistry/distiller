@@ -28,7 +28,7 @@ jobs:
         run: |
           # The requirements from requirements.base.txt minus rocksdb which
           # is install as a debian package above
-          pip install faust-streaming pydantic[dotenv]==v1.10.10 numpy
+          pip install faust-streaming pydantic numpy
           pip install -r requirements.job.txt -r requirements.dev.txt
       - name: Set PYTHONPATH
         run: |

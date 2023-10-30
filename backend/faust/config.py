@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from pydantic import AnyHttpUrl, BaseSettings
+from pydantic import AnyHttpUrl
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -39,10 +40,7 @@ class Settings(BaseSettings):
     CUSTODIAN_USER: str
     CUSTODIAN_PRIVATE_KEY: str
     CUSTODIAN_VALID_HOSTS: List[str] = []
-
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
 
 
 settings = Settings()

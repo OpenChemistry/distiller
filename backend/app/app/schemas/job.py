@@ -2,7 +2,7 @@ from datetime import timedelta
 from enum import Enum
 from typing import Dict, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import ConfigDict, BaseModel
 
 
 class JobType(str, Enum):
@@ -51,14 +51,12 @@ class Job(BaseModel):
     job_type: JobType
     scan_id: int
     machine: str
-    slurm_id: Optional[int]
+    slurm_id: Optional[int] = None
     state: JobState = JobState.INITIALIZING
     params: Dict[str, Union[str, int, float]]
-    output: Optional[str]
-    elapsed: Optional[timedelta]
-
-    class Config:
-        orm_mode = True
+    output: Optional[str] = None
+    elapsed: Optional[timedelta] = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class JobCreate(BaseModel):
@@ -69,7 +67,7 @@ class JobCreate(BaseModel):
 
 
 class JobUpdate(BaseModel):
-    slurm_id: Optional[int]
-    state: Optional[JobState]
-    output: Optional[str]
-    elapsed: Optional[timedelta]
+    slurm_id: Optional[int] = None
+    state: Optional[JobState] = None
+    output: Optional[str] = None
+    elapsed: Optional[timedelta] = None

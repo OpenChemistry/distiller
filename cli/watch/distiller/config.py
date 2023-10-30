@@ -1,7 +1,8 @@
 from typing import List, Optional
 
-from pydantic import AnyHttpUrl, BaseSettings
+from pydantic import AnyHttpUrl
 from schemas import WatchMode
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -16,10 +17,7 @@ class Settings(BaseSettings):
     MICROSCOPE: str
     POLL: bool = False
     RECURSIVE: bool = False
-
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
 
 
 settings = Settings()

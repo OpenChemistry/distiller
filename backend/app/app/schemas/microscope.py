@@ -1,17 +1,15 @@
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel
+from pydantic import ConfigDict, BaseModel
 
 
 class Microscope(BaseModel):
     id: int
     name: str
-    config: Optional[Dict[str, Any]]
-    state: Optional[Dict[str, Any]]
-
-    class Config:
-        orm_mode = True
+    config: Optional[Dict[str, Any]] = None
+    state: Optional[Dict[str, Any]] = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MicroscopeUpdate(BaseModel):

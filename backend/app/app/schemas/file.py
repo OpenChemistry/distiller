@@ -36,7 +36,7 @@ class File(BaseModel):
 
 
 class SyncEvent(BaseModel):
-    microscope_id: Optional[int]
+    microscope_id: Optional[int] = None
     files: List[File]
 
 

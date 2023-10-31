@@ -147,10 +147,10 @@ def create_scan(
         scan.microscope_id = microscope_ids[0]
 
     # Note: We have to pass metadata as metadata_ as metadata is reserved!
-    db_scan = models.Scan(**scan.dict(), image_path=image_path, metadata_=scan.metadata)
+    db_scan = models.Scan(**scan.model_dump(), image_path=image_path, metadata_=scan.metadata)
     db.add(db_scan)
     for l in locations:
-        l = models.Location(**l.dict())
+        l = models.Location(**l.model_dump())
         db_scan.locations.append(l)
         db.add(l)
     db.commit()
@@ -192,7 +192,7 @@ def update_scan(
                 is not None
             )
             if not exists:
-                l = models.Location(**l.dict(), scan_id=id)
+                l = models.Location(**l.model_dump(), scan_id=id)
                 db.add(l)
                 locations_updated = True
 

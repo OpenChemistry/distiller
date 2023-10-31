@@ -27,8 +27,8 @@ async def create_job(job: schemas.JobCreate, db: Session = Depends(get_db)):
 
     job = crud.create_job(db=db, job=job)
 
-    scan = schemas.Scan.from_orm(scan)
-    job = schemas.Job.from_orm(job)
+    scan = schemas.Scan.model_validate(scan)
+    job = schemas.Job.model_validate(job)
 
     await send_submit_job_event_to_kafka(SubmitJobEvent(scan=scan, job=job))
 

@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     JOB_QOS: str
     JOB_QOS_FILTER: str
     JOB_BBCP_EXECUTABLE_PATH: str
-    JOB_MACHINE_OVERRIDES_PATH: Optional[str]
+    JOB_MACHINE_OVERRIDES_PATH: Optional[str] = None
 
     IMAGE_UPLOAD_DIR: str
     HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS: int
@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     CUSTODIAN_USER: str
     CUSTODIAN_PRIVATE_KEY: str
     CUSTODIAN_VALID_HOSTS: List[str] = []
-    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", extra="allow")
 
 
 settings = Settings()

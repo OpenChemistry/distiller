@@ -117,12 +117,12 @@ class ScanCreatedEvent(ScanEvent):
     microscope_id: int
     scan_id: Optional[int] = None
     created: datetime
-    event_type = ScanEventType.CREATED
+    event_type: ScanEventType = ScanEventType.CREATED
     image_path: Optional[str] = None
 
 
 class ScanUpdateEvent(ScanEvent):
-    event_type = ScanEventType.UPDATED
+    event_type: ScanEventType = ScanEventType.UPDATED
     jobs: Optional[List[Job]] = None
     image_path: Optional[str] = None
     notes: Optional[str] = None

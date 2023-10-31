@@ -32,7 +32,7 @@ def get_jobs(
 
 
 def create_job(db: Session, job: schemas.JobCreate):
-    db_job = models.Job(**job.dict())
+    db_job = models.Job(**job.model_dump())
     db.add(db_job)
     db.commit()
     db.refresh(db_job)

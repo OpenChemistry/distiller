@@ -86,7 +86,7 @@ async def create_scan_from_file(
             status_code=status.HTTP_409_CONFLICT, detail="Scan in SHA already exists"
         )
 
-    scan_from_file = schemas.ScanFromFile(sha=sha, **meta.dict())
+    scan_from_file = schemas.ScanFromFile(sha=sha, **meta.model_dump())
 
     scan = crud.create_scan(db=db, scan=scan_from_file)
     ext = Path(file_upload.filename).suffix
@@ -138,7 +138,7 @@ async def create_scan(
     try:
         content_type = request.headers["content-type"]
         if content_type == "application/json":
-            scan = schemas.Scan4DCreate.parse_obj(await request.json())
+            scan = schemas.Scan4DCreate.model_validate(await request.json())
             scan = await create_4d_scan(db, scan)
         elif content_type.startswith("multipart/form-data"):
             form_data = await request.form()
@@ -156,7 +156,7 @@ async def create_scan(
                     detail="Invalid request, scan metadata is required",
                 )
 
-            scan_metadata = schemas.ScanFromFileMetadata.parse_raw(scan_metadata_str)
+            scan_metadata = schemas.ScanFromFileMetadata.model_validate_json(scan_metadata_str)
 
             # See if we have an associated ser file
             file_stem = Path(file.filename).stem.replace("%20", "\\ ")
@@ -175,7 +175,7 @@ async def create_scan(
         )
 
     await send_scan_event_to_kafka(
-        ScanCreatedEvent(**schemas.Scan.from_orm(scan).dict())
+        ScanCreatedEvent(**schemas.Scan.model_validate(scan).model_dump())
     )
 
     return scan
@@ -293,7 +293,7 @@ async def update_scan(
             scan_updated_event.progress = cast(int, scan.progress)
 
         scan_updated_event.locations = [
-            schemas.scan.Location.from_orm(l) for l in scan.locations
+            schemas.scan.Location.model_validate(l) for l in scan.locations
         ]
 
         if scan.notes is not None and scan.notes == payload.notes:
@@ -319,7 +319,7 @@ async def _remove_scan_files(db_scan: Scan, host: Optional[str] = None):
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request"
             )
 
-        scan = schemas.Scan.from_orm(db_scan)
+        scan = schemas.Scan.model_validate(db_scan)
         await send_remove_scan_files_event_to_kafka(
             RemoveScanFilesEvent(scan=scan, host=host)
         )

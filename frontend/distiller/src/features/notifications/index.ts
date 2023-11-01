@@ -69,7 +69,7 @@ export const connectNotifications = createAsyncThunk<void, ConnectPayload>(
 
     notificationHub = new NotificationHub(ws, dispatch);
 
-    const mock = process.env.NODE_ENV === 'development';
+    const mock = import.meta.env.DEV;
 
     if (mock) {
       startMockNotifications(ws);

@@ -266,17 +266,18 @@ def count(db: Session) -> int:
     return db.query(models.Scan).count()
 
 
-def _delete_non_streaming_jobs(db: Session, id: int) -> None:
+def _delete_jobs_by_types(db: Session, id: int, types: List[schemas.JobType]) -> None:
     scan = db.query(models.Scan).filter(models.Scan.id == id).first()
     if scan:
         for job in scan.jobs:
-            if job.job_type != schemas.JobType.STREAMING:
+            if job.job_type in types:
                 db.query(models.Job).filter(models.Job.id == job.id).delete()
     db.commit()
 
 
 def delete_scan(db: Session, id: int) -> None:
-    _delete_non_streaming_jobs(db, id)
+    job_types_to_delete = [schemas.JobType.COUNT, schemas.JobType.TRANSFER]
+    _delete_jobs_by_types(db, id, job_types_to_delete)  
     db.query(models.Scan).filter(models.Scan.id == id).delete()
     db.commit()
 

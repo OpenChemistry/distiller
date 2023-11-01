@@ -101,8 +101,8 @@ async def update_job(
     return job
 
 
-@router.delete(
-    "/{id}",
+@router.put(
+    "/{id}/cancel",
     response_model=schemas.Job,
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )

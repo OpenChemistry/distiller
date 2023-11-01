@@ -116,8 +116,8 @@ export function patchJob(id: IdType, updates: Partial<Job>): Promise<Job> {
 
 export function cancelJob(id: IdType): Promise<Job> {
   return apiClient
-    .delete({
-      url: `jobs/${id}`,
+    .put({
+      url: `jobs/${id}/cancel`,
     })
     .then((res) => res.json());
 }

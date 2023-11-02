@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import useLocalStorageState from 'use-local-storage-state';
 
 import {
@@ -17,6 +17,7 @@ import {
 import { LocalizationProvider, TimeField } from '@mui/x-date-pickers';
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon';
 import { DateTime, Duration } from 'luxon';
+
 import { Machine } from '../types';
 import MachineOptionComponent from './machine-option';
 
@@ -30,45 +31,37 @@ type Props = {
   onSubmit: (params: any) => Promise<any>;
 };
 
+const maxTime = DateTime.fromObject({
+  hour: 2,
+  minute: 0,
+});
+const minTime = DateTime.fromObject({
+  hour: 0,
+  minute: 0,
+});
+const defaultTime = DateTime.fromObject({
+  hour: 2,
+  minute: 0,
+});
+
 const StreamingDialog: React.FC<Props> = (props) => {
   const { open, machines, machine, setMachine, onClose, onSubmit, canRun } =
     props;
   const [threshold, setThreshold] = useLocalStorageState('threshold', {
     defaultValue: 4,
   });
-  const [time, setTime] = useState<DateTime | null>(
-    DateTime.fromObject({ year: 2023, month: 1, day: 1, hour: 1, minute: 0 })
-  );
-  const maxTime = DateTime.fromObject({
-    year: 2023,
-    month: 1,
-    day: 1,
-    hour: 2,
-    minute: 0,
-  });
-  const minTime = DateTime.fromObject({
-    year: 2023,
-    month: 1,
-    day: 1,
-    hour: 0,
-    minute: 0,
-  });
-  const [error, setError] = useState('');
-  const [pending, setPending] = useState(false);
-
-  const submitClick = () => {
-    if (!time) {
-      setError('Invalid time. Please set a time.');
-      return;
-    }
-    const duration = Duration.fromObject({
+  const [time, setTime] = useState<DateTime>(defaultTime);
+  const [duration, setDuration] = useState<Duration>(
+    Duration.fromObject({
       hours: time.hour,
       minutes: time.minute,
-    });
-    if (!duration.isValid) {
-      setError('Invalid time format. Please use HH:MM.');
-      return;
-    }
+    })
+  );
+
+  const [error, setError] = useState('');
+  const [disableSubmit, setDisableSubmit] = useState<boolean>(false);
+  const [pending, setPending] = useState(false);
+  const submitClick = () => {
     setPending(true);
     setError('');
     onSubmit({
@@ -85,6 +78,19 @@ const StreamingDialog: React.FC<Props> = (props) => {
       });
   };
 
+  useEffect(() => {
+    setDuration(
+      Duration.fromObject({ hours: time.hour, minutes: time.minute })
+    );
+    if (time > maxTime) {
+      setError('Sessions longer than 2 hours not allowed.');
+      setDisableSubmit(true);
+    } else {
+      setError('');
+      setDisableSubmit(false);
+    }
+  }, [time]);
+
   return (
     <Dialog
       fullWidth={true}
@@ -96,7 +102,7 @@ const StreamingDialog: React.FC<Props> = (props) => {
       <DialogTitle id="streaming-job-title">Streaming Session</DialogTitle>
       <DialogContent>
         <DialogContentText mt={1} mb={1}>
-          Create a new streaming session
+          Start a new streaming session
         </DialogContentText>
         <FormControl sx={{ width: '100%' }} variant="standard">
           <InputLabel id="machine-select-label">Machine</InputLabel>
@@ -124,7 +130,9 @@ const StreamingDialog: React.FC<Props> = (props) => {
             <TimeField
               label="Session time (HH:MM)"
               value={time}
-              onChange={(newTime) => setTime(newTime)}
+              onChange={(newTime) =>
+                newTime ? setTime(newTime) : setTime(defaultTime)
+              }
               format="HH:mm"
               minTime={minTime}
               maxTime={maxTime}
@@ -138,7 +146,10 @@ const StreamingDialog: React.FC<Props> = (props) => {
         </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button onClick={submitClick} disabled={!canRun() || pending}>
+        <Button
+          onClick={submitClick}
+          disabled={!canRun() || pending || disableSubmit}
+        >
           Submit
         </Button>
         <Button onClick={onClose} disabled={pending}>

@@ -65,7 +65,6 @@ const StreamingDialog: React.FC<Props> = (props) => {
       hours: time.hour,
       minutes: time.minute,
     });
-    console.log(duration.toISOTime({ suppressSeconds: true }));
     if (!duration.isValid) {
       setError('Invalid time format. Please use HH:MM.');
       return;

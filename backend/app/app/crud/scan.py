@@ -250,6 +250,8 @@ def update_scan(
         scan = get_scan(db, id)
         if scan is None:
             raise Exception(f"Scan with id {id} does not exist.")
+        # If jobs get too large, this operation should be moved
+        # to a db query and made optional
         if not any([job.id == job_id for job in scan.jobs]):
             job = job_crud.get_job(db, job_id)
             scan.jobs.append(job)

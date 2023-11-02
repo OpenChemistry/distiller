@@ -268,20 +268,20 @@ def count(db: Session) -> int:
     return db.query(models.Scan).count()
 
 
-def _delete_jobs_by_types(db: Session, id: int, types: List[schemas.JobType]) -> None:
-    scan = db.query(models.Scan).filter(models.Scan.id == id).first()
+def _delete_scan_jobs_by_types(db: Session, scan: models.Scan, types: List[schemas.JobType]) -> None:
     if scan:
         for job in scan.jobs:
             if job.job_type in types:
                 db.query(models.Job).filter(models.Job.id == job.id).delete()
-    db.commit()
 
 
 def delete_scan(db: Session, id: int) -> None:
-    job_types_to_delete = [schemas.JobType.COUNT, schemas.JobType.TRANSFER]
-    _delete_jobs_by_types(db, id, job_types_to_delete)  
-    db.query(models.Scan).filter(models.Scan.id == id).delete()
-    db.commit()
+    scan = db.query(models.Scan).filter(models.Scan.id == id).first()
+    if scan:
+        job_types_to_delete = [schemas.JobType.COUNT, schemas.JobType.TRANSFER]
+        _delete_scan_jobs_by_types(db, scan, job_types_to_delete)
+        scan.delete()
+        db.commit()
 
 
 def get_location(db: Session, id: int):

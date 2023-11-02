@@ -42,21 +42,6 @@ def job(job_params, mocker):
 
 
 @pytest.fixture
-def cori_machine():
-    return {
-        "name": "cori",
-        "account": "m3795",
-        "qos": "realtime",
-        "nodes": 20,
-        "ntasks": 20,
-        "constraint": "haswell",
-        "cpus_per_task": 64,
-        "bbcp_dest_dir": "${DW_JOB_STRIPED}",
-        "balance_bridge": "ncem",
-    }
-
-
-@pytest.fixture
 def perlmutter_machine():
     return {
         "name": "perlmutter",
@@ -90,17 +75,6 @@ def perlmutter_reservation_machine():
 
 
 @pytest.fixture
-def expected_cori_submission_script():
-    excepted_cori_submission_script_path = (
-        Path(__file__).parent / "fixtures" / "cori_submission_script"
-    )
-    with excepted_cori_submission_script_path.open() as fp:
-        expected_cori_submission_script = fp.read()
-
-    return expected_cori_submission_script
-
-
-@pytest.fixture
 def expected_perlmutter_submission_script():
     excepted_perlmutter_submission_script_path = (
         Path(__file__).parent / "fixtures" / "perlmutter_submission_script"
@@ -129,7 +103,7 @@ def overrides_path():
 
 @pytest.fixture
 def machine_names():
-    return ["cori", "perlmutter"]
+    return ["perlmutter"]
 
 
 @pytest.fixture

@@ -300,89 +300,44 @@ async def update_slurm_job_id(
     await update_job_request(session, update)
 
 
-async def process_submit_streaming_job_event(
-    session: aiohttp.ClientSession, event: SubmitJobEvent
-) -> None:
-    # We need to fetch the machine specific configuration
-    machine = await get_machine(session, event.job.machine)
-
-    # Created comes in as a str, so convert to datetime
-    created_datetime = datetime.now()
-    date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
-    base_dir = settings.JOB_NCEMHUB_COUNT_DATA_PATH
-
-    # Ensure we have the output directory created
-    dest_path = AsyncPath(base_dir) / date_dir
-    await dest_path.mkdir(parents=True, exist_ok=True)
-    dest_dir = str(dest_path)
-
-    # Render the scripts
-    machines = await get_machines(session)
-    job_script_output = await render_job_script(
-        scan=event.scan,
-        job=event.job,
-        machine=machine,
-        dest_dir=dest_dir,
-        machine_names=list(machines.keys()),
-    )
-
-    submission_script_path = (
-        AsyncPath(settings.JOB_SCRIPT_DIRECTORY)
-        / str(event.job.id)
-        / f"{event.job.job_type}-{event.job.id}.sh"
-    )
-
-    if await submission_script_path.parent.exists():
-        logger.warning(f"Job dir exists overriding: '{submission_script_path.parent}")
-
-    await submission_script_path.parent.mkdir(parents=True, exist_ok=True)
-
-    async with submission_script_path.open("w") as fp:
-        await fp.write(job_script_output)
-
-    # Submit the job
-    slurm_id = await submit_job(machine.name, str(submission_script_path))
-
-    # Update the job model with the slurm id
-    await update_slurm_job_id(session, event.job.id, slurm_id)
-
-
 async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
-    if event.job.job_type == JobType.STREAMING:
-        await process_submit_streaming_job_event(session, event)
-        return None
+    job_type_map = {
+        JobType.STREAMING: {
+            "base_dir": settings.JOB_NCEMHUB_COUNT_DATA_PATH,
+            "bbcp": False,
+            "created_datetime": datetime.now(),
+        },
+        JobType.COUNT: {
+            "base_dir": settings.JOB_NCEMHUB_COUNT_DATA_PATH,
+            "bbcp": True,
+            "created_datetime": datetime.fromisoformat(event.scan.created),
+        },
+        JobType.TRANSFER: {
+            "base_dir": settings.JOB_NCEMHUB_RAW_DATA_PATH,
+            "bbcp": True,
+            "created_datetime": datetime.fromisoformat(event.scan.created),
+        },
+    }
 
-    # We need to fetch the machine specific configuration
+    try:
+        job_cfg = job_type_map[event.job.job_type]
+    except KeyError:
+        raise Exception("Invalid job type.")
+
     machine = await get_machine(session, event.job.machine)
 
-    # Add job id to allow for simple clean up
-    bbcp_dest_dir = str(Path(machine.bbcp_dest_dir) / str(event.job.id))
-
-    # Created comes in as a str, so convert to datetime
-    created_datetime = datetime.fromisoformat(event.scan.created)
+    created_datetime = job_cfg["created_datetime"]
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
-
-    base_dir = None
-    if event.job.job_type == JobType.TRANSFER:
-        base_dir = settings.JOB_NCEMHUB_RAW_DATA_PATH
-    elif event.job.job_type == JobType.COUNT:
-        base_dir = settings.JOB_NCEMHUB_COUNT_DATA_PATH
-    else:
-        raise Exception("Invalid job type.")
+    base_dir = job_cfg["base_dir"]
 
     # Ensure we have the output directory created
     dest_path = AsyncPath(base_dir) / date_dir
     await dest_path.mkdir(parents=True, exist_ok=True)
     dest_dir = str(dest_path)
 
-    # If this is a transfer job, then reset the bbcp dir to the destination dir
-    # rather than burst buffers or scratch
-    if event.job.job_type == JobType.TRANSFER:
-        bbcp_dest_dir = dest_dir
-
-    # Render the scripts
+    # Render the subsmission script
     machines = await get_machines(session)
     job_script_output = await render_job_script(
         scan=event.scan,
@@ -391,7 +346,6 @@ async def process_submit_job_event(
         dest_dir=dest_dir,
         machine_names=list(machines.keys()),
     )
-    bbcp_script_output = await render_bbcp_script(job=event.job, dest_dir=bbcp_dest_dir)
 
     submission_script_path = (
         AsyncPath(settings.JOB_SCRIPT_DIRECTORY)
@@ -399,23 +353,33 @@ async def process_submit_job_event(
         / f"{event.job.job_type}-{event.job.id}.sh"
     )
 
-    bbcp_script_path = (
-        AsyncPath(settings.JOB_SCRIPT_DIRECTORY) / str(event.job.id) / "bbcp.sh"
-    )
-
     if await submission_script_path.parent.exists():
         logger.warning(f"Job dir exists overriding: '{submission_script_path.parent}")
 
     await submission_script_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Write the submission script
     async with submission_script_path.open("w") as fp:
         await fp.write(job_script_output)
 
-    async with bbcp_script_path.open("w") as fp:
-        await fp.write(bbcp_script_output)
+    # Write bbcp script for some JobTypes, not others
+    if job_cfg["bbcp"]:
+        bbcp_dest_dir = str(Path(machine.bbcp_dest_dir) / str(event.job.id))
 
-    # Make bbcp script executable
-    await bbcp_script_path.chmod(0o740)
+        # If this is a transfer job, then reset the bbcp dir to the destination dir
+        # rather than scratch
+        if event.job.job_type == JobType.TRANSFER:
+            bbcp_dest_dir = dest_dir
+
+        bbcp_script_output = await render_bbcp_script(
+            job=event.job, dest_dir=bbcp_dest_dir
+        )
+        bbcp_script_path = (
+            AsyncPath(settings.JOB_SCRIPT_DIRECTORY) / str(event.job.id) / "bbcp.sh"
+        )
+        async with bbcp_script_path.open("w") as fp:
+            await fp.write(bbcp_script_output)
+        await bbcp_script_path.chmod(0o740)
 
     # Submit the job
     slurm_id = await submit_job(machine.name, str(submission_script_path))

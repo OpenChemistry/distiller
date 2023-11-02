@@ -57,7 +57,7 @@ const DateChip: React.FC<{ date: string }> = ({ date }) => (
     color="primary"
     sx={{
       height: 'auto',
-      padding: '15px',
+      padding: '1%',
       fontSize: '1.2rem',
     }}
   />

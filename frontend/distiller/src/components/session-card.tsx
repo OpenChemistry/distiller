@@ -141,7 +141,7 @@ const SessionCard = React.memo(
             if (isHoverable) navigate(`${job.id}`);
           }}
           isHoverable={isHoverable}
-          style={{ marginBottom: '20px' }}
+          style={{ marginBottom: '2%' }}
         >
           <CardContent style={{ display: 'flex', flexDirection: 'column' }}>
             <div

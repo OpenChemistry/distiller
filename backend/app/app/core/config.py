@@ -1,9 +1,9 @@
 import secrets
 from typing import Any, Dict, List, Literal, Optional, Union
 
-from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
-
 from app.schemas import Machine
+from pydantic import AnyHttpUrl, PostgresDsn, field_validator, ValidationInfo
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -18,7 +18,8 @@ class Settings(BaseSettings):
     # "http://localhost:8080", "http://local.dockertoolbox.tiangolo.com"]'
     BACKEND_CORS_ORIGINS: List[Union[AnyHttpUrl, Literal["*"]]] = []
 
-    @validator("BACKEND_CORS_ORIGINS", pre=True)
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
@@ -32,19 +33,20 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
-    SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
+    SQLALCHEMY_DATABASE_URI: Optional[str] = None
 
-    @validator("SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    @field_validator("SQLALCHEMY_DATABASE_URI", mode="before")
+    def assemble_db_connection(cls, v: Optional[str], info: ValidationInfo) -> Any:
         if isinstance(v, str):
             return v
-        return PostgresDsn.build(
+        postgres_build = PostgresDsn.build(
             scheme="postgresql",
-            user=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
+            username=info.data.get("POSTGRES_USER"),
+            password=info.data.get("POSTGRES_PASSWORD"),
+            host=info.data.get("POSTGRES_SERVER"),
+            path=f"{info.data.get('POSTGRES_DB') or ''}",
         )
+        return postgres_build.unicode_string()
 
     API_KEY_NAME: str
     API_KEY: str
@@ -53,7 +55,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
     JWT_REFRESH_TOKEN_EXPIRE_MINUTES: int
-    JWT_REFRESH_COOKIE_DOMAIN: str = None
+    JWT_REFRESH_COOKIE_DOMAIN: Optional[str] = None
     JWT_REFRESH_COOKIE_SECURE: bool = False
 
     KAFKA_BOOTSTRAP_SERVERS: List[str]
@@ -67,15 +69,12 @@ class Settings(BaseSettings):
     # have been reset in in the detector software.
     HAADF_SCAN_AGE_LIMIT: int = 1
 
-    SENTRY_DSN_URL: AnyHttpUrl = None
+    SENTRY_DSN_URL: Optional[AnyHttpUrl] = None
 
     MACHINES: List[Machine]
     NCEMHUB_PATH: str
     NOTEBOOKS: List[str] = ["DPC", "vacuum_scan_prepare", "vacuum_scan_subtract"]
-
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", extra="allow")
 
 
 settings = Settings()

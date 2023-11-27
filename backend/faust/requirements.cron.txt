@@ -1,2 +1,4 @@
 pytz
 aiopath
+pydantic~=2.0
+pydantic-settings

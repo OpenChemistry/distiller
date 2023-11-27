@@ -297,7 +297,7 @@ async def process_submit_job_event(
     bbcp_dest_dir = str(Path(machine.bbcp_dest_dir) / str(event.job.id))
 
     # Not sure why by created comes in as a str, so convert to datetime
-    created_datetime = datetime.fromisoformat(event.scan.created)
+    created_datetime = datetime.fromisoformat(str(event.scan.created).rstrip("Z"))
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
 
     base_dir = None

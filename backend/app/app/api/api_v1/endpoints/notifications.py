@@ -93,7 +93,7 @@ class WebsocketConsumer(WebSocketEndpoint):
                 if microscope_id is None or microscope_id == self.microscope_id:
                     await self.websocket.send_json(event)
         except asyncio.CancelledError:
-            logger.info("websocket connection closed, relay_events task cancelled")
+            logger.info("Websocket connection closed, relay_events task cancelled")
         except Exception as e:
             logger.exception("Exception relaying kafka message: %s", str(e))
         finally:

@@ -19,6 +19,7 @@ RUN apt-get remove -y \
 
 COPY requirements.base.txt /app/requirements.txt
 
+RUN pip install Cython==0.29.36
 RUN pip install -r /app/requirements.txt
 
 COPY faust_records/ /app/faust_records/

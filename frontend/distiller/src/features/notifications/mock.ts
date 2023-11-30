@@ -1,5 +1,5 @@
-import { IdType, JobState, JobType, Scan, ScanJob } from '../../types';
-import { ScanCreatedEvent, ScanUpdatedEvent, ScanEventType } from './events';
+import { IdType, Job, JobState, JobType, Scan } from '../../types';
+import { ScanCreatedEvent, ScanEventType, ScanUpdatedEvent } from './events';
 
 function makeCreatedEvent(id: IdType): ScanCreatedEvent {
   return {
@@ -26,7 +26,7 @@ function makeCreatedEvent(id: IdType): ScanCreatedEvent {
         path: '/foo/bar',
       },
     ],
-    jobs: [],
+    job_ids: [-20, -30, -40],
   };
 }
 
@@ -62,9 +62,9 @@ async function mockScanUpdates(ws: WebSocket, id: IdType) {
     ws.dispatchEvent(ev);
   }
 
-  const job: ScanJob = {
+  const job: Job = {
     id: 0,
-    scan_id: id,
+    scan_ids: [],
     job_type: JobType.Count,
     slurm_id: 123,
     elapsed: 213,
@@ -81,7 +81,7 @@ async function mockScanUpdates(ws: WebSocket, id: IdType) {
     job.state = state;
     await sleep(2000);
     const ev: any = new Event('message');
-    ev.data = JSON.stringify(makeUpdatedEvent(id, { jobs: [job] }));
+    ev.data = JSON.stringify(makeUpdatedEvent(id, { job_ids: [id] }));
     ws.dispatchEvent(ev);
   }
 }

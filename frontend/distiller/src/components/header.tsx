@@ -1,23 +1,20 @@
 import React from 'react';
 
-import { useNavigate, useLocation } from 'react-router-dom';
+import UserIcon from '@mui/icons-material/AccountCircle';
+import { Button, IconButton, Typography } from '@mui/material';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import { styled } from '@mui/material/styles';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
+import { isAuthenticated } from '../features/auth';
 import {
   microscopesSelectors,
   microscopesState,
 } from '../features/microscopes';
-
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import { Button, IconButton, Typography } from '@mui/material';
-import UserIcon from '@mui/icons-material/AccountCircle';
-import { styled } from '@mui/material/styles';
-
-import { isAuthenticated } from '../features/auth';
+import logo from '../logo.png';
 import { AUTH_PATH } from '../routes';
 import { getMicroscope } from '../utils/microscopes';
-
-import logo from '../logo.png';
 
 const LogoImage = styled('img')(({ theme }) => ({
   height: theme.spacing(5),

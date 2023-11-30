@@ -5,8 +5,6 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 
-from app.schemas.job import Job
-
 
 class Location(BaseModel):
     id: int
@@ -51,7 +49,7 @@ class Scan(BaseModel):
     locations: List[Location]
     image_path: Optional[str]
     notes: Optional[str]
-    jobs: List[Job]
+    job_ids: Optional[List[int]]
     metadata: Optional[Dict[str, Any]] = Field(alias="metadata_")
     microscope_id: int
     uuid: Optional[str]
@@ -60,6 +58,14 @@ class Scan(BaseModel):
 
     class Config:
         orm_mode = True
+
+    @classmethod
+    def from_orm(cls, obj) -> "Scan":
+        job_ids = [job.id for job in obj.jobs]
+        locations = [Location.from_orm(location) for location in obj.locations]
+        obj_dict = obj.__dict__.copy()
+        obj_dict.pop("locations", None)
+        return cls(**obj_dict, job_ids=job_ids, locations=locations)
 
 
 class Scan4DCreate(BaseModel):
@@ -95,6 +101,7 @@ class ScanUpdate(BaseModel):
     notes: Optional[str]
     image_path: Optional[str]
     metadata: Optional[Dict[str, Any]]
+    job_id: Optional[int]
 
     _metadata_infinity = validator("metadata", allow_reuse=True)(metadata_infinity)
 
@@ -127,6 +134,6 @@ class ScanCreatedEvent(ScanEvent):
 
 class ScanUpdateEvent(ScanEvent):
     event_type = ScanEventType.UPDATED
-    jobs: Optional[List[Job]]
+    job_ids: Optional[List[int]]
     image_path: Optional[str]
     notes: Optional[str]

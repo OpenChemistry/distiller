@@ -1,20 +1,23 @@
 import {
-  createAsyncThunk,
-  createSlice,
+  AnyAction,
   PayloadAction,
   ThunkDispatch,
-  AnyAction,
+  createAsyncThunk,
+  createSlice,
 } from '@reduxjs/toolkit';
 
 import { apiClient } from '../../client';
-import { startMockNotifications } from './mock';
+import { setJob, updateJob } from '../jobs';
+import { updateMicroscope } from '../microscopes';
+import { setScan, updateScan } from '../scans';
 import {
+  isJobSubmitEvent,
+  isJobUpdatedEvent,
   isMicroscopeUpdatedEvent,
   isScanCreatedEvent,
   isScanUpdatedEvent,
 } from './events';
-import { setScan, updateScan } from '../scans';
-import { updateMicroscope } from '../microscopes';
+import { startMockNotifications } from './mock';
 
 class NotificationHub {
   constructor(
@@ -28,12 +31,17 @@ class NotificationHub {
       } catch {}
 
       if (isScanCreatedEvent(msg)) {
-        const scan = { ...msg, jobs: [] };
+        const scan = { ...msg, job_ids: [] };
         dispatch(setScan(scan));
       } else if (isScanUpdatedEvent(msg)) {
         dispatch(updateScan(msg));
       } else if (isMicroscopeUpdatedEvent(msg)) {
         dispatch(updateMicroscope(msg));
+      } else if (isJobSubmitEvent(msg)) {
+        const { job } = { ...msg };
+        dispatch(setJob(job));
+      } else if (isJobUpdatedEvent(msg)) {
+        dispatch(updateJob(msg));
       }
     };
 

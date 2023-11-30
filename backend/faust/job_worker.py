@@ -3,10 +3,9 @@ import copy
 import json
 import logging
 from datetime import datetime, timedelta
-from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-import json
+import pytz
 
 import aiohttp
 import httpx
@@ -14,17 +13,18 @@ import jinja2
 import tenacity
 from aiopath import AsyncPath
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
-from authlib.oauth2.rfc7523 import PrivateKeyJWT
 from authlib.jose import JsonWebKey
+from authlib.oauth2.rfc7523 import PrivateKeyJWT
 from dotenv import dotenv_values
 
 import faust
 from config import settings
 from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
                        SFAPI_BASE_URL, SFAPI_TOKEN_URL, SLURM_RUNNING_STATES,
+                       STREAMING_JOB_SCRIPT_TEMPLATE, TOPIC_JOB_CANCEL_EVENTS,
                        TOPIC_JOB_SUBMIT_EVENTS, TRANSFER_JOB_SCRIPT_TEMPLATE,
                        JobState)
-from faust_records import Scan as ScanRecord
+from faust_records import CancelJobEvent, Job, JobType, SubmitJobEvent
 from schemas import JobUpdate
 from schemas import Location as LocationRest
 from schemas import Machine, Scan, ScanUpdate, SfapiJob
@@ -71,27 +71,8 @@ def reset_oauth2_client():
     _client = None
 
 
-class JobType(str, Enum):
-    COUNT = "count"
-    TRANSFER = "transfer"
-
-    def __str__(self) -> str:
-        return self.value
-
-
-class Job(faust.Record):
-    id: int
-    job_type: JobType
-    machine: str
-    params: Dict[str, Union[str, int, float]]
-
-
-class SubmitJobEvent(faust.Record):
-    job: Job
-    scan: ScanRecord
-
-
 submit_job_events_topic = app.topic(TOPIC_JOB_SUBMIT_EVENTS, value_type=SubmitJobEvent)
+cancel_job_events_topic = app.topic(TOPIC_JOB_CANCEL_EVENTS, value_type=CancelJobEvent)
 
 # Cache to store machines, we only need to fetch them once
 _machines = None
@@ -129,11 +110,7 @@ async def get_machine(session: aiohttp.ClientSession, name: str) -> Machine:
 async def render_job_script(
     scan: Scan, job: Job, machine: Machine, dest_dir: str, machine_names: List[str]
 ) -> str:
-    if job.job_type == JobType.COUNT:
-        template_name = COUNT_JOB_SCRIPT_TEMPLATE
-    else:
-        template_name = TRANSFER_JOB_SCRIPT_TEMPLATE
-
+    template_name = f"{job.job_type}.sh.j2"
     template_loader = jinja2.FileSystemLoader(
         searchpath=Path(__file__).parent / "templates"
     )
@@ -141,8 +118,9 @@ async def render_job_script(
     template = template_env.get_template(template_name)
 
     # Make a copy and filter out machines from locations
-    scan = copy.deepcopy(scan)
-    scan.locations = [x for x in scan.locations if x.host not in machine_names]
+    if scan is not None:
+        scan = copy.deepcopy(scan)
+        scan.locations = [x for x in scan.locations if x.host not in machine_names]
 
     try:
         output = await template.render_async(
@@ -234,6 +212,31 @@ async def sfapi_post(url: str, data: Dict[str, Any]) -> httpx.Response:
     return r
 
 
+@tenacity.retry(
+    retry=tenacity.retry_if_exception_type(httpx.TimeoutException)
+    | tenacity.retry_if_exception_type(httpx.ConnectError)
+    | tenacity.retry_if_exception_type(httpx.HTTPStatusError),
+    wait=tenacity.wait_exponential(max=10),
+    stop=tenacity.stop_after_attempt(10),
+    before=before_retry_client,
+    before_sleep=tenacity.before_sleep_log(logger, logging.INFO),
+)
+async def sfapi_delete(url: str) -> httpx.Response:
+    client = await get_oauth2_client()
+    await client.ensure_active_token(client.token)
+
+    r = await client.delete(
+        f"{SFAPI_BASE_URL}/{url}",
+        headers={
+            "Authorization": client.token["access_token"],
+            "accept": "application/json",
+        },
+    )
+    r.raise_for_status()
+
+    return r
+
+
 class SfApiError(Exception):
     def __init__(self, message):
         self.message = message
@@ -279,6 +282,17 @@ async def submit_job(machine: str, batch_submit_file: str) -> int:
         return int(slurm_id)
 
 
+async def cancel_job(machine: str, slurm_id: str) -> None:
+    logger.info("Trying to cancel job: ", slurm_id, " on machine: ", machine, " ...")
+    r = await sfapi_delete(f"compute/jobs/{machine}/{slurm_id}")
+    r.raise_for_status()
+
+    sfapi_response = r.json()
+
+    if sfapi_response["status"].lower() != "ok":
+        raise SfApiError(sfapi_response["error"])
+
+
 async def update_slurm_job_id(
     session: aiohttp.ClientSession, job_id: int, slurm_id: int
 ) -> None:
@@ -289,36 +303,41 @@ async def update_slurm_job_id(
 async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
+    job_type_map = {
+        JobType.STREAMING: {
+            "base_dir": settings.JOB_NCEMHUB_COUNT_DATA_PATH,
+            "bbcp": False,
+            "created_datetime": datetime.now(),
+        },
+        JobType.COUNT: {
+            "base_dir": settings.JOB_NCEMHUB_COUNT_DATA_PATH,
+            "bbcp": True,
+            "created_datetime": datetime.fromisoformat(event.scan.created),
+        },
+        JobType.TRANSFER: {
+            "base_dir": settings.JOB_NCEMHUB_RAW_DATA_PATH,
+            "bbcp": True,
+            "created_datetime": datetime.fromisoformat(event.scan.created),
+        },
+    }
 
-    # We need to fetch the machine specific configuration
+    try:
+        job_cfg = job_type_map[event.job.job_type]
+    except KeyError:
+        raise Exception("Invalid job type.")
+
     machine = await get_machine(session, event.job.machine)
 
-    # Add job id to allow for simple clean up
-    bbcp_dest_dir = str(Path(machine.bbcp_dest_dir) / str(event.job.id))
-
-    # Not sure why by created comes in as a str, so convert to datetime
-    created_datetime = datetime.fromisoformat(event.scan.created)
+    created_datetime = job_cfg["created_datetime"]
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
-
-    base_dir = None
-    if event.job.job_type == JobType.TRANSFER:
-        base_dir = settings.JOB_NCEMHUB_RAW_DATA_PATH
-    elif event.job.job_type == JobType.COUNT:
-        base_dir = settings.JOB_NCEMHUB_COUNT_DATA_PATH
-    else:
-        raise Exception("Invalid job type.")
+    base_dir = job_cfg["base_dir"]
 
     # Ensure we have the output directory created
     dest_path = AsyncPath(base_dir) / date_dir
     await dest_path.mkdir(parents=True, exist_ok=True)
     dest_dir = str(dest_path)
 
-    # If this is a transfer job, then reset the bbcp dir to the destination dir
-    # rather than burst buffers or scratch
-    if event.job.job_type == JobType.TRANSFER:
-        bbcp_dest_dir = dest_dir
-
-    # Render the scripts
+    # Render the subsmission script
     machines = await get_machines(session)
     job_script_output = await render_job_script(
         scan=event.scan,
@@ -327,7 +346,6 @@ async def process_submit_job_event(
         dest_dir=dest_dir,
         machine_names=list(machines.keys()),
     )
-    bbcp_script_output = await render_bbcp_script(job=event.job, dest_dir=bbcp_dest_dir)
 
     submission_script_path = (
         AsyncPath(settings.JOB_SCRIPT_DIRECTORY)
@@ -335,29 +353,55 @@ async def process_submit_job_event(
         / f"{event.job.job_type}-{event.job.id}.sh"
     )
 
-    bbcp_script_path = (
-        AsyncPath(settings.JOB_SCRIPT_DIRECTORY) / str(event.job.id) / "bbcp.sh"
-    )
-
     if await submission_script_path.parent.exists():
         logger.warning(f"Job dir exists overriding: '{submission_script_path.parent}")
 
     await submission_script_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Write the submission script
     async with submission_script_path.open("w") as fp:
         await fp.write(job_script_output)
 
-    async with bbcp_script_path.open("w") as fp:
-        await fp.write(bbcp_script_output)
+    # Write bbcp script for some JobTypes, not others
+    if job_cfg["bbcp"]:
+        bbcp_dest_dir = str(Path(machine.bbcp_dest_dir) / str(event.job.id))
 
-    # Make bbcp script executable
-    await bbcp_script_path.chmod(0o740)
+        # If this is a transfer job, then reset the bbcp dir to the destination dir
+        # rather than scratch
+        if event.job.job_type == JobType.TRANSFER:
+            bbcp_dest_dir = dest_dir
+
+        bbcp_script_output = await render_bbcp_script(
+            job=event.job, dest_dir=bbcp_dest_dir
+        )
+        bbcp_script_path = (
+            AsyncPath(settings.JOB_SCRIPT_DIRECTORY) / str(event.job.id) / "bbcp.sh"
+        )
+        async with bbcp_script_path.open("w") as fp:
+            await fp.write(bbcp_script_output)
+        await bbcp_script_path.chmod(0o740)
 
     # Submit the job
     slurm_id = await submit_job(machine.name, str(submission_script_path))
 
     # Update the job model with the slurm id
     await update_slurm_job_id(session, event.job.id, slurm_id)
+
+
+async def process_cancel_job_event(
+    session: aiohttp.ClientSession, event: CancelJobEvent
+) -> None:
+    # We need to fetch the machine specific configuration
+    machine = await get_machine(session, event.job.machine)
+
+    # Get job from database
+    job = await get_job(session, event.job.id)
+
+    if job.slurm_id is None:
+        raise Exception(f"Job {job.id} does not have a slurm id")
+
+    # Cancel the job
+    await cancel_job(machine.name, str(job.slurm_id))
 
 
 @app.agent(submit_job_events_topic)
@@ -370,14 +414,27 @@ async def watch_for_submit_job_events(submit_jobs_events):
                 logger.error(f"Error submitting job: {ex.message}")
 
 
+@app.agent(cancel_job_events_topic)
+async def watch_for_cancel_job_events(cancel_job_events):
+    async with aiohttp.ClientSession() as session:
+        async for event in cancel_job_events:
+            try:
+                await process_cancel_job_event(session, event)
+            except SfApiError as ex:
+                logger.error(f"Error cancelling job: {ex.message}")
+
+
 async def update_job(
     session: aiohttp.ClientSession,
     job_id: int,
     state: str,
     elapsed: timedelta,
+    submit: datetime,
     output: Optional[str] = None,
 ) -> None:
-    update = JobUpdate(id=job_id, state=state, output=output, elapsed=elapsed)
+    update = JobUpdate(
+        id=job_id, state=state, output=output, elapsed=elapsed, submit=submit
+    )
     await update_job_request(session, update)
 
 
@@ -390,6 +447,10 @@ def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
         elapsed = timedelta(
             hours=elapsed.hour, minutes=elapsed.minute, seconds=elapsed.second
         )
+        submit = job["submit"]
+        _submit = datetime.strptime(submit, settings.SFAPI_SUBMIT_TIME_FORMAT)
+        tz = pytz.timezone(settings.SFAPI_TZ)
+        submit = tz.localize(_submit)
 
         jobs.append(
             SfapiJob(
@@ -398,6 +459,7 @@ def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
                 name=job["jobname"],
                 slurm_id=int(job["jobid"]),
                 elapsed=elapsed,
+                submit=submit,
             )
         )
 
@@ -504,7 +566,12 @@ async def monitor_jobs():
 
                 try:
                     await update_job(
-                        session, id, job.state, elapsed=job.elapsed, output=output
+                        session,
+                        id,
+                        job.state,
+                        elapsed=job.elapsed,
+                        output=output,
+                        submit=job.submit,
                     )
                 except aiohttp.client_exceptions.ClientResponseError as ex:
                     # Ignore 404, this is not a job we created.
@@ -517,12 +584,17 @@ async def monitor_jobs():
                 # then update the location.
                 if job.state == JobState.COMPLETED and JobType.TRANSFER in job.name:
                     job = await get_job(session, id)
-                    scan = await get_scan(session, job.scan_id)
+                    
+                    if not job.scan_ids:
+                        raise ValueError(f"No scan_ids for job {id}")
+                    
+                    scan_id = job.scan_ids[0]
+                    scan = await get_scan(session, scan_id)
                     date_dir = scan.created.astimezone().strftime(DATE_DIR_FORMAT)
                     machine = job.machine
 
                     update = ScanUpdate(
-                        id=job.scan_id,
+                        id=scan_id,
                         locations=[
                             LocationRest(
                                 host=f"{machine}",

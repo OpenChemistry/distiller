@@ -1,7 +1,8 @@
-import { apiClient } from '../../client';
-import { IdType, Scan, ScansRequestResult } from '../../types';
-import { pickNil } from '../../utils';
+import { isNil } from 'lodash';
 import { DateTime } from 'luxon';
+import { apiClient } from '../../client';
+import { IdType, Job, Scan, ScansRequestResult } from '../../types';
+import { pickNil } from '../../utils';
 
 export function getScans(
   microscopeId: IdType,
@@ -11,16 +12,16 @@ export function getScans(
   end?: DateTime
 ): Promise<ScansRequestResult> {
   const params: any = { microscope_id: microscopeId };
-  if (skip !== undefined) {
+  if (!isNil(skip)) {
     params['skip'] = skip;
   }
-  if (limit !== undefined) {
+  if (!isNil(limit)) {
     params['limit'] = limit;
   }
-  if (start !== undefined) {
+  if (!isNil(start)) {
     params['start'] = start;
   }
-  if (end !== undefined) {
+  if (!isNil(end)) {
     params['end'] = end;
   }
 
@@ -68,6 +69,18 @@ export function getScan(id: IdType): Promise<Scan> {
         return { ...scan, prevScanId, nextScanId };
       });
     });
+}
+
+export function getScanJobs(id: IdType): Promise<Job[]> {
+  const params: any = {};
+  params['scan_id'] = id;
+
+  return apiClient
+    .get({
+      url: `jobs`,
+      params,
+    })
+    .then((res) => res.json());
 }
 
 export function patchScan(id: IdType, updates: Partial<Scan>): Promise<Scan> {

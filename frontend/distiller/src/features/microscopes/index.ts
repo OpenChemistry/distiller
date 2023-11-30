@@ -1,12 +1,12 @@
 import {
-  createAsyncThunk,
-  createSlice,
-  createEntityAdapter,
   PayloadAction,
+  createAsyncThunk,
+  createEntityAdapter,
+  createSlice,
 } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
-import { getMicroscopes as getMicroscopesAPI } from './api';
 import { IdType, Microscope } from '../../types';
+import { getMicroscopes as getMicroscopesAPI } from './api';
 
 export const microscopesAdapter = createEntityAdapter<Microscope>({
   selectId: (microscope) => microscope.id,

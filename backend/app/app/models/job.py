@@ -1,8 +1,10 @@
-from sqlalchemy import (JSON, Column, Enum, ForeignKey, Integer, Interval,
-                        String)
+from sqlalchemy import JSON, Column, DateTime, Enum, Integer, Interval, String
+from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
 from app.schemas.job import JobState
+
+from .association import scan_job_table
 
 
 class Job(Base):
@@ -14,4 +16,6 @@ class Job(Base):
     output = Column(String, nullable=True)
     elapsed = Column(Interval, nullable=True)
     machine = Column(String, nullable=False)
-    scan_id = Column(Integer, ForeignKey("scans.id", ondelete="CASCADE"))
+    submit = Column(DateTime(timezone=True), nullable=True, index=True)
+    notes = Column(String, nullable=True)
+    scans = relationship("Scan", secondary=scan_job_table, back_populates="jobs")

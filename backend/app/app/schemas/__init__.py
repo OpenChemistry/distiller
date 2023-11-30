@@ -1,7 +1,7 @@
-from .events import SubmitJobEvent
+from .events import CancelJobEvent, SubmitJobEvent, UpdateJobEvent
 from .file import (FileSystemEvent, FileSystemEventType, HaadfUploaded,
                    ScanFileUploaded, SyncEvent)
-from .job import Job, JobCreate, JobUpdate
+from .job import Job, JobCreate, JobType, JobUpdate
 from .jwt import Token, TokenData
 from .machine import Machine
 from .microscope import Microscope, MicroscopeUpdate, MicroscopeUpdateEvent

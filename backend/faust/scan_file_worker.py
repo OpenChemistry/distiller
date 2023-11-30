@@ -45,6 +45,7 @@ app = faust.App(
     "distiller-haadf", store="rocksdb://", broker=settings.KAFKA_URL, topic_partitions=1
 )
 
+
 # 4D Scan associated HAADF DM4
 class HaadfEvent(faust.Record):
     path: str
@@ -276,7 +277,6 @@ def extract_emi_metadata(emi_path: str):
 
 
 def extract_ncem_emd_metadata(emd_file):
-
     metadata = {}
 
     try:
@@ -446,7 +446,6 @@ scan_file_events_topic = app.topic(
 
 @app.agent(scan_file_events_topic)
 async def watch_for_scan_file_events(scan_file_events):
-
     async with aiohttp.ClientSession() as session:
         async for event in scan_file_events:
             path = event.path

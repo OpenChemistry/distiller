@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import WarningIcon from '@mui/icons-material/Warning';
 import {
   Button,
   Dialog,
@@ -10,13 +11,11 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import WarningIcon from '@mui/icons-material/Warning';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormGroup from '@mui/material/FormGroup';
+import { styled } from '@mui/material/styles';
 import { isNil } from 'lodash';
-
 import { Scan, ScanLocation } from '../types';
 
 const DialogTitleWarningText = styled(DialogTitle)(({ theme }) => ({

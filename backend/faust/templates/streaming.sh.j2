@@ -1,0 +1,7 @@
+{% include "header.j2"  %}
+{% include "streaming_header.j2"  %}
+
+export HDF5_USE_FILE_LOCKING=FALSE
+export STREAMING_CONFIG_FILEPATH={{settings.STREAMING_CONFIG_FILEPATH}}
+
+srun -n {{machine.nodes}} -N {{machine.nodes}} shifter /4dstem/build/zmq/node -t {{threshold}}

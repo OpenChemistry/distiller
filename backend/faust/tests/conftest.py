@@ -1,4 +1,3 @@
-import datetime
 from pathlib import Path
 
 import pytest
@@ -7,9 +6,10 @@ from faust_records import Location, Scan
 from schemas import Machine
 
 
+# Change to match how faust record comes in... as str
 @pytest.fixture
 def created():
-    return datetime.datetime(2022, 1, 10, 14, 29, 59, 182918)
+    return "2022-01-10T14:29:59+00:00"
 
 
 @pytest.fixture
@@ -39,21 +39,6 @@ def job(job_params, mocker):
     job = Job(id=0, job_type=JobType.COUNT, params=job_params, machine="cori")
 
     return job
-
-
-@pytest.fixture
-def cori_machine():
-    return {
-        "name": "cori",
-        "account": "m3795",
-        "qos": "realtime",
-        "nodes": 20,
-        "ntasks": 20,
-        "constraint": "haswell",
-        "cpus_per_task": 64,
-        "bbcp_dest_dir": "${DW_JOB_STRIPED}",
-        "balance_bridge": "ncem",
-    }
 
 
 @pytest.fixture
@@ -90,17 +75,6 @@ def perlmutter_reservation_machine():
 
 
 @pytest.fixture
-def expected_cori_submission_script():
-    excepted_cori_submission_script_path = (
-        Path(__file__).parent / "fixtures" / "cori_submission_script"
-    )
-    with excepted_cori_submission_script_path.open() as fp:
-        expected_cori_submission_script = fp.read()
-
-    return expected_cori_submission_script
-
-
-@pytest.fixture
 def expected_perlmutter_submission_script():
     excepted_perlmutter_submission_script_path = (
         Path(__file__).parent / "fixtures" / "perlmutter_submission_script"
@@ -129,7 +103,7 @@ def overrides_path():
 
 @pytest.fixture
 def machine_names():
-    return ["cori", "perlmutter"]
+    return ["perlmutter"]
 
 
 @pytest.fixture

@@ -6,10 +6,7 @@ import faust
 from faust.serializers import codecs
 from json_utils import NumpyEncoder
 
-
-class Location(faust.Record):
-    host: str
-    path: str
+from .location import Location
 
 
 class Scan(faust.Record):

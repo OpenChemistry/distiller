@@ -1,91 +1,73 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams as useUrlParams } from 'react-router-dom';
 
-import { useParams as useUrlParams, useNavigate } from 'react-router-dom';
-
-import useLocalStorageState from 'use-local-storage-state';
-
-import {
-  Card,
-  Grid,
-  Table,
-  TableRow,
-  TableBody,
-  TableCell,
-  LinearProgress,
-  CardContent,
-  TableHead,
-  CardHeader,
-  CardActions,
-  Button,
-  IconButton,
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
-import CompleteIcon from '@mui/icons-material/CheckCircle';
-import ImageIcon from '@mui/icons-material/Image';
-import TransferIcon from '@mui/icons-material/CompareArrows';
-import CountIcon from '@mui/icons-material/BlurOn';
-import OutputIcon from '@mui/icons-material/Terminal';
 import LeftIcon from '@mui/icons-material/ArrowLeft';
 import RightIcon from '@mui/icons-material/ArrowRight';
+import CountIcon from '@mui/icons-material/BlurOn';
+import CompleteIcon from '@mui/icons-material/CheckCircle';
+import TransferIcon from '@mui/icons-material/CompareArrows';
+import OutputIcon from '@mui/icons-material/Terminal';
 import TextSnippetOutlined from '@mui/icons-material/TextSnippetOutlined';
-import { pink } from '@mui/material/colors';
-import Tooltip from '@mui/material/Tooltip';
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Grid,
+  IconButton,
+  LinearProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Tooltip from '@mui/material/Tooltip';
+import { styled } from '@mui/material/styles';
+import { Box } from '@mui/system';
 import humanizeDuration from 'humanize-duration';
 import { DateTime } from 'luxon';
-
+import useLocalStorageState from 'use-local-storage-state';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { staticURL } from '../client';
-import { getScan, scansSelector, patchScan } from '../features/scans';
-import { getNotebooks, selectNotebooks } from '../features/notebooks';
-import {
-  machineState,
-  machineSelectors,
-  getMachineState,
-} from '../features/machines';
-import LocationComponent from '../components/location';
-import EditableField from '../components/editable-field';
-import { IdType, JobType, Scan, ScanJob, Microscope } from '../types';
-import JobStateComponent from '../components/job-state';
-import TransferDialog from '../components/transfer-dialog';
 import CountDialog from '../components/count-dialog';
-import { createJob } from '../features/jobs/api';
-import { fetchOrCreateNotebook } from '../features/notebooks/api';
-import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
+import EditableField from '../components/editable-field';
+import ImageDialog from '../components/image-dialog';
 import JobOutputDialog from '../components/job-output';
-import { isNil } from '../utils';
-import { SCANS } from '../routes';
-import { canRunJobs } from '../utils/machine';
+import JobStateComponent from '../components/job-state';
+import LocationComponent from '../components/location';
 import MetadataComponent from '../components/metadata';
+import { NoThumbnailImageIcon } from '../components/no-thumbnail-image-icon';
+import { RemoveScanFilesConfirmDialog } from '../components/scan-confirm-dialog';
+import { ThumbnailImage } from '../components/thumbnail-image';
+import TransferDialog from '../components/transfer-dialog';
+import { JUPYTER_USER_REDIRECT_URL } from '../constants';
+import { getScanJobs, jobsByScanIdAndTypes } from '../features/jobs';
+import { createJob } from '../features/jobs/api';
+import {
+  getMachineState,
+  machineSelectors,
+  machineState,
+} from '../features/machines';
 import {
   microscopesSelectors,
   microscopesState,
 } from '../features/microscopes';
+import { getNotebooks, selectNotebooks } from '../features/notebooks';
+import { fetchOrCreateNotebook } from '../features/notebooks/api';
+import { getScan, patchScan, scansSelector } from '../features/scans';
+import { SCANS, SESSIONS } from '../routes';
+import { IdType, Job, JobType, Microscope, Scan } from '../types';
+import { isNil, stopPropagation } from '../utils';
+import { canRunJobs } from '../utils/machine';
 import { canonicalMicroscopeName } from '../utils/microscopes';
-import ImageDialog from '../components/image-dialog';
-import { stopPropagation } from '../utils';
-import { JUPYTER_USER_REDIRECT_URL } from '../constants';
-import CircularProgress from '@mui/material/CircularProgress';
-import { Box } from '@mui/system';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
-}));
-
-const ThumbnailImage = styled('img')(({ theme }) => ({
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-  cursor: 'pointer',
-}));
-
-const NoThumbnailImageIcon = styled(ImageIcon)(({ theme }) => ({
-  width: '60%',
-  height: '60%',
-  objectFit: 'cover',
-  color: pink.A400,
-  cursor: 'pointer',
 }));
 
 const TableStateCell = styled(TableCell)(({ theme }) => ({
@@ -95,6 +77,7 @@ const TableStateCell = styled(TableCell)(({ theme }) => ({
 const StateContent = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'end',
+  justifyContent: 'center',
 }));
 
 const Spacer = styled('div')(({ theme }) => ({
@@ -122,12 +105,18 @@ const ScanPage: React.FC<Props> = () => {
   const scanIdParam = useUrlParams().scanId;
 
   const scanId = parseInt(scanIdParam as string);
+  const scan = useAppSelector((state) =>
+    scansSelector.selectById(state, scanId)
+  );
+  const jobs = useAppSelector(
+    jobsByScanIdAndTypes(scanId, [JobType.Count, JobType.Transfer])
+  );
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const [jobDialog, setJobDialog] = useState<JobType | undefined>();
-  const [jobOutputDialog, setJobOutputDialog] = useState<ScanJob | undefined>();
+  const [jobOutputDialog, setJobOutputDialog] = useState<Job | undefined>();
   const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan | null>(
     null
   );
@@ -169,6 +158,13 @@ const ScanPage: React.FC<Props> = () => {
     dispatch(getScan({ id: scanId }));
   }, [dispatch, scanId]);
 
+  // This effect handles fetching jobs related to the scan
+  useEffect(() => {
+    if (scanId) {
+      dispatch(getScanJobs({ scanId: scanId }));
+    }
+  }, [dispatch, scanId]);
+
   useEffect(() => {
     dispatch(getNotebooks());
   }, [dispatch]);
@@ -201,7 +197,7 @@ const ScanPage: React.FC<Props> = () => {
     return createJob(type, scanId, machine, params);
   };
 
-  const onJobOutputClick = (job: ScanJob) => {
+  const onJobOutputClick = (job: Job) => {
     setJobOutputDialog(job);
   };
 
@@ -234,10 +230,6 @@ const ScanPage: React.FC<Props> = () => {
     });
   };
 
-  const scan = useAppSelector((state) =>
-    scansSelector.selectById(state, scanId)
-  );
-
   const notebooks = useAppSelector((state) => selectNotebooks(state));
 
   const onNavigateNext = () => {
@@ -256,6 +248,19 @@ const ScanPage: React.FC<Props> = () => {
     const microscopeName = canonicalMicroscopeName(microscope.name);
 
     navigate(`/${microscopeName}/${SCANS}/${scan?.prevScanId}`);
+  };
+
+  const jobId = useUrlParams().jobId;
+  const onNavigateBack = () => {
+    if (microscope === null) {
+      return;
+    }
+    const microscopeName = canonicalMicroscopeName(microscope.name);
+    if (jobId) {
+      navigate(`/${microscopeName}/${SESSIONS}/${jobId}`);
+    } else {
+      navigate(`/${microscopeName}/${SCANS}`);
+    }
   };
 
   if (scan === undefined || microscope === null) {
@@ -288,6 +293,15 @@ const ScanPage: React.FC<Props> = () => {
 
   return (
     <React.Fragment>
+      <Button
+        onClick={onNavigateBack}
+        size="small"
+        color="primary"
+        sx={{ mb: 2 }}
+        variant="outlined"
+      >
+        {jobId ? `Session ${jobId}` : 'Scans'}
+      </Button>
       <Card sx={{ marginBottom: '2rem' }}>
         <CardContent>
           <Grid container spacing={3}>
@@ -484,7 +498,7 @@ const ScanPage: React.FC<Props> = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {[...scan.jobs]
+                {[...jobs]
                   .sort((a, b) => b.id - a.id)
                   .map((job) => {
                     const Icon = jobTypeToIcon(job.job_type);
@@ -497,7 +511,9 @@ const ScanPage: React.FC<Props> = () => {
                         </TableCell>
                         <TableCell>{job.slurm_id}</TableCell>
                         <TableCell>
-                          {humanizeDuration(job.elapsed * 1000)}
+                          {humanizeDuration(
+                            job.elapsed ? job.elapsed * 1000 : 0
+                          )}
                         </TableCell>
                         <TableStateCell align="right">
                           <StateContent>
@@ -507,7 +523,9 @@ const ScanPage: React.FC<Props> = () => {
                             >
                               <OutputIcon />
                             </IconButton>
-                            <JobStateComponent state={job.state} />
+                            {job.state && (
+                              <JobStateComponent state={job.state} />
+                            )}
                           </StateContent>
                         </TableStateCell>
                       </TableRow>

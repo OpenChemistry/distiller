@@ -7,15 +7,14 @@ import {
   DialogContent,
   DialogTitle,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
 import { lime } from '@mui/material/colors';
-
-import { ScanJob } from '../types';
+import { styled } from '@mui/material/styles';
+import { Job } from '../types';
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  job?: ScanJob;
+  job?: Job;
 };
 
 const OutputContainer = styled('div')(({ theme }) => ({

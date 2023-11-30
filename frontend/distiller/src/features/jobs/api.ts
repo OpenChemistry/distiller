@@ -1,12 +1,16 @@
-import { IdType, JobType, ScanJob } from '../../types';
+import { isNil } from 'lodash';
+import { DateTime } from 'luxon';
+
 import { apiClient } from '../../client';
+import { IdType, Job, JobType, JobsRequestResult, Scan } from '../../types';
+import { pickNil } from '../../utils';
 
 export function createJob(
   type: JobType,
-  scanId: IdType,
+  scanId: IdType | null,
   machine: string,
   params: any
-): Promise<ScanJob> {
+): Promise<Job> {
   const payload = {
     job_type: type,
     scan_id: scanId,
@@ -18,6 +22,102 @@ export function createJob(
     .post({
       url: 'jobs',
       json: payload,
+    })
+    .then((res) => res.json());
+}
+
+export function getJobs(
+  skip?: number,
+  limit?: number,
+  jobType?: JobType,
+  start?: DateTime,
+  end?: DateTime
+): Promise<JobsRequestResult> {
+  const params: any = {};
+  if (!isNil(skip)) {
+    params['skip'] = skip;
+  }
+  if (!isNil(limit)) {
+    params['limit'] = limit;
+  }
+  if (!isNil(jobType)) {
+    params['job_type'] = jobType;
+  }
+  if (!isNil(start)) {
+    params['start'] = start;
+  }
+  if (!isNil(end)) {
+    params['end'] = end;
+  }
+
+  return apiClient
+    .get({
+      url: 'jobs',
+      params,
+    })
+    .then((res) => {
+      return res.json().then((jobs) => {
+        let totalCount = -1;
+
+        const totalJobCountHeader = res.headers.get('x-total-count');
+        if (totalJobCountHeader != null) {
+          totalCount = Number.parseInt(totalJobCountHeader);
+        }
+
+        const jobsRequestResult = {
+          jobs,
+          totalCount,
+        };
+
+        return new Promise<JobsRequestResult>((resolve) => {
+          resolve(jobsRequestResult);
+        });
+      });
+    });
+}
+
+export function getJob(id: IdType): Promise<Job> {
+  return apiClient
+    .get({
+      url: `jobs/${id}`,
+    })
+    .then((res) => {
+      return res.json().then((job: Job) => {
+        let prevJobId: any = pickNil(
+          res.headers.get('x-previous-job'),
+          undefined
+        );
+        let nextJobId: any = pickNil(res.headers.get('x-next-job'), undefined);
+        return { ...job, prevJobId, nextJobId };
+      });
+    });
+}
+
+export function getJobScans(id: IdType): Promise<Scan[]> {
+  const params: any = {};
+  params['job_id'] = id;
+
+  return apiClient
+    .get({
+      url: `scans`,
+      params,
+    })
+    .then((res) => res.json());
+}
+
+export function patchJob(id: IdType, updates: Partial<Job>): Promise<Job> {
+  return apiClient
+    .patch({
+      url: `jobs/${id}`,
+      json: updates,
+    })
+    .then((res) => res.json());
+}
+
+export function cancelJob(id: IdType): Promise<Job> {
+  return apiClient
+    .put({
+      url: `jobs/${id}/cancel`,
     })
     .then((res) => res.json());
 }

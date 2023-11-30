@@ -20,8 +20,10 @@ from app.api.deps import get_api_key, get_db, oauth2_password_bearer_or_api_key
 from app.api.utils import upload_to_file
 from app.core.config import settings
 from app.core.logging import logger
+from app.crud import job as job_crud
 from app.crud import scan as crud
-from app.kafka.producer import (send_remove_scan_files_event_to_kafka,
+from app.kafka.producer import (send_job_event_to_kafka,
+                                send_remove_scan_files_event_to_kafka,
                                 send_scan_event_to_kafka,
                                 send_scan_file_event_to_kafka)
 from app.models import Scan
@@ -178,7 +180,7 @@ async def create_scan(
         ScanCreatedEvent(**schemas.Scan.from_orm(scan).dict())
     )
 
-    return scan
+    return schemas.Scan.from_orm(scan)
 
 
 @router.get(
@@ -200,9 +202,9 @@ def read_scans(
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
     uuid: Optional[str] = None,
+    job_id: Optional[int] = None,
     db: Session = Depends(get_db),
 ):
-
     scans = crud.get_scans(
         db,
         skip=skip,
@@ -216,6 +218,7 @@ def read_scans(
         microscope_id=microscope_id,
         sha=sha,
         uuid=uuid,
+        job_id=job_id,
     )
 
     count = crud.get_scans_count(
@@ -231,11 +234,12 @@ def read_scans(
         microscope_id=microscope_id,
         sha=sha,
         uuid=uuid,
+        job_id=job_id,
     )
 
     response.headers["X-Total-Count"] = str(count)
 
-    return scans
+    return [schemas.Scan.from_orm(scan) for scan in scans]
 
 
 @router.get(
@@ -259,7 +263,7 @@ def read_scan(response: Response, id: int, db: Session = Depends(get_db)):
     if next_scan is not None:
         response.headers["X-Next-Scan"] = str(next_scan)
 
-    return db_scan
+    return schemas.Scan.from_orm(db_scan)
 
 
 @router.patch(
@@ -271,7 +275,6 @@ def read_scan(response: Response, id: int, db: Session = Depends(get_db)):
 async def update_scan(
     id: int, payload: schemas.ScanUpdate, db: Session = Depends(get_db)
 ):
-
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(
@@ -285,6 +288,7 @@ async def update_scan(
         locations=payload.locations,
         notes=payload.notes,
         metadata=payload.metadata,
+        job_id=payload.job_id,
     )
 
     if updated:
@@ -296,12 +300,21 @@ async def update_scan(
             schemas.scan.Location.from_orm(l) for l in scan.locations
         ]
 
+        if payload.job_id:
+            scan_updated_event.job_ids = schemas.Scan.from_orm(scan).job_ids
+            job = job_crud.get_job(db, payload.job_id)
+            scan_ids = schemas.Job.from_orm(job).scan_ids
+            job_updated_event = schemas.UpdateJobEvent(
+                id=payload.job_id, scan_ids=scan_ids
+            )
+            await send_job_event_to_kafka(job_updated_event)
+
         if scan.notes is not None and scan.notes == payload.notes:
             scan_updated_event.notes = cast(str, scan.notes)
 
         await send_scan_event_to_kafka(scan_updated_event)
 
-    return scan
+    return schemas.Scan.from_orm(scan)
 
 
 async def _remove_scan_files(db_scan: Scan, host: Optional[str] = None):
@@ -327,7 +340,6 @@ async def _remove_scan_files(db_scan: Scan, host: Optional[str] = None):
 
 @router.delete("/{id}", dependencies=[Depends(oauth2_password_bearer_or_api_key)])
 async def delete_scan(id: int, remove_scan_files: bool, db: Session = Depends(get_db)):
-
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
         raise HTTPException(

@@ -4,22 +4,21 @@ import {
   createSlice,
   ThunkDispatch,
 } from '@reduxjs/toolkit';
+import { isNil } from 'lodash';
+import { matchPath, Path } from 'react-router';
 import { RootState } from '../../app/store';
-import {
-  authenticate as authenticateAPI,
-  refreshToken as refreshTokenAPI,
-  getUser as getUserAPI,
-  deleteRefreshToken as deleteRefreshTokenAPI,
-} from './api';
-import { User } from '../../types';
 import { apiClient } from '../../client';
-import { connectNotifications } from '../notifications';
+import { Microscope, User } from '../../types';
+import { canonicalMicroscopeName } from '../../utils/microscopes';
 import { getMachines } from '../machines';
 import { getMicroscopes } from '../microscopes';
-import { canonicalMicroscopeName } from '../../utils/microscopes';
-import { Microscope } from '../../types';
-import { matchPath, Path } from 'react-router';
-import { isNil } from 'lodash';
+import { connectNotifications } from '../notifications';
+import {
+  authenticate as authenticateAPI,
+  deleteRefreshToken as deleteRefreshTokenAPI,
+  getUser as getUserAPI,
+  refreshToken as refreshTokenAPI,
+} from './api';
 
 export interface AuthState {
   user?: User;

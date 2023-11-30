@@ -1,5 +1,6 @@
 import React from 'react';
 
+import ContentCopy from '@mui/icons-material/ContentCopy';
 import {
   Chip,
   Grid,
@@ -9,14 +10,11 @@ import {
   Typography,
   tooltipClasses,
 } from '@mui/material';
-
-import { ScanLocation, Scan } from '../types';
-
+import { styled } from '@mui/material/styles';
+import { isNil } from 'lodash';
 import { useAppDispatch } from '../app/hooks';
 import { removeScanFiles } from '../features/scans';
-import { isNil } from 'lodash';
-import ContentCopy from '@mui/icons-material/ContentCopy';
-import { styled } from '@mui/material/styles';
+import { Scan, ScanLocation } from '../types';
 import { stopPropagation } from '../utils';
 
 type Props = {
@@ -44,7 +42,8 @@ const LocationChip: React.FC<ChipProps> = React.forwardRef<
   ChipProps
 >((props, ref) => {
   const dispatch = useAppDispatch();
-  const { scan, host, confirmRemoval, machines } = props;
+  const { scan, host, machines } = props;
+  const { confirmRemoval, ...otherProps } = props;
   const [deletable, setDeletable] = React.useState(!isNil(scan.scan_id));
 
   const onDelete = async () => {
@@ -62,7 +61,7 @@ const LocationChip: React.FC<ChipProps> = React.forwardRef<
 
   return (
     <Chip
-      {...props}
+      {...otherProps}
       ref={ref}
       label={host}
       onDelete={deletable && !machines.includes(host) ? onDelete : undefined}

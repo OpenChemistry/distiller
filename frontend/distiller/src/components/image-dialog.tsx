@@ -20,7 +20,7 @@ type Props = {
   open: boolean;
   src: string;
   alt: string;
-  handleClose: () => void;
+  handleClose: (event: React.MouseEvent) => void;
 };
 
 const ImageDialog: React.FC<Props> = (props) => {

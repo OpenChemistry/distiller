@@ -4,6 +4,8 @@ from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
 
+from .association import scan_job_table
+
 
 class Scan(Base):
     id = Column(Integer, primary_key=True, index=True)
@@ -20,4 +22,4 @@ class Scan(Base):
     )
 
     locations = relationship("Location", cascade="delete")
-    jobs = relationship("Job", cascade="delete")
+    jobs = relationship("Job", secondary=scan_job_table, back_populates="scans")

@@ -5,6 +5,7 @@ from sqlalchemy import desc, or_, update
 from sqlalchemy.orm import Session
 
 from app import models, schemas
+from app.crud import job as job_crud
 from app.crud import microscope
 
 
@@ -29,6 +30,7 @@ def _get_scans_query(
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
     uuid: Optional[str] = None,
+    job_id: Optional[int] = None
 ):
     query = db.query(models.Scan)
     if scan_id > -1:
@@ -38,7 +40,6 @@ def _get_scans_query(
         if state == schemas.ScanState.TRANSFER:
             query = query.filter(models.Scan.progress < 100)
         elif state == schemas.ScanState.COMPLETE:
-
             query = query.filter(models.Scan.progress == 100)
 
     if created is not None:
@@ -65,6 +66,9 @@ def _get_scans_query(
     if uuid is not None:
         query = query.filter(models.Scan.uuid == uuid)
 
+    if job_id is not None:
+        query = query.filter(models.Scan.jobs.any(id=job_id))
+
     return query
 
 
@@ -81,6 +85,7 @@ def get_scans(
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
     uuid: Optional[str] = None,
+    job_id: Optional[int] = None,
 ):
     query = _get_scans_query(
         db,
@@ -95,6 +100,7 @@ def get_scans(
         microscope_id,
         sha,
         uuid,
+        job_id,
     )
 
     return query.order_by(desc(models.Scan.created)).offset(skip).limit(limit).all()
@@ -113,6 +119,7 @@ def get_scans_count(
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
     uuid: Optional[str] = None,
+    job_id: Optional[int] = None,
 ):
     query = _get_scans_query(
         db,
@@ -127,6 +134,7 @@ def get_scans_count(
         microscope_id,
         sha,
         uuid,
+        job_id,
     )
 
     return query.count()
@@ -141,7 +149,6 @@ def create_scan(
     scan.locations = []
 
     if scan.microscope_id is None:
-
         microscope_ids = [m.id for m in microscope.get_microscopes(db)]
         # We default to the first ( 4D Camera )
         scan.microscope_id = microscope_ids[0]
@@ -167,6 +174,7 @@ def update_scan(
     image_path: Optional[str] = None,
     notes: Optional[str] = None,
     metadata: Optional[Dict[str, Any]] = None,
+    job_id: Optional[int] = None,
 ):
     updated = False
 
@@ -237,6 +245,20 @@ def update_scan(
         metadata_updated = resultsproxy.rowcount == 1
         updated = updated or metadata_updated
 
+    if job_id is not None:
+        jobs_updated = False
+        scan = get_scan(db, id)
+        if scan is None:
+            raise Exception(f"Scan with id {id} does not exist.")
+        # If jobs get too large, this operation should be moved
+        # to a db query and made optional
+        if not any([job.id == job_id for job in scan.jobs]):
+            job = job_crud.get_job(db, job_id)
+            scan.jobs.append(job)
+            jobs_updated = True
+
+        updated = updated or jobs_updated
+
     db.commit()
 
     return (updated, get_scan(db, id))
@@ -246,9 +268,20 @@ def count(db: Session) -> int:
     return db.query(models.Scan).count()
 
 
+def _delete_scan_jobs_by_types(db: Session, scan: models.Scan, types: List[schemas.JobType]) -> None:
+    if scan:
+        for job in scan.jobs:
+            if job.job_type in types:
+                db.query(models.Job).filter(models.Job.id == job.id).delete()
+
+
 def delete_scan(db: Session, id: int) -> None:
-    db.query(models.Scan).filter(models.Scan.id == id).delete()
-    db.commit()
+    scan = db.query(models.Scan).filter(models.Scan.id == id).first()
+    if scan:
+        job_types_to_delete = [schemas.JobType.COUNT, schemas.JobType.TRANSFER]
+        _delete_scan_jobs_by_types(db, scan, job_types_to_delete)
+        scan.delete()
+        db.commit()
 
 
 def get_location(db: Session, id: int):

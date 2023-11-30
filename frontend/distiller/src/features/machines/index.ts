@@ -1,11 +1,11 @@
 import {
   createAsyncThunk,
-  createSlice,
   createEntityAdapter,
+  createSlice,
 } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
-import { getMachines as getMachinesAPI } from './api';
 import { Machine } from '../../types';
+import { getMachines as getMachinesAPI } from './api';
 
 export const machinesAdapter = createEntityAdapter<Machine>({
   selectId: (machine) => machine.name,

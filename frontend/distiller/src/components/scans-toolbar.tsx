@@ -165,10 +165,10 @@ type ScansToolbarProps = {
 
 export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
   const [filterAnchorEl, setFilterAnchorEl] = useState<HTMLElement | null>(
-    null
+    null,
   );
   const [exportAnchorEl, setExportAnchorEl] = useState<HTMLElement | null>(
-    null
+    null,
   );
   const {
     startDate,

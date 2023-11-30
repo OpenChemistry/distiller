@@ -78,7 +78,7 @@ export class ApiClient implements IApiClient {
           params['token'] = token;
         }
         const fullURL = `${baseUrl}/${url}?${new URLSearchParams(
-          params
+          params,
         ).toString()}`;
         const ws = new WebSocket(fullURL);
         ws.onopen = (_ev) => resolve(ws);
@@ -127,7 +127,7 @@ export class ApiClient implements IApiClient {
     }
 
     const fullURL = `${baseURL}/${url}?${new URLSearchParams(
-      params
+      params,
     ).toString()}`;
     const requestParams = {
       ...extra,

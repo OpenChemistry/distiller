@@ -22,7 +22,7 @@ import { startMockNotifications } from './mock';
 class NotificationHub {
   constructor(
     ws: WebSocket,
-    dispatch: ThunkDispatch<unknown, unknown, AnyAction>
+    dispatch: ThunkDispatch<unknown, unknown, AnyAction>,
   ) {
     const messageListener = (ev: MessageEvent<string>) => {
       let msg: any = undefined;
@@ -82,7 +82,7 @@ export const connectNotifications = createAsyncThunk<void, ConnectPayload>(
     if (mock) {
       startMockNotifications(ws);
     }
-  }
+  },
 );
 
 export const notificationsSlice = createSlice({

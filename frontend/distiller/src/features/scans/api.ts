@@ -9,7 +9,7 @@ export function getScans(
   skip?: number,
   limit?: number,
   start?: DateTime,
-  end?: DateTime
+  end?: DateTime,
 ): Promise<ScansRequestResult> {
   const params: any = { microscope_id: microscopeId };
   if (!isNil(skip)) {
@@ -60,11 +60,11 @@ export function getScan(id: IdType): Promise<Scan> {
       return res.json().then((scan: Scan) => {
         let prevScanId: any = pickNil(
           res.headers.get('x-previous-scan'),
-          undefined
+          undefined,
         );
         let nextScanId: any = pickNil(
           res.headers.get('x-next-scan'),
-          undefined
+          undefined,
         );
         return { ...scan, prevScanId, nextScanId };
       });
@@ -103,7 +103,7 @@ export function removeScanFiles(id: IdType, host: string): Promise<void> {
 
 export function removeScan(
   id: IdType,
-  removeScanFiles: boolean
+  removeScanFiles: boolean,
 ): Promise<void> {
   return apiClient
     .delete({

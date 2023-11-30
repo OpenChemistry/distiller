@@ -5,7 +5,7 @@ export const canonicalMicroscopeName = (name: string) =>
 
 export const getMicroscope = (
   microscopes: Microscope[],
-  canonicalName: string
+  canonicalName: string,
 ) => {
   let microscope = null;
 
@@ -15,7 +15,7 @@ export const getMicroscope = (
 
       return obj;
     },
-    {}
+    {},
   );
 
   if (canonicalName in microscopesByCanonicalName) {

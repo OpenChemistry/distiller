@@ -9,7 +9,7 @@ export function createJob(
   type: JobType,
   scanId: IdType | null,
   machine: string,
-  params: any
+  params: any,
 ): Promise<Job> {
   const payload = {
     job_type: type,
@@ -31,7 +31,7 @@ export function getJobs(
   limit?: number,
   jobType?: JobType,
   start?: DateTime,
-  end?: DateTime
+  end?: DateTime,
 ): Promise<JobsRequestResult> {
   const params: any = {};
   if (!isNil(skip)) {
@@ -85,7 +85,7 @@ export function getJob(id: IdType): Promise<Job> {
       return res.json().then((job: Job) => {
         let prevJobId: any = pickNil(
           res.headers.get('x-previous-job'),
-          undefined
+          undefined,
         );
         let nextJobId: any = pickNil(res.headers.get('x-next-job'), undefined);
         return { ...job, prevJobId, nextJobId };

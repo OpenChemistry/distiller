@@ -19,10 +19,13 @@ const PATHS: { [name: string]: NavPath } = (
     { pathname: SCANS_PATH, icon: <ScansIcon />, label: 'Scans' },
     { pathname: SESSIONS_PATH, icon: <StreamIcon />, label: 'Sessions' },
   ] as const
-).reduce((paths, path) => {
-  paths[path.pathname] = { ...path };
-  return paths;
-}, {} as { [name: string]: NavPath });
+).reduce(
+  (paths, path) => {
+    paths[path.pathname] = { ...path };
+    return paths;
+  },
+  {} as { [name: string]: NavPath },
+);
 
 const NavigationComponent: React.FC = () => {
   const location = useLocation();

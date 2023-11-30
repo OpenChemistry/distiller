@@ -18,7 +18,7 @@ export function isNil<T>(val: T | undefined | null): val is undefined | null {
 
 export function pickNil<T, N extends undefined | null>(
   val: T | undefined | null,
-  nil: N
+  nil: N,
 ): T | N {
   if (isNil(val)) {
     return nil;

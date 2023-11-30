@@ -9,7 +9,7 @@ type AuthResponse = {
 
 export function authenticate(
   username: string,
-  password: string
+  password: string,
 ): Promise<AuthResponse> {
   const form = new FormData();
   form.append('username', username);

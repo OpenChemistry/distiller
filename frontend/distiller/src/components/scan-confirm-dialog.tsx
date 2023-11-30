@@ -137,7 +137,7 @@ export const ScanDeleteConfirmDialog: React.FC<BaseProps> = (props) => {
 
   const handleRemoveScanFilesChange = (
     event: React.ChangeEvent<HTMLInputElement>,
-    checked: boolean
+    checked: boolean,
   ) => {
     setRemoveScanFiles(checked);
   };

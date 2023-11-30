@@ -32,7 +32,7 @@ function makeCreatedEvent(id: IdType): ScanCreatedEvent {
 
 function makeUpdatedEvent(
   id: IdType,
-  updates: Partial<Scan>
+  updates: Partial<Scan>,
 ): ScanUpdatedEvent {
   return {
     event_type: ScanEventType.Updated,

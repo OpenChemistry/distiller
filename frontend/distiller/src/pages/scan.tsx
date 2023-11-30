@@ -106,10 +106,10 @@ const ScanPage: React.FC<Props> = () => {
 
   const scanId = parseInt(scanIdParam as string);
   const scan = useAppSelector((state) =>
-    scansSelector.selectById(state, scanId)
+    scansSelector.selectById(state, scanId),
   );
   const jobs = useAppSelector(
-    jobsByScanIdAndTypes(scanId, [JobType.Count, JobType.Transfer])
+    jobsByScanIdAndTypes(scanId, [JobType.Count, JobType.Transfer]),
   );
 
   const dispatch = useAppDispatch();
@@ -118,13 +118,13 @@ const ScanPage: React.FC<Props> = () => {
   const [jobDialog, setJobDialog] = useState<JobType | undefined>();
   const [jobOutputDialog, setJobOutputDialog] = useState<Job | undefined>();
   const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan | null>(
-    null
+    null,
   );
   const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] =
     React.useState<(params: { [key: string]: any } | undefined) => void>();
 
   const machines = useAppSelector((state) =>
-    machineSelectors.selectAll(machineState(state))
+    machineSelectors.selectAll(machineState(state)),
   );
   const machineNames = machines.map((machine) => machine.name);
   const [machine, setMachine] = useLocalStorageState<string>('machine', {
@@ -132,7 +132,7 @@ const ScanPage: React.FC<Props> = () => {
   });
 
   const microscopes = useAppSelector((state) =>
-    microscopesSelectors.selectAll(microscopesState(state))
+    microscopesSelectors.selectAll(microscopesState(state)),
   );
 
   const microscopesByCanonicalName = microscopes.reduce(
@@ -141,7 +141,7 @@ const ScanPage: React.FC<Props> = () => {
 
       return obj;
     },
-    {}
+    {},
   );
 
   let microscope: Microscope | null = null;
@@ -346,7 +346,7 @@ const ScanPage: React.FC<Props> = () => {
                       <Tooltip title={scan.created} followCursor>
                         <div>
                           {DateTime.fromISO(scan.created).toLocaleString(
-                            DateTime.DATETIME_FULL
+                            DateTime.DATETIME_FULL,
                           )}
                         </div>
                       </Tooltip>
@@ -512,7 +512,7 @@ const ScanPage: React.FC<Props> = () => {
                         <TableCell>{job.slurm_id}</TableCell>
                         <TableCell>
                           {humanizeDuration(
-                            job.elapsed ? job.elapsed * 1000 : 0
+                            job.elapsed ? job.elapsed * 1000 : 0,
                           )}
                         </TableCell>
                         <TableStateCell align="right">

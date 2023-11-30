@@ -11,7 +11,7 @@ export function getNotebooks(): Promise<string[]> {
 
 export function fetchOrCreateNotebook(
   name: string,
-  scanId: number
+  scanId: number,
 ): Promise<Notebook> {
   const payload = {
     name,

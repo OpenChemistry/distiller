@@ -112,15 +112,18 @@ const NoWrapTooltip = styled(({ className, ...props }: TooltipProps) => (
 const LocationComponent: React.FC<Props> = (props, ref) => {
   const { locations, machines } = props;
   const uniqueLocations: UniqueLocation[] = Object.values(
-    locations.reduce((locs, location) => {
-      const { host, path } = location;
-      if (locs[host] === undefined) {
-        locs[host] = { host, paths: [] };
-      }
-      locs[host].paths.push(path);
+    locations.reduce(
+      (locs, location) => {
+        const { host, path } = location;
+        if (locs[host] === undefined) {
+          locs[host] = { host, paths: [] };
+        }
+        locs[host].paths.push(path);
 
-      return locs;
-    }, {} as { [host: string]: UniqueLocation })
+        return locs;
+      },
+      {} as { [host: string]: UniqueLocation },
+    ),
   );
 
   return (

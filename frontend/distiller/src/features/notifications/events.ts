@@ -61,7 +61,7 @@ export function isJobUpdatedEvent(ev: any): ev is JobUpdatedEvent {
 export interface MicroscopeUpdatedEvent extends Partial<Microscope> {}
 
 export function isMicroscopeUpdatedEvent(
-  ev: any
+  ev: any,
 ): ev is MicroscopeUpdatedEvent {
   return ev && ev.event_type === MicroscopeEventType.Updated;
 }

@@ -9,7 +9,7 @@ type NoThumbnailImageIconProps = {
 };
 
 export const NoThumbnailImageIcon = styled(
-  ImageIcon
+  ImageIcon,
 )<NoThumbnailImageIconProps>(
   ({ width = '60%', height = '60%', cursor = 'pointer' }) => ({
     width,
@@ -17,5 +17,5 @@ export const NoThumbnailImageIcon = styled(
     objectFit: 'cover',
     color: pink.A400,
     cursor,
-  })
+  }),
 );

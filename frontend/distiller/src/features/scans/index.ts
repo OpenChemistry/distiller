@@ -53,7 +53,7 @@ export const getScan = createAsyncThunk<Scan, { id: IdType }>(
     const scan = await getScanAPI(id);
 
     return scan;
-  }
+  },
 );
 
 export const getJobScans = createAsyncThunk<
@@ -173,7 +173,7 @@ export const scansSlice = createSlice({
 });
 
 export const scansSelector = scansAdapter.getSelectors<RootState>(
-  (state) => state.scans
+  (state) => state.scans,
 );
 
 const scansState = (rootState: RootState) => rootState.scans;
@@ -185,7 +185,7 @@ export const scanSelector = (id: IdType) => {
 };
 
 export const allScansSelector = createSelector(scansState, (scansState) =>
-  selectAll(scansState)
+  selectAll(scansState),
 );
 
 const filterScanByJobId = (jobId: IdType) => (scan: Scan) =>
@@ -219,7 +219,7 @@ export const scansByJobIdSelector = (jobId: IdType) => {
 
 export const scansByDateSelector = (
   startDateFilter: DateTime | null,
-  endDateFilter: DateTime | null
+  endDateFilter: DateTime | null,
 ) => {
   return createSelector([allScansSelector], (scans) => {
     scans = scans.filter(filterScanByDate(startDateFilter, endDateFilter));

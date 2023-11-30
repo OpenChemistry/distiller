@@ -52,7 +52,7 @@ export const getJob = createAsyncThunk<Job, { id: IdType }>(
     const job = await getJobAPI(id);
 
     return job;
-  }
+  },
 );
 
 export const getScanJobs = createAsyncThunk<
@@ -105,7 +105,7 @@ export const cancelJob = createAsyncThunk<Job, { id: IdType }>(
     const { id } = payload;
     const job = await cancelJobAPI(id);
     return job;
-  }
+  },
 );
 
 export const jobsSlice = createSlice({
@@ -160,7 +160,7 @@ export const jobsSlice = createSlice({
 });
 
 export const jobsSelector = jobsAdapter.getSelectors<RootState>(
-  (state) => state.jobs
+  (state) => state.jobs,
 );
 
 const jobsState = (rootState: RootState) => rootState.jobs;
@@ -172,7 +172,7 @@ export const jobSelector = (id: IdType) => {
 };
 
 export const allJobsSelector = createSelector(jobsState, (jobsState) =>
-  selectAll(jobsState)
+  selectAll(jobsState),
 );
 
 const filterJobByScanId = (scanId: IdType) => (job: Job) =>
@@ -219,7 +219,7 @@ export const jobsByScanIdAndTypes = (scanId: IdType, jobTypes: JobType[]) => {
 export const selectJobsByDateAndTypes = (
   startDateFilter: DateTime | null,
   endDateFilter: DateTime | null,
-  jobTypes: JobType[] | null
+  jobTypes: JobType[] | null,
 ) => {
   return createSelector([allJobsSelector], (jobs) => {
     jobs = jobs.filter(filterJobByDate(startDateFilter, endDateFilter));

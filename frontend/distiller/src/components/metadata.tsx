@@ -107,7 +107,7 @@ const AdvancedMetadata: React.FC<AdvancedMetadataProps> = (props) => {
                       {
                         JSON.stringify(metadata[key]).replace(
                           /^"(.*)"$/,
-                          '$1'
+                          '$1',
                         ) /* strip outer quotes */
                       }
                     </TableAdvancedValueCell>

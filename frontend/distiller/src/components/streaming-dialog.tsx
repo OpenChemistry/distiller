@@ -55,7 +55,7 @@ const StreamingDialog: React.FC<Props> = (props) => {
     Duration.fromObject({
       hours: time.hour,
       minutes: time.minute,
-    })
+    }),
   );
 
   const [error, setError] = useState('');
@@ -80,7 +80,7 @@ const StreamingDialog: React.FC<Props> = (props) => {
 
   useEffect(() => {
     setDuration(
-      Duration.fromObject({ hours: time.hour, minutes: time.minute })
+      Duration.fromObject({ hours: time.hour, minutes: time.minute }),
     );
     if (time > maxTime) {
       setError('Sessions longer than 2 hours not allowed.');

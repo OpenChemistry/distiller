@@ -47,7 +47,7 @@ const HeaderComponent: React.FC = () => {
 
   let microscope = null;
   const microscopes = useAppSelector((state) =>
-    microscopesSelectors.selectAll(microscopesState(state))
+    microscopesSelectors.selectAll(microscopesState(state)),
   );
   if (authenticated) {
     const microscopeName = location.pathname.split('/')[1];

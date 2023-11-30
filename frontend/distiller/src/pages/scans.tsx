@@ -89,7 +89,7 @@ const bytesToSize = (bytes: number): string => {
   if (bytes === 0) return 'n/a';
   const i = Math.min(
     Math.floor(Math.log(bytes) / Math.log(1024)),
-    sizes.length - 1
+    sizes.length - 1,
   );
   if (i === 0) return `${bytes} ${sizes[i]}`;
   return `${(bytes / 1024 ** i).toFixed(1)} ${sizes[i]}`;
@@ -153,7 +153,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
   const navigate = useNavigate();
   const totalScans = useAppSelector(totalCount);
   const machines = useAppSelector((state) =>
-    machineSelectors.selectAll(machineState(state))
+    machineSelectors.selectAll(machineState(state)),
   );
   const machineNames = machines.map((machine) => machine.name);
 
@@ -163,18 +163,18 @@ const ScansPage: React.FC<ScansPageProps> = ({
     'page',
     0,
     intSerializer,
-    intDeserializer
+    intDeserializer,
   );
 
   const [rowsPerPage, setRowsPerPage] = useUrlState(
     'rowsPerPage',
     20,
     intSerializer,
-    intDeserializer
+    intDeserializer,
   );
   const [scanToDelete, setScanToDelete] = React.useState<Scan | null>(null);
   const [scanFilesToRemove, setScanFilesToRemove] = React.useState<Scan | null>(
-    null
+    null,
   );
   const [onScanFilesRemovalConfirm, setOnScanFilesRemovalConfirm] =
     React.useState<(params: { [key: string]: any }) => void | undefined>();
@@ -183,23 +183,23 @@ const ScansPage: React.FC<ScansPageProps> = ({
     'startDate',
     null,
     dateTimeSerializer,
-    dateTimeDeserializer
+    dateTimeDeserializer,
   );
 
   const [endDateFilter, setEndDateFilter] = useUrlState<DateTime | null>(
     'endDate',
     null,
     dateTimeSerializer,
-    dateTimeDeserializer
+    dateTimeDeserializer,
   );
 
   const defaultSelector = useMemo(
     () => scansByDateSelector(startDateFilter, endDateFilter),
-    [startDateFilter, endDateFilter]
+    [startDateFilter, endDateFilter],
   );
 
   const scans = useAppSelector(selector || defaultSelector).sort((a, b) =>
-    b.created.localeCompare(a.created)
+    b.created.localeCompare(a.created),
   );
 
   const start = page * rowsPerPage;
@@ -210,12 +210,12 @@ const ScansPage: React.FC<ScansPageProps> = ({
   }, [scans, start, end]);
 
   const [selectedScanIDs, setSelectedScanIDs] = useState<Set<IdType>>(
-    new Set<IdType>()
+    new Set<IdType>(),
   );
 
   let microscope: Microscope | null = null;
   const microscopes = useAppSelector((state) =>
-    microscopesSelectors.selectAll(microscopesState(state))
+    microscopesSelectors.selectAll(microscopesState(state)),
   );
 
   const microscopesByCanonicalName = microscopes.reduce(
@@ -224,7 +224,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
 
       return obj;
     },
-    {}
+    {},
   );
 
   // Default to 4D Camera
@@ -256,7 +256,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
         start: startDateFilter || undefined,
         end: endDateFilter || undefined,
         microscopeId: microscopeId,
-      })
+      }),
     );
   }, [
     dispatch,
@@ -309,13 +309,13 @@ const ScansPage: React.FC<ScansPageProps> = ({
 
   const onChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
-    page: number
+    page: number,
   ) => {
     setPage(page);
   };
 
   const onChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
   ) => {
     const scansPerPage = +event.target.value;
     setRowsPerPage(scansPerPage);
@@ -353,7 +353,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
       setPage(0);
       setStartDateFilter(date);
     },
-    [setPage, setStartDateFilter]
+    [setPage, setStartDateFilter],
   );
 
   const onEndDate = useCallback(
@@ -361,7 +361,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
       setPage(0);
       setEndDateFilter(date);
     },
-    [setPage, setEndDateFilter]
+    [setPage, setEndDateFilter],
   );
 
   const selectedScans = () => {
@@ -461,7 +461,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
     const csvHeaders = headers.map((header: string) =>
       metadataHeaders.has(header)
         ? `METADATA.${header.toUpperCase()}`
-        : header.toUpperCase()
+        : header.toUpperCase(),
     );
     const csvContent =
       csvHeaders.join(',') +
@@ -505,7 +505,7 @@ const ScansPage: React.FC<ScansPageProps> = ({
 
   const onSelectRowClick = (
     event: React.MouseEvent<HTMLButtonElement>,
-    id: IdType
+    id: IdType,
   ) => {
     event.stopPropagation();
 
@@ -515,9 +515,9 @@ const ScansPage: React.FC<ScansPageProps> = ({
       setSelectedScanIDs(
         new Set<IdType>(
           Array.from(selectedScanIDs).filter(
-            (selectedId: IdType) => selectedId !== id
-          )
-        )
+            (selectedId: IdType) => selectedId !== id,
+          ),
+        ),
       );
     }
   };

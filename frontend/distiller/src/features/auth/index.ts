@@ -40,7 +40,7 @@ const getMicroscopeID = (microscopes: Microscope[], pathName: string) => {
 
       return obj;
     },
-    {}
+    {},
   );
 
   const pathMatch = matchPath({ path: '/:microscopeName/*' }, pathName);
@@ -81,9 +81,12 @@ export const login = createAsyncThunk<User, AuthenticatePayload>(
     const controller = new AbortController();
     refreshController = controller;
 
-    setTimeout(() => {
-      refreshToken(true, thunkAPI.dispatch, controller.signal);
-    }, (exp - 30) * 1000); // Refresh 30 seconds before actual expiration
+    setTimeout(
+      () => {
+        refreshToken(true, thunkAPI.dispatch, controller.signal);
+      },
+      (exp - 30) * 1000,
+    ); // Refresh 30 seconds before actual expiration
 
     const microscopes = await dispatch(getMicroscopes()).unwrap();
     const microscopeID = getMicroscopeID(microscopes, from.pathname);
@@ -93,13 +96,13 @@ export const login = createAsyncThunk<User, AuthenticatePayload>(
     const user = await getUserAPI();
 
     return user;
-  }
+  },
 );
 
 async function refreshToken(
   autoRefresh: boolean,
   dispatch: ThunkDispatch<unknown, unknown, AnyAction>,
-  signal: AbortSignal
+  signal: AbortSignal,
 ) {
   try {
     const auth = await refreshTokenAPI();
@@ -108,11 +111,14 @@ async function refreshToken(
     apiClient.setToken(access_token);
 
     if (autoRefresh) {
-      setTimeout(() => {
-        if (!signal.aborted) {
-          refreshToken(autoRefresh, dispatch, signal);
-        }
-      }, (exp - 30) * 1000); // Refresh 30 seconds before actual expiration
+      setTimeout(
+        () => {
+          if (!signal.aborted) {
+            refreshToken(autoRefresh, dispatch, signal);
+          }
+        },
+        (exp - 30) * 1000,
+      ); // Refresh 30 seconds before actual expiration
     }
   } catch (e) {
     dispatch(logout());
@@ -138,7 +144,7 @@ export const restoreSession = createAsyncThunk<User, void>(
     const user = await getUserAPI();
 
     return user;
-  }
+  },
 );
 
 export const logout = createAsyncThunk<void, void>(
@@ -147,7 +153,7 @@ export const logout = createAsyncThunk<void, void>(
     refreshController.abort();
     await deleteRefreshTokenAPI();
     apiClient.setToken(undefined);
-  }
+  },
 );
 
 export const authSlice = createSlice({

@@ -81,13 +81,13 @@ const SessionsPage: React.FC = () => {
     'page',
     0,
     intSerializer,
-    intDeserializer
+    intDeserializer,
   );
   const [rowsPerPage, setRowsPerPage] = useUrlState(
     'rowsPerPage',
     10,
     intSerializer,
-    intDeserializer
+    intDeserializer,
   );
 
   // URL state management for date filters
@@ -95,27 +95,27 @@ const SessionsPage: React.FC = () => {
     'startDate',
     null,
     dateTimeSerializer,
-    dateTimeDeserializer
+    dateTimeDeserializer,
   );
 
   const [endDateFilter, setEndDateFilter] = useUrlState<DateTime | null>(
     'endDate',
     null,
     dateTimeSerializer,
-    dateTimeDeserializer
+    dateTimeDeserializer,
   );
 
   // Selectors
   const totalJobs = useAppSelector(totalCount);
   const allJobs = useAppSelector(allJobsSelector);
   const microscopes = useAppSelector((state) =>
-    microscopesSelectors.selectAll(microscopesState(state))
+    microscopesSelectors.selectAll(microscopesState(state)),
   );
   const machines = useAppSelector((state) =>
-    machineSelectors.selectAll(machineState(state))
+    machineSelectors.selectAll(machineState(state)),
   );
   const jobs = useAppSelector(
-    selectJobsByDateAndTypes(startDateFilter, endDateFilter, [jobType])
+    selectJobsByDateAndTypes(startDateFilter, endDateFilter, [jobType]),
   ).sort((a, b) => b.id - a.id);
 
   const start = page * rowsPerPage;
@@ -142,7 +142,9 @@ const SessionsPage: React.FC = () => {
   const [hoveredJobId, setHoveredJobId] = useState<IdType | null>(null);
   const jobsGroupedByDate = groupBy(jobsOnThisPage, (job) =>
     // @ts-ignore: Object is possibly 'null'.
-    job.submit ? DateTime.fromISO(job.submit)?.toISO()?.split('T')[0] : 'Queued'
+    job.submit
+      ? DateTime.fromISO(job.submit)?.toISO()?.split('T')[0]
+      : 'Queued',
   );
 
   // Machine
@@ -160,10 +162,10 @@ const SessionsPage: React.FC = () => {
   // Event Handlers
   const onChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
-    page: number
+    page: number,
   ) => setPage(page);
   const onChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
   ) => {
     const jobsPerPage = +event.target.value;
     setRowsPerPage(jobsPerPage);
@@ -183,14 +185,14 @@ const SessionsPage: React.FC = () => {
       setPage(0);
       setStartDateFilter(date);
     },
-    [setPage, setStartDateFilter]
+    [setPage, setStartDateFilter],
   );
   const onEndDate = useCallback(
     (date: DateTime | null) => {
       setPage(0);
       setEndDateFilter(date);
     },
-    [setPage, setEndDateFilter]
+    [setPage, setEndDateFilter],
   );
 
   const allowRunningJobs = () => {
@@ -222,7 +224,7 @@ const SessionsPage: React.FC = () => {
         jobType: jobType,
         start: startDateFilter || undefined,
         end: endDateFilter || undefined,
-      })
+      }),
     );
   }, [
     dispatch,
@@ -255,7 +257,7 @@ const SessionsPage: React.FC = () => {
       {Object.entries(jobsGroupedByDate)
         .sort(
           ([dateA], [dateB]) =>
-            new Date(dateB).getTime() - new Date(dateA).getTime()
+            new Date(dateB).getTime() - new Date(dateA).getTime(),
         )
         .map(([date, jobs], index, arr) => (
           <Box key={date} mb={3}>

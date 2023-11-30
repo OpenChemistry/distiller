@@ -8,7 +8,7 @@ export function useUrlState<T>(
   key: string,
   initialValue: T,
   serializer: Serializer<T>,
-  deserializer: Deserializer<T>
+  deserializer: Deserializer<T>,
 ): [T, (value: T) => void] {
   const refValue = useRef<T>(initialValue);
   const refInitialized = useRef(false);
@@ -44,7 +44,7 @@ export function useUrlState<T>(
 
       setSearchParams(newParams, { replace: true });
     },
-    [key, initialValue, serializer, setSearchParams]
+    [key, initialValue, serializer, setSearchParams],
   );
 
   return [refValue.current, setValue];

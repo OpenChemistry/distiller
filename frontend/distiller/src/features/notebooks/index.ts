@@ -18,7 +18,7 @@ export const getNotebooks = createAsyncThunk<string[]>(
     const result = await getNotebooksAPI();
 
     return result;
-  }
+  },
 );
 
 export const notebooksSlice = createSlice({

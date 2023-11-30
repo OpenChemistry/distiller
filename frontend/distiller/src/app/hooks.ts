@@ -11,7 +11,7 @@ export const useShouldShowNavigation = () => {
   const location = useLocation();
 
   const isNotAuthOrHomePath = ![AUTH_PATH, HOME_PATH].includes(
-    location.pathname
+    location.pathname,
   );
   const is4dCameraPath = location.pathname.includes('4dcamera');
 

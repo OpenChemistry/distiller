@@ -55,7 +55,7 @@ const HoverCard = styled(({ isHoverable, ...props }: HoverCardProps) => (
             transform: 'scale3d(1.05, 1.05, 1)',
           },
         }
-      : {}
+      : {},
 );
 
 interface SessionCardProps {
@@ -202,7 +202,7 @@ const SessionCard = React.memo(
               <Typography variant="h6" component="div">
                 {job.submit
                   ? DateTime.fromISO(job.submit).toLocaleString(
-                      DateTime.TIME_SIMPLE
+                      DateTime.TIME_SIMPLE,
                     )
                   : ''}
               </Typography>
@@ -237,7 +237,7 @@ const SessionCard = React.memo(
         />
       </React.Fragment>
     );
-  }
+  },
 );
 
 export default SessionCard;

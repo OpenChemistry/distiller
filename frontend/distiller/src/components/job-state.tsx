@@ -21,7 +21,7 @@ const grey300 = grey['300'];
 const yellow300 = orange['300'];
 
 const stateToStyle = (
-  state: JobState
+  state: JobState,
 ): { Icon: any; color: string; className?: string } => {
   if (PendingJobStates.has(state)) {
     return {

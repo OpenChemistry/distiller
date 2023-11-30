@@ -31,7 +31,7 @@ export const getMachines = createAsyncThunk<Machine[]>(
       status: 'unknown',
       notes: [],
     }));
-  }
+  },
 );
 
 export const getMachineState = createAsyncThunk<Machine, Machine>(
@@ -41,7 +41,7 @@ export const getMachineState = createAsyncThunk<Machine, Machine>(
     const { status, notes } = result;
 
     return { ...payload, status, notes };
-  }
+  },
 );
 
 export const machinesSlice = createSlice({

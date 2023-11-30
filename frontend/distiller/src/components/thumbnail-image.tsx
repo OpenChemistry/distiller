@@ -12,5 +12,5 @@ export const ThumbnailImage = styled('img')<ThumbnailImageProps>(
     height,
     objectFit: 'cover',
     cursor,
-  })
+  }),
 );

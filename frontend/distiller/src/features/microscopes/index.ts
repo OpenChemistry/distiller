@@ -32,7 +32,7 @@ export const getMicroscopes = createAsyncThunk<Microscope[]>(
     return result.map((microscope) => ({
       ...microscope,
     }));
-  }
+  },
 );
 
 export const microscopesSlice = createSlice({

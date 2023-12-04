@@ -6,7 +6,7 @@
     "@date-io/luxon": "^2.17.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.11.0",
+    "@mui/icons-material": "^5.14.19",
     "@mui/material": "^5.14.19",
     "@mui/x-date-pickers": "^6.17.0",
     "@reduxjs/toolkit": "^1.9.5",

@@ -276,11 +276,12 @@ def _delete_scan_jobs_by_types(db: Session, scan: models.Scan, types: List[schem
 
 
 def delete_scan(db: Session, id: int) -> None:
-    scan = db.query(models.Scan).filter(models.Scan.id == id).first()
+    scan_query = db.query(models.Scan).filter(models.Scan.id == id)
+    scan = scan_query.first()
     if scan:
         job_types_to_delete = [schemas.JobType.COUNT, schemas.JobType.TRANSFER]
         _delete_scan_jobs_by_types(db, scan, job_types_to_delete)
-        scan.delete()
+        scan_query.delete()
         db.commit()
 
 

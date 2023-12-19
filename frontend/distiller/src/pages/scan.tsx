@@ -27,6 +27,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
+import Breadcrumbs from '@mui/material/Breadcrumbs';
+import Link from '@mui/material/Link';
 import { styled } from '@mui/material/styles';
 import { Box } from '@mui/system';
 import humanizeDuration from 'humanize-duration';
@@ -291,17 +294,51 @@ const ScanPage: React.FC<Props> = () => {
       .finally(() => setNotebookLoading(false));
   };
 
+  let microscopePrefix = '';
+  if (microscope != null) {
+    const canonicalName = canonicalMicroscopeName(microscope.name);
+    microscopePrefix = `/${canonicalName}`;
+  }
+
   return (
     <React.Fragment>
-      <Button
-        onClick={onNavigateBack}
-        size="small"
-        color="primary"
-        sx={{ mb: 2 }}
-        variant="outlined"
-      >
-        {jobId ? `Session ${jobId}` : 'Scans'}
-      </Button>
+      <Breadcrumbs sx={{ mb: 2 }}>
+        {jobId && (
+          // Link to sessions
+          <Link
+            underline="hover"
+            color="inherit"
+            href={`${microscopePrefix}/sessions/`}
+          >
+            Sessions
+          </Link>
+        )}
+        {jobId && (
+          // Link to session
+          <Link
+            underline="hover"
+            color="inherit"
+            href={`${microscopePrefix}/sessions/`}
+          >
+            {jobId}
+          </Link>
+        )}
+        {/* Link to scans  */}
+        <Link
+          underline="hover"
+          color="inherit"
+          href={
+            jobId
+              ? `${microscopePrefix}/sessions/${jobId}`
+              : `${microscopePrefix}/scans`
+          }
+        >
+          Scans
+        </Link>
+
+        {/* The scan */}
+        <Typography color="text.primary">{scanId}</Typography>
+      </Breadcrumbs>
       <Card sx={{ marginBottom: '2rem' }}>
         <CardContent>
           <Grid container spacing={3}>

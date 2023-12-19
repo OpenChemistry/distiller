@@ -1,6 +1,9 @@
 import LeftIcon from '@mui/icons-material/ArrowLeft';
 import RightIcon from '@mui/icons-material/ArrowRight';
 import { Button } from '@mui/material';
+import Typography from '@mui/material/Typography';
+import Breadcrumbs from '@mui/material/Breadcrumbs';
+import Link from '@mui/material/Link';
 import React, { useEffect } from 'react';
 import { useNavigate, useParams as useUrlParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
@@ -66,6 +69,19 @@ const SessionPage: React.FC = () => {
           Next Session
         </Button>
       </div>
+      <Breadcrumbs>
+        {/* Link to sessions */}
+        <Link
+          underline="hover"
+          color="inherit"
+          href={`/${microscopeName}/sessions`}
+        >
+          Sessions
+        </Link>
+        {/* The session */}
+        {job && <Typography color="text.primary">{job.id}</Typography>}
+      </Breadcrumbs>
+
       {job && (
         <SessionCard jobId={job.id} isHoverable={false} compactMode={false} />
       )}

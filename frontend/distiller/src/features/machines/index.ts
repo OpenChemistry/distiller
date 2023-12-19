@@ -7,7 +7,7 @@ import { RootState } from '../../app/store';
 import { Machine } from '../../types';
 import { getMachines as getMachinesAPI } from './api';
 
-export const machinesAdapter = createEntityAdapter<Machine>({
+export const machinesAdapter = createEntityAdapter<Machine, string>({
   selectId: (machine) => machine.name,
   sortComparer: (a, b) => a.name.localeCompare(b.name),
 });

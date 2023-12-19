@@ -8,7 +8,7 @@ import { RootState } from '../../app/store';
 import { IdType, Microscope } from '../../types';
 import { getMicroscopes as getMicroscopesAPI } from './api';
 
-export const microscopesAdapter = createEntityAdapter<Microscope>({
+export const microscopesAdapter = createEntityAdapter<Microscope, number>({
   selectId: (microscope) => microscope.id,
   sortComparer: (a, b) => a.name.localeCompare(b.name),
 });

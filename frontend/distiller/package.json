@@ -27,7 +27,7 @@
     "react-dom": "^18.2.0",
     "react-redux": "^9.0.4",
     "react-router-dom": "^6.21.0",
-    "typescript": "~5.2.2",
+    "typescript": "~5.3.3",
     "use-local-storage-state": "^19.1.0"
   },
   "devDependencies": {

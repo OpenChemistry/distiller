@@ -151,9 +151,11 @@ const SessionCard = React.memo(
                 alignItems: 'center',
               }}
             >
-              <Typography variant="h5" component="div">
-                {job.id}
-              </Typography>
+              {compactMode && (
+                <Typography variant="h5" component="div">
+                  {job.id}
+                </Typography>
+              )}
               <Typography variant="h5" component="div">
                 {isJobRunning &&
                   humanizeDuration(job.elapsed ? job.elapsed * 1000 : 0)}

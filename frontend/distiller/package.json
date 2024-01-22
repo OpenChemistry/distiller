@@ -31,7 +31,7 @@
     "use-local-storage-state": "^19.1.0"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/jest-dom": "^6.2.1",
     "@types/jest": "^29.5.11",
     "@types/mocha": "^10.0.6",
     "@vitejs/plugin-react": "^4.2.1",

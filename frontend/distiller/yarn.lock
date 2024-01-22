@@ -234,17 +234,17 @@
     "@babel/helper-validator-identifier" "^7.22.20"
     to-fast-properties "^2.0.0"
 
-"@date-io/core@^2.17.0":
-  version "2.17.0"
-  resolved "https://registry.npmjs.org/@date-io/core/-/core-2.17.0.tgz"
-  integrity sha512-+EQE8xZhRM/hsY0CDTVyayMDDY5ihc4MqXCrPxooKw19yAzUIC6uUqsZeaOFNL9YKTNxYKrJP5DFgE8o5xRCOw==
+"@date-io/core@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@date-io/core/-/core-3.0.0.tgz#9fd2375383b5791b7211dfce3e576211f9ddce5e"
+  integrity sha512-S3j+IAQVBYNkQzchVVhX40eBkGDreBpScy9RXwTS5j2+k07+62pMVPisQ44Gq76Rqy5AOG/EZXCwBpY/jbemvA==
 
-"@date-io/luxon@^2.17.0":
-  version "2.17.0"
-  resolved "https://registry.npmjs.org/@date-io/luxon/-/luxon-2.17.0.tgz"
-  integrity sha512-l712Vdm/uTddD2XWt9TlQloZUiTiRQtY5TCOG45MQ/8u0tu8M17BD6QYHar/3OrnkGybALAMPzCy1r5D7+0HBg==
+"@date-io/luxon@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@date-io/luxon/-/luxon-3.0.0.tgz#6c56a332f34ccce7a79f6b625b91e6938b0eb6da"
+  integrity sha512-AnTb5TowMOgBQfWDCL94jdWHGLWQ/ToFy6Z13/iPD219A3WQmcQpEoS/RDVcB1fiyknC+wLE2M4t12WTHOmQxw==
   dependencies:
-    "@date-io/core" "^2.17.0"
+    "@date-io/core" "^3.0.0"
 
 "@emotion/babel-plugin@^11.11.0":
   version "11.11.0"

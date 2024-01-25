@@ -13,7 +13,7 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
 const Image = styled('img')(({ theme }) => ({
   width: '100%',
   height: '100%',
-  objectFit: 'cover',
+  objectFit: 'contain',
 }));
 
 type Props = {
@@ -27,7 +27,11 @@ const ImageDialog: React.FC<Props> = (props) => {
   const { open, src, alt, handleClose } = props;
 
   return (
-    <StyledDialog open={open} onClose={handleClose}>
+    <StyledDialog
+      open={open}
+      onClose={handleClose}
+      PaperProps={{ style: { minWidth: '100%', minHeight: '100%' } }}
+    >
       <Image src={src} alt={alt} />
     </StyledDialog>
   );

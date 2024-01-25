@@ -14,7 +14,7 @@ export const NoThumbnailImageIcon = styled(
   ({ width = '60%', height = '60%', cursor = 'pointer' }) => ({
     width,
     height,
-    objectFit: 'cover',
+    objectFit: 'contain',
     color: pink.A400,
     cursor,
   }),

@@ -8,6 +8,7 @@ import {
 import { DateTime } from 'luxon';
 import { RootState } from '../../app/store';
 import { IdType, Job, JobType, JobsRequestResult } from '../../types';
+import { scanSelector } from '../scans';
 import { getScanJobs as getScanJobsAPI } from '../scans/api';
 import {
   cancelJob as cancelJobAPI,
@@ -61,31 +62,31 @@ export const getScanJobs = createAsyncThunk<
     scanId: IdType;
   },
   { state: RootState }
->('jobs/fetchByScanId', async (payload, _thunkAPI) => {
+>('jobs/fetchByScanId', async (payload, thunkAPI) => {
   const { scanId } = payload;
-  const state = _thunkAPI.getState();
+  const state = thunkAPI.getState();
 
-  // First, check if scanId exists in state.scans
-  const scanExists = state.scans.ids.includes(scanId);
+  // Optimization, only fetch jobs if we haven't already
+  let doFetch = true;
 
-  if (!scanExists) {
-    // If the scan does not exist in state, throw an error
-    throw new Error(`Scan with ID ${scanId} does not exist in state.`);
+  // First, check if the requested scan exists in the store
+  // If the scan is not in the store, the getScan request hasn't resolved yet.
+  // So just fetch the jobs regardless since it's likely we haven't fetched the
+  // relevant jobs anyway.
+  const scan = scanSelector(scanId)(state);
+
+  if (scan) {
+    const jobIds = scan.job_ids;
+    const jobsInState = jobIds.map((id) => jobSelector(id)(state));
+    doFetch = jobsInState.some((job) => job === undefined);
   }
 
-  const job_ids = state.scans.entities[scanId]?.job_ids || [];
-
-  const jobsInState = job_ids.map((id) => selectById(state.jobs, id));
-
-  const allJobsInStore = jobsInState.every((job) => job !== undefined);
-
-  if (allJobsInStore) {
-    // If all jobs are already in the store, return null to avoid unnecessary reducer
-    return { jobs: null };
-  } else {
-    // If any job is not in the store, make the API call
+  if (doFetch) {
+    // Make the API call
     const jobs = await getScanJobsAPI(scanId);
     return { jobs };
+  } else {
+    return { jobs: null };
   }
 });
 

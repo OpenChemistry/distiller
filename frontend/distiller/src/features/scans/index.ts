@@ -8,6 +8,7 @@ import {
 import { DateTime } from 'luxon';
 import { RootState } from '../../app/store';
 import { IdType, Scan, ScansRequestResult } from '../../types';
+import { jobSelector } from '../jobs';
 import { getJobScans as getJobScansAPI } from '../jobs/api';
 import {
   getScan as getScanAPI,
@@ -62,30 +63,31 @@ export const getJobScans = createAsyncThunk<
     jobId: IdType;
   },
   { state: RootState }
->('scans/fetchByJobId', async (payload, _thunkAPI) => {
+>('scans/fetchByJobId', async (payload, thunkAPI) => {
   const { jobId } = payload;
-  const state = _thunkAPI.getState();
+  const state = thunkAPI.getState();
 
-  const jobExists = state.jobs.ids.includes(jobId);
+  // Optimization, only fetch scans if we haven't already
+  let doFetch = true;
 
-  if (!jobExists) {
-    // If the scan does not exist in state, throw an error
-    throw new Error(`Job with ID ${jobId} does not exist in state.`);
+  // First, check if the requested job exists in the store
+  // If the job is not in the store, the getJob request hasn't resolved yet.
+  // So just fetch the scans regardless since it's likely we haven't fetched the
+  // relevant scans anyway.
+  const job = jobSelector(jobId)(state);
+
+  if (job) {
+    const scanIds = job.scan_ids;
+    const scansInState = scanIds.map((id) => scanSelector(id)(state));
+    doFetch = scansInState.some((scan) => scan === undefined);
   }
 
-  const scan_ids = state.jobs.entities[jobId]?.scan_ids || [];
-
-  const scansInState = scan_ids.map((id) => selectById(state.scans, id));
-
-  const allScansInStore = scansInState.every((scan) => scan !== undefined);
-
-  if (allScansInStore) {
-    // If all jobs are already in the store, return null to avoid unnecessary reducer
-    return { scans: null };
-  } else {
-    // If any job is not in the store, make the API call
+  if (doFetch) {
+    // Make the API call
     const scans = await getJobScansAPI(jobId);
     return { scans };
+  } else {
+    return { scans: null };
   }
 });
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import styled from '@emotion/styled';
@@ -16,8 +16,13 @@ import { DateTime } from 'luxon';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { cancelJob, jobSelector, patchJob } from '../features/jobs';
 import { scansByJobIdSelector } from '../features/scans';
-import ScansPage from '../pages/scans';
+import { machineSelectors, machineState } from '../features/machines';
 import { SCANS, SESSIONS } from '../routes';
+import {
+  useUrlState,
+  intSerializer,
+  intDeserializer,
+} from '../routes/url-state';
 import {
   IdType,
   Job,
@@ -29,6 +34,7 @@ import EditableField from './editable-field';
 import ImageGallery from './image-gallery';
 import JobOutputDialog from './job-output';
 import JobStateComponent from './job-state';
+import { ScansTableContainer } from './scans-table-container';
 
 interface HoverCardProps extends CardProps {
   isHoverable?: boolean;
@@ -73,6 +79,30 @@ const SessionCard = React.memo(
     const job = useAppSelector(jobSelector(jobId)) as Job;
     const microscopeName = useParams().microscope;
 
+    const machines = useAppSelector((state) =>
+      machineSelectors.selectAll(machineState(state)),
+    );
+    const machineNames = useMemo(
+      () => machines.map((machine) => machine.name),
+      [machines],
+    );
+
+    const [page, setPage] = useUrlState(
+      'page',
+      0,
+      intSerializer,
+      intDeserializer,
+    );
+
+    const [rowsPerPage, setRowsPerPage] = useUrlState(
+      'rowsPerPage',
+      20,
+      intSerializer,
+      intDeserializer,
+    );
+
+    const [selectedScanIDs] = useState<Set<IdType>>(new Set<IdType>());
+
     const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
       if (setHoveredJobId) setHoveredJobId(jobId);
     };
@@ -109,22 +139,51 @@ const SessionCard = React.memo(
       }
     }, [job.state]);
 
-    const onScanClick = (event: React.MouseEvent, scan: Scan) => {
-      event.stopPropagation();
+    const onScanClick = (scan: Scan) => {
       navigate(`/${microscopeName}/${SESSIONS}/${jobId}/${SCANS}/${scan.id}`);
     };
 
     // Scans
     const scans = useAppSelector(scansByJobIdSelector(job.id));
 
-    const scansPageProps = {
-      selector: scansByJobIdSelector(job.id),
-      showScansToolbar: false,
-      showTablePagination: true,
-      totalScans: scans.length,
-      showDiskUsage: false,
-      shouldFetchScans: false,
-      onScanClick: onScanClick,
+    const scansInCurrentPage = useMemo(() => {
+      const start = page * rowsPerPage;
+      const end = start + rowsPerPage;
+
+      return scans
+        .sort((a, b) => b.created.localeCompare(a.created))
+        .slice(start, end);
+    }, [scans, page, rowsPerPage]);
+
+    const displayIDs = useMemo(() => {
+      const ids = new Set(scansInCurrentPage.map((scan) => scan.scan_id));
+
+      return ids.size > 1 || !ids.has(null);
+    }, [scansInCurrentPage]);
+
+    const noop = useCallback(() => {}, []);
+
+    const onScansPerPageChange = useCallback(
+      (scansPerPage: number) => {
+        setRowsPerPage(scansPerPage);
+        setPage(0);
+      },
+      [setRowsPerPage, setPage],
+    );
+
+    const scansTableProps = {
+      currentPage: page,
+      scansPerPage: rowsPerPage,
+      scansInCurrentPage,
+      totalNumberOfScans: scans.length,
+      displayIDs,
+      selectedScanIDs,
+      machineNames,
+      onScanClick,
+      onSelectAll: noop,
+      onScanSelect: noop,
+      onCurrentPageChange: setPage,
+      onScansPerPageChange: onScansPerPageChange,
     };
 
     const isJobRunning =
@@ -226,7 +285,7 @@ const SessionCard = React.memo(
                 {compactMode ? (
                   <ImageGallery scans={scans} />
                 ) : (
-                  <ScansPage {...scansPageProps} />
+                  <ScansTableContainer {...scansTableProps} />
                 )}
               </div>
             ) : null}

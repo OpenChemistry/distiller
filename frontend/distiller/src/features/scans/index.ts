@@ -23,11 +23,13 @@ export interface ScansState
   extends ReturnType<(typeof scansAdapter)['getInitialState']> {
   status: 'idle' | 'loading' | 'complete';
   totalCount: number;
+  scanIdsInCurrentPage: number[];
 }
 
 const initialState: ScansState = scansAdapter.getInitialState({
   status: 'idle',
   totalCount: -1,
+  scanIdsInCurrentPage: [],
 });
 
 export const getScans = createAsyncThunk<
@@ -148,6 +150,7 @@ export const scansSlice = createSlice({
 
         state.status = 'complete';
         state.totalCount = totalCount;
+        state.scanIdsInCurrentPage = scans.map((scan) => scan.id);
         scansAdapter.upsertMany(state, scans);
       })
       .addCase(getScan.fulfilled, (state, action) => {
@@ -186,6 +189,15 @@ export const scanSelector = (id: IdType) => {
 
 export const allScansSelector = createSelector(scansState, (scansState) =>
   selectAll(scansState),
+);
+
+export const scansInCurrentPageSelector = createSelector(
+  scansState,
+  (scansState) => {
+    return scansState.scanIdsInCurrentPage
+      .map((scanId) => selectById(scansState, scanId))
+      .filter((scan) => scan !== undefined);
+  },
 );
 
 const filterScanByJobId = (jobId: IdType) => (scan: Scan) =>

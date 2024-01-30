@@ -10,11 +10,7 @@ import { styled } from '@mui/material/styles';
 import { DateTime } from 'luxon';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { machineSelectors, machineState } from '../features/machines';
-import {
-  getScans,
-  totalCount,
-  scansInCurrentPageSelector,
-} from '../features/scans';
+import { getScans, totalCount, allScansSelector } from '../features/scans';
 import { ExportFormat, IdType, Metadata, Microscope, Scan } from '../types';
 
 import { isNil } from 'lodash';
@@ -52,7 +48,7 @@ const ScansPage: React.FC<ScansPageProps> = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const totalScans = useAppSelector(totalCount);
-  const scansInCurrentPage = useAppSelector(scansInCurrentPageSelector);
+  const scansInCurrentPage = useAppSelector(allScansSelector);
   const sortedScansInCurrentPage = useMemo(() => {
     return scansInCurrentPage.sort((a, b) =>
       b.created.localeCompare(a.created),

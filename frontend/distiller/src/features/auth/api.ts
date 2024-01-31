@@ -17,7 +17,7 @@ export function authenticate(
 
   return apiClient
     .post({
-      url: 'token',
+      path: 'token',
       form,
     })
     .then((res) => res.json());
@@ -26,7 +26,7 @@ export function authenticate(
 export function refreshToken(): Promise<AuthResponse> {
   return apiClient
     .post({
-      url: 'refresh_token',
+      path: 'refresh_token',
     })
     .then((res) => res.json());
 }
@@ -34,7 +34,7 @@ export function refreshToken(): Promise<AuthResponse> {
 export function deleteRefreshToken(): Promise<void> {
   return apiClient
     .delete({
-      url: 'refresh_token',
+      path: 'refresh_token',
     })
     .then((_) => undefined);
 }
@@ -42,7 +42,7 @@ export function deleteRefreshToken(): Promise<void> {
 export function getUser(): Promise<User> {
   return apiClient
     .get({
-      url: 'users/me',
+      path: 'users/me',
     })
     .then((res) => res.json());
 }

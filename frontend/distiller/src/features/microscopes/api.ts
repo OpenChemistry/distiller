@@ -4,7 +4,7 @@ import { Microscope } from '../../types';
 export function getMicroscopes(): Promise<Microscope[]> {
   return apiClient
     .get({
-      url: `microscopes`,
+      path: `microscopes`,
     })
     .then((res) => res.json());
 }

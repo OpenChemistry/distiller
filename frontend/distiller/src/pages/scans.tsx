@@ -57,6 +57,7 @@ import { NoThumbnailImageIcon } from '../components/no-thumbnail-image-icon';
 import { ThumbnailImage } from '../components/thumbnail-image';
 import { SCANS } from '../routes';
 import { Deserializer, Serializer, useUrlState } from '../routes/url-state';
+import { ProtectedImage } from '../components/protected-image';
 
 const TableHeaderCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 600,
@@ -621,7 +622,8 @@ const ScansPage: React.FC<ScansPageProps> = ({
                 </TableCell>
                 <TableImageCell>
                   {scan.image_path ? (
-                    <ThumbnailImage
+                    <ProtectedImage
+                      component={ThumbnailImage}
                       src={`${staticURL}${scan.image_path}`}
                       alt="scan thumbnail"
                       onClick={stopPropagation(() => onImgClick(scan))}

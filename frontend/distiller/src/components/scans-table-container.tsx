@@ -90,7 +90,7 @@ export const ScansTableContainer: React.FC<Props> = (props) => {
 
       setScanToDelete(null);
     },
-    [dispatch, removeScan, setScanToDelete],
+    [dispatch, removeScan, scanToDelete, setScanToDelete],
   );
 
   const onScanFilesDelete = useCallback(

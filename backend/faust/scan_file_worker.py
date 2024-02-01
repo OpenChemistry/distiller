@@ -84,12 +84,8 @@ async def generate_image_from_data(
     format = settings.IMAGE_FORMAT
     pil_kwargs = {}
 
-    print(settings.IMAGE_QUALITY)
-
     if settings.IMAGE_QUALITY is not None:
         pil_kwargs["quality"] = settings.IMAGE_QUALITY
-
-    print(pil_kwargs)
 
     # Work around issue with how faust resets sys.stdout to an instance of FileLogProxy
     # which doesn't have the property buffer, which is check by Pillow when its writing

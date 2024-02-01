@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     JOB_MACHINE_OVERRIDES_PATH: Optional[str]
 
     IMAGE_UPLOAD_DIR: str
+    IMAGE_FORMAT: str
+    IMAGE_QUALITY: Optional[int]
     HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS: int
     HAADF_NCEMHUB_DM4_DATA_PATH: str
     NCEMHUB_PATH: str

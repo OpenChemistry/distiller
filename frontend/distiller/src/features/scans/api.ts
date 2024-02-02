@@ -27,7 +27,7 @@ export function getScans(
 
   return apiClient
     .get({
-      url: 'scans',
+      path: 'scans',
       params,
     })
     .then((res) => {
@@ -54,7 +54,7 @@ export function getScans(
 export function getScan(id: IdType): Promise<Scan> {
   return apiClient
     .get({
-      url: `scans/${id}`,
+      path: `scans/${id}`,
     })
     .then((res) => {
       return res.json().then((scan: Scan) => {
@@ -77,7 +77,7 @@ export function getScanJobs(id: IdType): Promise<Job[]> {
 
   return apiClient
     .get({
-      url: `jobs`,
+      path: `jobs`,
       params,
     })
     .then((res) => res.json());
@@ -86,7 +86,7 @@ export function getScanJobs(id: IdType): Promise<Job[]> {
 export function patchScan(id: IdType, updates: Partial<Scan>): Promise<Scan> {
   return apiClient
     .patch({
-      url: `scans/${id}`,
+      path: `scans/${id}`,
       json: updates,
     })
     .then((res) => res.json());
@@ -95,7 +95,7 @@ export function patchScan(id: IdType, updates: Partial<Scan>): Promise<Scan> {
 export function removeScanFiles(id: IdType, host: string): Promise<void> {
   return apiClient
     .put({
-      url: `scans/${id}/remove`,
+      path: `scans/${id}/remove`,
       params: { host },
     })
     .then((_) => undefined);
@@ -107,7 +107,7 @@ export function removeScan(
 ): Promise<void> {
   return apiClient
     .delete({
-      url: `scans/${id}`,
+      path: `scans/${id}`,
       params: { remove_scan_files: removeScanFiles },
     })
     .then((_) => undefined);

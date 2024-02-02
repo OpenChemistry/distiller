@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Dialog } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { ProtectedImage } from '../components/protected-image';
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   width: '100%',
@@ -32,7 +33,7 @@ const ImageDialog: React.FC<Props> = (props) => {
       onClose={handleClose}
       PaperProps={{ style: { minWidth: '100%', minHeight: '100%' } }}
     >
-      <Image src={src} alt={alt} />
+      <ProtectedImage component={Image} src={src} alt={alt} />
     </StyledDialog>
   );
 };

@@ -19,7 +19,9 @@ async def haadf_reaper():
     logger.info("Reaping unclaimed HAADF images.")
     expiration = timedelta(hours=settings.HAADF_IMAGE_UPLOAD_DIR_EXPIRATION_HOURS)
     now = datetime.now().astimezone()
-    async for f in AsyncPath(settings.IMAGE_UPLOAD_DIR).glob("*.png"):
+    format = settings.IMAGE_FORMAT
+
+    async for f in AsyncPath(settings.IMAGE_UPLOAD_DIR).glob(f"*.{format}"):
         stat_info = await f.stat()
         created = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
 

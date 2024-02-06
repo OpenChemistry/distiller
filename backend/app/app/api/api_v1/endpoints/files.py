@@ -64,8 +64,9 @@ async def upload_haadf_dm4(file: UploadFile) -> None:
     )
 
 
-async def upload_haadf_png(db: Session, file: UploadFile) -> None:
-    scan_regex = re.compile(r"^([0-9]*)\.png")
+async def upload_haadf_image(db: Session, file: UploadFile) -> None:
+    format = settings.IMAGE_FORMAT
+    scan_regex = re.compile(f"^([0-9]*)\.{format}")
 
     # Extract out the scan ids
     match = scan_regex.match(file.filename)
@@ -73,7 +74,7 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
         raise HTTPException(status_code=400, detail="Can't extract scan id.")
 
     scan_id = int(match.group(1))
-    upload_path = Path(settings.IMAGE_UPLOAD_DIR) / f"scan{scan_id}.png"
+    upload_path = Path(settings.IMAGE_UPLOAD_DIR) / f"scan{scan_id}.{format}"
     async with aiofiles.open(upload_path, "wb") as fp:
         await upload_to_file(file, fp)
 
@@ -95,10 +96,10 @@ async def upload_haadf_png(db: Session, file: UploadFile) -> None:
             None,
             shutil.move,
             upload_path,
-            Path(settings.IMAGE_STATIC_DIR) / f"{scan.id}.png",
+            Path(settings.IMAGE_STATIC_DIR) / f"{scan.id}.{format}",
         )
 
-        image_path = f"{settings.IMAGE_URL_PREFIX}/{scan.id}.png"
+        image_path = f"{settings.IMAGE_URL_PREFIX}/{scan.id}.{format}"
         (updated, _) = scan_crud.update_scan(db, scan.id, image_path=image_path)
 
         if updated:
@@ -114,10 +115,10 @@ async def upload_haadf(
     api_key: APIKey = Depends(deps.get_api_key),
 ) -> None:
     suffix = Path(file.filename).suffix
-
+    format = settings.IMAGE_FORMAT
     if suffix.lower() == ".dm4":
         await upload_haadf_dm4(file)
-    elif suffix.lower() == ".png":
-        await upload_haadf_png(db, file)
+    elif suffix.lower() == f".{format}":
+        await upload_haadf_image(db, file)
     else:
         raise HTTPException(status_code=400, detail="Invalid format.")

@@ -81,12 +81,18 @@ async def generate_image_from_data(
 
     path = AsyncPath(tmp_dir) / image_filename
 
+    format = settings.IMAGE_FORMAT
+    pil_kwargs = {}
+
+    if settings.IMAGE_QUALITY is not None:
+        pil_kwargs["quality"] = settings.IMAGE_QUALITY
+
     # Work around issue with how faust resets sys.stdout to an instance of FileLogProxy
     # which doesn't have the property buffer, which is check by Pillow when its writing
     # out the image, so just reset it to the real stdout while calling imsave.
     stdout = sys.stdout
     sys.stdout = sys.__stdout__
-    plt.imsave(str(path), img)
+    plt.imsave(str(path), img, format=format, pil_kwargs=pil_kwargs)
     sys.stdout = stdout
 
     return path
@@ -151,11 +157,12 @@ async def generate_ncemhub_scan_file_path(
     stop=tenacity.stop_after_attempt(10),
 )
 async def upload_haadf_image(session: aiohttp.ClientSession, path: AsyncPath):
+    format = settings.IMAGE_FORMAT
     # Now upload
     async with path.open("rb") as fp:
         headers = {settings.API_KEY_NAME: settings.API_KEY}
         data = aiohttp.FormData()
-        data.add_field("file", fp, filename=path.name, content_type="image/png")
+        data.add_field("file", fp, filename=path.name, content_type=f"image/{format}")
 
         return await session.post(
             f"{settings.API_URL}/files/haadf", headers=headers, data=data
@@ -400,6 +407,7 @@ async def send_scan_metadata(session: aiohttp.ClientSession, scan_id: int, path:
 
 @app.agent(haadf_events_topic)
 async def watch_for_haadf_events(haadf_events):
+    format = settings.IMAGE_FORMAT
     async with aiohttp.ClientSession() as session:
         async for event in haadf_events:
             path = event.path
@@ -408,7 +416,7 @@ async def watch_for_haadf_events(haadf_events):
                 await copy_file_to_ncemhub(
                     AsyncPath(path), AsyncPath(settings.HAADF_NCEMHUB_DM4_DATA_PATH)
                 )
-                image_path = await generate_image(tmp, path, f"{scan_id}.png")
+                image_path = await generate_image(tmp, path, f"{scan_id}.{format}")
                 r = await upload_haadf_image(session, image_path)
                 r.raise_for_status()
 
@@ -428,11 +436,12 @@ async def watch_for_haadf_events(haadf_events):
     stop=tenacity.stop_after_attempt(10),
 )
 async def upload_image(session: aiohttp.ClientSession, id: int, path: AsyncPath):
+    format = settings.IMAGE_FORMAT
     # Now upload
     async with path.open("rb") as fp:
         headers = {settings.API_KEY_NAME: settings.API_KEY}
         data = aiohttp.FormData()
-        data.add_field("file", fp, filename=path.name, content_type="image/png")
+        data.add_field("file", fp, filename=path.name, content_type=f"image/{format}")
 
         return await session.put(
             f"{settings.API_URL}/scans/{id}/image", headers=headers, data=data
@@ -446,6 +455,7 @@ scan_file_events_topic = app.topic(
 
 @app.agent(scan_file_events_topic)
 async def watch_for_scan_file_events(scan_file_events):
+    format = settings.IMAGE_FORMAT
     async with aiohttp.ClientSession() as session:
         async for event in scan_file_events:
             path = event.path
@@ -463,7 +473,7 @@ async def watch_for_scan_file_events(scan_file_events):
 
                     if Path(path).suffix in DATA_FILE_FORMATS:
                         try:
-                            image_path = await generate_image(tmp, path, f"{id}.png")
+                            image_path = await generate_image(tmp, path, f"{id}.{format}")
                         except Exception:
                             logger.exception("Exception generating image.")
                             raise

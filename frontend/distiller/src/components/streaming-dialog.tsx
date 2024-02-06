@@ -10,6 +10,7 @@ import {
   DialogTitle,
   FormControl,
   InputLabel,
+  MenuItem,
   Select,
   TextField,
   Typography,
@@ -19,6 +20,10 @@ import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon';
 import { DateTime, Duration } from 'luxon';
 
 import { Machine } from '../types';
+import {
+  DARKFIELD_CORRECTIONS,
+  DEFAULT_DARKFIELD_CORRECTION,
+} from '../utils/darkfield';
 import MachineOptionComponent from './machine-option';
 
 type Props = {
@@ -47,6 +52,13 @@ const defaultTime = DateTime.fromObject({
 const StreamingDialog: React.FC<Props> = (props) => {
   const { open, machines, machine, setMachine, onClose, onSubmit, canRun } =
     props;
+
+  const [darkfieldCorrection, setDarkfieldCorrection] = useLocalStorageState(
+    'darkfieldCorrection',
+    {
+      defaultValue: DEFAULT_DARKFIELD_CORRECTION.value,
+    },
+  );
   const [threshold, setThreshold] = useLocalStorageState('threshold', {
     defaultValue: 4,
   });
@@ -66,6 +78,7 @@ const StreamingDialog: React.FC<Props> = (props) => {
     setError('');
     onSubmit({
       threshold,
+      darkfield: darkfieldCorrection,
       duration: duration.toISOTime({ suppressSeconds: true }),
     })
       .then(() => {
@@ -111,39 +124,58 @@ const StreamingDialog: React.FC<Props> = (props) => {
             label="Machine"
             labelId="machine-select-label"
             value={machine}
-            size="small"
             onChange={(ev) => setMachine(ev.target.value)}
             placeholder="Machine"
           >
             {machines.map(MachineOptionComponent)}
           </Select>
-          <TextField
-            label="threshold"
-            fullWidth
-            value={threshold}
-            onChange={(ev) => setThreshold(parseFloat(ev.target.value))}
-            type="number"
-            variant="standard"
-            margin="normal"
-          />
-          <LocalizationProvider dateAdapter={AdapterLuxon}>
-            <TimeField
-              label="Session time (HH:MM)"
-              value={time}
-              onChange={(newTime) =>
-                newTime ? setTime(newTime) : setTime(defaultTime)
-              }
-              format="HH:mm"
-              minTime={minTime}
-              maxTime={maxTime}
-              formatDensity="spacious"
-              variant="standard"
-            />
-          </LocalizationProvider>
-          <Typography color="error" variant="caption">
-            {error}
-          </Typography>
         </FormControl>
+        <FormControl sx={{ width: '100%' }} variant="standard" margin="normal">
+          <InputLabel id="darkfield-select-label">
+            Darkfield Correction
+          </InputLabel>
+          <Select
+            fullWidth
+            label="Darkfield Correction"
+            labelId="darkfield-select-label"
+            value={darkfieldCorrection}
+            onChange={(ev) => setDarkfieldCorrection(ev.target.value)}
+            placeholder="Darkfield Correction"
+          >
+            {DARKFIELD_CORRECTIONS.map((correction) => (
+              <MenuItem value={correction.value} key={correction.value}>
+                {correction.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <TextField
+          label="threshold"
+          fullWidth
+          value={threshold}
+          onChange={(ev) => setThreshold(parseFloat(ev.target.value))}
+          type="number"
+          variant="standard"
+          margin="normal"
+        />
+        <LocalizationProvider dateAdapter={AdapterLuxon}>
+          <TimeField
+            label="Session time (HH:MM)"
+            fullWidth
+            value={time}
+            onChange={(newTime) =>
+              newTime ? setTime(newTime) : setTime(defaultTime)
+            }
+            format="HH:mm"
+            minTime={minTime}
+            maxTime={maxTime}
+            formatDensity="spacious"
+            variant="standard"
+          />
+        </LocalizationProvider>
+        <Typography color="error" variant="caption">
+          {error}
+        </Typography>
       </DialogContent>
       <DialogActions>
         <Button

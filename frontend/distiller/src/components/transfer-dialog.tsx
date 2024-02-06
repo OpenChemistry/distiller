@@ -65,7 +65,6 @@ const TransferDialog: React.FC<Props> = (props) => {
             label="Machine"
             labelId="machine-select-label"
             value={machine}
-            size="small"
             onChange={(ev) => setMachine(ev.target.value)}
             placeholder="Machine"
           >

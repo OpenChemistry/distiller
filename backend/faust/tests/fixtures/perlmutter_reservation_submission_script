@@ -50,7 +50,7 @@ rm _ncem_files_0_*.txt
 BBCP_DEST_DIR=`echo "$PSCRATCH/ncem/0" |  sed 's/\/\//\//g'`
 CREATED_DATETIME="2022-01-10T14:29:59+00:00"
 
-srun --exclusive -c 128 -n 8 shifter python3 /script --pad -l $BBCP_DEST_DIR -t 4.0 -s 1 -d 0 --multi-pass --timestamp $CREATED_DATETIME || error_exit "Error shifter execution failed."
+srun --exclusive -c 128 -n 8 shifter python3 /script --pad -l $BBCP_DEST_DIR -t 4.0 -c none -s 1 -d 0 --multi-pass --timestamp $CREATED_DATETIME || error_exit "Error shifter execution failed."
 
 cp ${BBCP_DEST_DIR}/FOURD_*.h5  /tmp || error_exit "Failed to copy counted data to ncemhub."
 # Clean up

@@ -129,6 +129,11 @@ export type Machine = {
   statusURL: string;
 };
 
+export type DarkfieldCorrection = {
+  label: string;
+  value: string;
+};
+
 export enum ExportFormat {
   JSON = 'json',
   CSV = 'csv',

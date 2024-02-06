@@ -344,7 +344,7 @@ const ScanPage: React.FC<Props> = () => {
         <CardContent>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={4} md={3}>
-              {scan.image_path  ? (
+              {scan.image_path ? (
                 <ProtectedImage
                   component={ThumbnailImage}
                   src={`${staticURL}${scan.image_path}`}

@@ -18,22 +18,12 @@ from numpy import ndarray
 
 import faust
 from config import settings
-from constants import (
-    DATE_DIR_FORMAT,
-    NERSC_LOCATION,
-    TOPIC_HAADF_FILE_EVENTS,
-    TOPIC_SCAN_FILE_EVENTS,
-    TOPIC_SCAN_METADATA_EVENTS,
-)
+from constants import (DATE_DIR_FORMAT, NERSC_LOCATION,
+                       TOPIC_HAADF_FILE_EVENTS, TOPIC_SCAN_FILE_EVENTS,
+                       TOPIC_SCAN_METADATA_EVENTS)
 from faust_records import ScanMetadata
 from schemas import Location
-from utils import (
-    ScanUpdate,
-    generate_ncemhub_scan_path,
-    get_microscope_by_id,
-    get_scan,
-    update_scan,
-)
+from utils import ScanUpdate, generate_ncemhub_scan_path, get_scan, update_scan
 
 DATA_FILE_FORMATS = [".dm3", ".dm4", ".ser", ".emd"]
 
@@ -197,7 +187,7 @@ def extract_dm_metadata(dm_path: str):
         "Session Info",
         "4Dcamera",
         "DigiScan",
-        "Dimensions"
+        "Dimensions",
     ]
 
     # Use on_memory=False for now as it doesn't seem to work on spin
@@ -473,7 +463,9 @@ async def watch_for_scan_file_events(scan_file_events):
 
                     if Path(path).suffix in DATA_FILE_FORMATS:
                         try:
-                            image_path = await generate_image(tmp, path, f"{id}.{format}")
+                            image_path = await generate_image(
+                                tmp, path, f"{id}.{format}"
+                            )
                         except Exception:
                             logger.exception("Exception generating image.")
                             raise

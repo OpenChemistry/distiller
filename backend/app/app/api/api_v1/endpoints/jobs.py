@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, cast
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
@@ -8,7 +8,8 @@ from app import schemas
 from app.api.deps import get_db, oauth2_password_bearer_or_api_key
 from app.crud import job as crud
 from app.crud import scan as scan_crud
-from app.kafka.producer import send_job_event_to_kafka, send_scan_event_to_kafka
+from app.kafka.producer import (send_job_event_to_kafka,
+                                send_scan_event_to_kafka)
 from app.schemas import CancelJobEvent, SubmitJobEvent, UpdateJobEvent
 
 router = APIRouter()
@@ -22,7 +23,9 @@ router = APIRouter()
 async def create_job(job_create: schemas.JobCreate, db: Session = Depends(get_db)):
     job = crud.create_job(db=db, job=job_create)
     scan = job.scans[0] if job.scans else None
-    await send_job_event_to_kafka(SubmitJobEvent(job=schemas.Job.from_orm(job), scan=scan))
+    await send_job_event_to_kafka(
+        SubmitJobEvent(job=schemas.Job.from_orm(job), scan=scan)
+    )
     return job
 
 
@@ -39,13 +42,25 @@ def read_jobs(
     start: Optional[datetime] = None,
     end: Optional[datetime] = None,
     db: Session = Depends(get_db),
-    scan_id: Optional[int] = None
+    scan_id: Optional[int] = None,
 ):
     db_jobs = crud.get_jobs(
-        db, skip=skip, limit=limit, job_type=job_type, start=start, end=end, scan_id=scan_id
+        db,
+        skip=skip,
+        limit=limit,
+        job_type=job_type,
+        start=start,
+        end=end,
+        scan_id=scan_id,
     )
     count = crud.get_jobs_count(
-        db, skip=skip, limit=limit, job_type=job_type, start=start, end=end, scan_id=scan_id
+        db,
+        skip=skip,
+        limit=limit,
+        job_type=job_type,
+        start=start,
+        end=end,
+        scan_id=scan_id,
     )
     response.headers["X-Total-Count"] = str(count)
 

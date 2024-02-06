@@ -24,7 +24,7 @@ def _get_jobs_query(
     end: Optional[datetime] = None,
     slurm_id: Optional[int] = None,
     job_type: Optional[schemas.JobType] = None,
-    scan_id: Optional[int] = None
+    scan_id: Optional[int] = None,
 ):
     query = db.query(models.Job)
 
@@ -54,7 +54,7 @@ def get_jobs(
     end: Optional[datetime] = None,
     slurm_id: Optional[int] = None,
     job_type: Optional[schemas.JobType] = None,
-    scan_id: Optional[int] = None
+    scan_id: Optional[int] = None,
 ):
     query = _get_jobs_query(db, skip, limit, start, end, slurm_id, job_type, scan_id)
 
@@ -69,7 +69,7 @@ def get_jobs_count(
     end: Optional[datetime] = None,
     slurm_id: Optional[int] = None,
     job_type: Optional[schemas.JobType] = None,
-    scan_id: Optional[int] = None
+    scan_id: Optional[int] = None,
 ):
     query = _get_jobs_query(db, skip, limit, start, end, slurm_id, job_type, scan_id)
 
@@ -91,13 +91,14 @@ def create_job(db: Session, job: schemas.JobCreate):
 
     return db_job
 
+
 def add_scan_to_job(db: Session, id: int, scan_id: int) -> bool:
     scans_updated = False
     scan = scan_crud.get_scan(db, scan_id)
 
     if scan is None:
         raise Exception(f"Scan with id {scan_id} does not exist.")
-    
+
     job = get_job(db, id)
 
     if job is not None and not any([s.id == scan_id for s in job.scans]):

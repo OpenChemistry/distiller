@@ -61,7 +61,6 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ scans }) => {
       <ImageContainer ref={containerRef}>
         {scans.slice(0, limit).map((scan) => {
           return scan.image_path ? (
-
             <ProtectedImage
               component={ThumbnailImage}
               key={scan.id}

@@ -6,9 +6,9 @@ from fastapi.staticfiles import StaticFiles
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+from app.api.deps import oauth2_scheme
 from app.core.config import settings
 from app.core.logging import logger
-from app.api.deps import oauth2_scheme
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -29,6 +29,7 @@ def create_access_token(
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+
 async def verify_token(request: Request):
     unauthorized = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -37,12 +38,11 @@ async def verify_token(request: Request):
     token = await oauth2_scheme(request)
 
     try:
-        jwt.decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
-        )
+        jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
     except JWTError as jwt_error:
         logger.exception(jwt_error)
         raise unauthorized
+
 
 class AuthStaticFiles(StaticFiles):
     def __init__(self, *args, **kwargs) -> None:

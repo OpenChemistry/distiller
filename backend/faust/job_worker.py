@@ -5,11 +5,11 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-import pytz
 
 import aiohttp
 import httpx
 import jinja2
+import pytz
 import tenacity
 from aiopath import AsyncPath
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
@@ -19,11 +19,9 @@ from dotenv import dotenv_values
 
 import faust
 from config import settings
-from constants import (COUNT_JOB_SCRIPT_TEMPLATE, DATE_DIR_FORMAT,
-                       SFAPI_BASE_URL, SFAPI_TOKEN_URL, SLURM_RUNNING_STATES,
-                       STREAMING_JOB_SCRIPT_TEMPLATE, TOPIC_JOB_CANCEL_EVENTS,
-                       TOPIC_JOB_SUBMIT_EVENTS, TRANSFER_JOB_SCRIPT_TEMPLATE,
-                       JobState)
+from constants import (DATE_DIR_FORMAT, SFAPI_BASE_URL, SFAPI_TOKEN_URL,
+                       SLURM_RUNNING_STATES, TOPIC_JOB_CANCEL_EVENTS,
+                       TOPIC_JOB_SUBMIT_EVENTS, JobState)
 from faust_records import CancelJobEvent, Job, JobType, SubmitJobEvent
 from schemas import JobUpdate
 from schemas import Location as LocationRest
@@ -589,10 +587,10 @@ async def monitor_jobs():
                 # then update the location.
                 if job.state == JobState.COMPLETED and JobType.TRANSFER in job.name:
                     job = await get_job(session, id)
-                    
+
                     if not job.scan_ids:
                         raise ValueError(f"No scan_ids for job {id}")
-                    
+
                     scan_id = job.scan_ids[0]
                     scan = await get_scan(session, scan_id)
                     date_dir = scan.created.astimezone().strftime(DATE_DIR_FORMAT)

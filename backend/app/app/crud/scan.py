@@ -30,7 +30,7 @@ def _get_scans_query(
     microscope_id: Optional[int] = None,
     sha: Optional[str] = None,
     uuid: Optional[str] = None,
-    job_id: Optional[int] = None
+    job_id: Optional[int] = None,
 ):
     query = db.query(models.Scan)
     if scan_id > -1:
@@ -268,7 +268,9 @@ def count(db: Session) -> int:
     return db.query(models.Scan).count()
 
 
-def _delete_scan_jobs_by_types(db: Session, scan: models.Scan, types: List[schemas.JobType]) -> None:
+def _delete_scan_jobs_by_types(
+    db: Session, scan: models.Scan, types: List[schemas.JobType]
+) -> None:
     if scan:
         for job in scan.jobs:
             if job.job_type in types:

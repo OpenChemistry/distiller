@@ -77,7 +77,7 @@ class ScanStatus(faust.Record, coerce=True):
 
     def progress(self):
         try:
-            return round(sum(self.progress_by_path.values())/4)
+            return round(sum(self.progress_by_path.values()) / 4)
         except OverflowError:
             logger.warning("Overflow error processing progress.")
             return 100
@@ -186,7 +186,10 @@ async def process_status_file(
     scan_status = scan_id_to_status[scan_id]
     scan_status.modified = datetime.utcnow()
 
-    if path not in scan_status.progress_by_path or scan_status.progress_by_path[path] < status_file.progress:
+    if (
+        path not in scan_status.progress_by_path
+        or scan_status.progress_by_path[path] < status_file.progress
+    ):
         scan_status.progress_by_path[path] = status_file.progress
         progress_updated = True
 

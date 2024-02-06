@@ -123,11 +123,11 @@ export const scansSlice = createSlice({
   name: 'scans',
   initialState,
   reducers: {
-    setScan(state, action: PayloadAction<Scan>) {
+    createScanFromNotification(state, action: PayloadAction<Scan>) {
       state.totalCount = state.totalCount + 1;
       scansAdapter.setOne(state, action.payload);
     },
-    updateScan(state, action: PayloadAction<Partial<Scan>>) {
+    updateScanFromNotification(state, action: PayloadAction<Partial<Scan>>) {
       // const currentScan = scansSelector.selectById
       const { id, ...changes } = action.payload;
       if (id !== undefined) {
@@ -150,10 +150,10 @@ export const scansSlice = createSlice({
 
         state.status = 'complete';
         state.totalCount = totalCount;
-        scansAdapter.upsertMany(state, scans);
+        scansAdapter.setAll(state, scans);
       })
       .addCase(getScan.fulfilled, (state, action) => {
-        scansAdapter.upsertOne(state, action.payload);
+        scansAdapter.setOne(state, action.payload);
       })
       .addCase(getJobScans.fulfilled, (state, action) => {
         const scans = action.payload.scans;
@@ -231,6 +231,7 @@ export const scansByDateSelector = (
 
 export const totalCount = (state: RootState) => state.scans.totalCount;
 
-export const { setScan, updateScan } = scansSlice.actions;
+export const { createScanFromNotification, updateScanFromNotification } =
+  scansSlice.actions;
 
 export default scansSlice.reducer;

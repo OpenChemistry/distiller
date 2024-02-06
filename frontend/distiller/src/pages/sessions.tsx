@@ -34,7 +34,13 @@ import {
   microscopesState,
 } from '../features/microscopes';
 import { getJobScans } from '../features/scans';
-import { useUrlState } from '../routes/url-state';
+import {
+  useUrlState,
+  intDeserializer,
+  intSerializer,
+  dateTimeDeserializer,
+  dateTimeSerializer,
+} from '../routes/url-state';
 import {
   IdType,
   Job,
@@ -43,12 +49,6 @@ import {
   RunningJobStates,
 } from '../types';
 import { canRunJobs } from '../utils/machine';
-import {
-  dateTimeDeserializer,
-  dateTimeSerializer,
-  intDeserializer,
-  intSerializer,
-} from './scans';
 
 const DateChip: React.FC<{ date: string }> = ({ date }) => (
   <Chip

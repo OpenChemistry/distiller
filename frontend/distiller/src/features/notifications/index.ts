@@ -9,7 +9,10 @@ import {
 import { apiClient } from '../../client';
 import { setJob, updateJob } from '../jobs';
 import { updateMicroscope } from '../microscopes';
-import { setScan, updateScan } from '../scans';
+import {
+  createScanFromNotification,
+  updateScanFromNotification,
+} from '../scans';
 import {
   isJobSubmitEvent,
   isJobUpdatedEvent,
@@ -32,9 +35,9 @@ class NotificationHub {
 
       if (isScanCreatedEvent(msg)) {
         const scan = { ...msg, job_ids: [] };
-        dispatch(setScan(scan));
+        dispatch(createScanFromNotification(scan));
       } else if (isScanUpdatedEvent(msg)) {
-        dispatch(updateScan(msg));
+        dispatch(updateScanFromNotification(msg));
       } else if (isMicroscopeUpdatedEvent(msg)) {
         dispatch(updateMicroscope(msg));
       } else if (isJobSubmitEvent(msg)) {

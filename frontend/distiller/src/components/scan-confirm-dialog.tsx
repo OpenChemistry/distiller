@@ -73,11 +73,26 @@ const ScanConfirmDialog: React.FC<ScanConfirmDialogProps> = (props) => {
   // The id to use for confirmation
   const id = !isNil(scan.scan_id) ? scan.scan_id : scan.id;
 
+  const onKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
+    if (ev.key !== 'Enter') {
+      return;
+    }
+
+    if (id !== enteredScanID) {
+      return;
+    }
+
+    onConfirmClick();
+  };
+
   return (
     <Dialog
       open={scan !== null}
       onClose={onCancelClick}
       aria-labelledby="confirm-title"
+      // disableRestoreFocus ensures the autofocus on the text
+      // field works: https://github.com/mui/material-ui/issues/33004
+      disableRestoreFocus
     >
       <DialogTitleWarningText id="confirm-title">
         <WarningIcon />
@@ -96,8 +111,10 @@ const ScanConfirmDialog: React.FC<ScanConfirmDialogProps> = (props) => {
           label={idLabel}
           value={enteredScanID}
           onChange={(ev) => setEnteredScanID(parseInt(ev.target.value))}
+          onKeyDown={onKeyDown}
           type="number"
           variant="standard"
+          autoFocus
         />
       </DialogContent>
       <DialogActions>

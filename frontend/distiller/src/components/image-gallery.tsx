@@ -6,6 +6,7 @@ import { Scan } from '../types';
 import ImageDialog from './image-dialog';
 import { NoThumbnailImageIcon } from './no-thumbnail-image-icon';
 import { ThumbnailImage } from './thumbnail-image';
+import { ProtectedImage } from './protected-image';
 
 const ImageContainer = styled('div')({
   display: 'flex',
@@ -60,7 +61,9 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ scans }) => {
       <ImageContainer ref={containerRef}>
         {scans.slice(0, limit).map((scan) => {
           return scan.image_path ? (
-            <ThumbnailImage
+
+            <ProtectedImage
+              component={ThumbnailImage}
               key={scan.id}
               src={`${staticURL}${scan.image_path}`}
               alt="scan thumbnail"

@@ -74,7 +74,7 @@ export const connectNotifications = createAsyncThunk<void, ConnectPayload>(
     const { microscopeID } = payload;
 
     let ws: WebSocket = await apiClient.ws({
-      url: 'notifications',
+      path: 'notifications',
       params: { microscope_id: microscopeID },
     });
 

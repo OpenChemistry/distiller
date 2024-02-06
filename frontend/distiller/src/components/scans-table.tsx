@@ -29,6 +29,7 @@ import { NoThumbnailImageIcon } from './no-thumbnail-image-icon';
 import { ThumbnailImage } from './thumbnail-image';
 import EditableField from './editable-field';
 import LocationComponent from './location';
+import { ProtectedImage } from '../components/protected-image';
 
 type Props = {
   currentPage: number;
@@ -136,7 +137,8 @@ export const ScansTable: React.FC<Props> = (props) => {
                 </TableCell>
                 <TableImageCell>
                   {scan.image_path ? (
-                    <ThumbnailImage
+                    <ProtectedImage
+                      component={ThumbnailImage}
                       src={`${staticURL}${scan.image_path}`}
                       alt="scan thumbnail"
                       onClick={stopPropagation(() => onScanImageClick(scan))}

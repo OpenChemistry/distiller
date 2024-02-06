@@ -20,7 +20,7 @@ export function createJob(
 
   return apiClient
     .post({
-      url: 'jobs',
+      path: 'jobs',
       json: payload,
     })
     .then((res) => res.json());
@@ -52,7 +52,7 @@ export function getJobs(
 
   return apiClient
     .get({
-      url: 'jobs',
+      path: 'jobs',
       params,
     })
     .then((res) => {
@@ -79,7 +79,7 @@ export function getJobs(
 export function getJob(id: IdType): Promise<Job> {
   return apiClient
     .get({
-      url: `jobs/${id}`,
+      path: `jobs/${id}`,
     })
     .then((res) => {
       return res.json().then((job: Job) => {
@@ -99,7 +99,7 @@ export function getJobScans(id: IdType): Promise<Scan[]> {
 
   return apiClient
     .get({
-      url: `scans`,
+      path: `scans`,
       params,
     })
     .then((res) => res.json());
@@ -108,7 +108,7 @@ export function getJobScans(id: IdType): Promise<Scan[]> {
 export function patchJob(id: IdType, updates: Partial<Job>): Promise<Job> {
   return apiClient
     .patch({
-      url: `jobs/${id}`,
+      path: `jobs/${id}`,
       json: updates,
     })
     .then((res) => res.json());
@@ -117,7 +117,7 @@ export function patchJob(id: IdType, updates: Partial<Job>): Promise<Job> {
 export function cancelJob(id: IdType): Promise<Job> {
   return apiClient
     .put({
-      url: `jobs/${id}/cancel`,
+      path: `jobs/${id}/cancel`,
     })
     .then((res) => res.json());
 }

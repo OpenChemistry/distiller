@@ -4,7 +4,7 @@ import { Notebook } from '../../types';
 export function getNotebooks(): Promise<string[]> {
   return apiClient
     .get({
-      url: `notebooks`,
+      path: `notebooks`,
     })
     .then((res) => res.json());
 }
@@ -20,7 +20,7 @@ export function fetchOrCreateNotebook(
 
   return apiClient
     .post({
-      url: 'notebooks',
+      path: 'notebooks',
       json: payload,
     })
     .then((res) => res.json());

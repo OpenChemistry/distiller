@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Route, HashRouter, BrowserRouter, Routes } from 'react-router-dom';
 
 import { CssBaseline } from '@mui/material';
 import {
@@ -28,6 +28,14 @@ import {
 } from './routes';
 import DefaultMicroscope from './routes/default';
 import PrivateRoute from './routes/private';
+import { mockEndpoints } from './utils/mock';
+import { isStatic } from './utils';
+
+let Router = BrowserRouter;
+if (isStatic()) {
+  mockEndpoints();
+  Router = HashRouter;
+}
 
 const theme = createTheme();
 
@@ -58,7 +66,7 @@ const NavigationAndRoutes: React.FC = () => {
             path={`/:microscope/${SESSIONS}/:jobId/${SCANS}/:scanId`}
             element={
               <PrivateRoute>
-                <ScanPage />
+                <ScanPage mutable={!isStatic()} />
               </PrivateRoute>
             }
           />
@@ -66,7 +74,7 @@ const NavigationAndRoutes: React.FC = () => {
             path={`/:microscope/${SCANS}/:scanId`}
             element={
               <PrivateRoute>
-                <ScanPage />
+                <ScanPage mutable={!isStatic()} />
               </PrivateRoute>
             }
           />
@@ -74,7 +82,12 @@ const NavigationAndRoutes: React.FC = () => {
             path={`/:microscope/${SCANS}`}
             element={
               <PrivateRoute>
-                <ScansPage />
+                <ScansPage
+                  allowExport={!isStatic()}
+                  allowFilter={!isStatic()}
+                  showDiskUsage={!isStatic()}
+                  mutable={!isStatic()}
+                />
               </PrivateRoute>
             }
           />
@@ -82,7 +95,12 @@ const NavigationAndRoutes: React.FC = () => {
             path={`/:microscope/`}
             element={
               <PrivateRoute>
-                <ScansPage />
+                <ScansPage
+                  allowExport={!isStatic()}
+                  allowFilter={!isStatic()}
+                  showDiskUsage={!isStatic()}
+                  mutable={!isStatic()}
+                />
               </PrivateRoute>
             }
           />
@@ -119,7 +137,7 @@ function App() {
           <div className="app">
             <CssBaseline />
             <div className="header">
-              <HeaderComponent />
+              <HeaderComponent showLogin={!isStatic()} />
             </div>
             <NavigationAndRoutes />
             <div className="footer">

@@ -40,12 +40,12 @@ type Props = {
   selectedScanIDs: Set<IdType>;
   machineNames: string[];
   onScanClick: (scan: Scan) => void;
-  onScanDelete: (scan: Scan) => void;
+  onScanDelete?: (scan: Scan) => void;
   onScanImageClick: (scan: Scan) => void;
   onScanFilesDelete: (scan: Scan) => Promise<boolean>;
-  onSaveScanNotes: (scan: Scan, notes: string) => Promise<any>;
+  onSaveScanNotes?: (scan: Scan, notes: string) => Promise<any>;
   onSelectAll: (checked: boolean) => void;
-  onScanSelect: (scan: Scan) => void;
+  onScanSelect?: (scan: Scan) => void;
   onCurrentPageChange: (page: number) => void;
   onScansPerPageChange: (scansPerPage: number) => void;
 };
@@ -102,16 +102,18 @@ export const ScansTable: React.FC<Props> = (props) => {
         <Table aria-label="scans table">
           <TableHead>
             <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  indeterminate={
-                    selectedScanIDs.size > 0 &&
-                    selectedScanIDs.size < scansInCurrentPage.length
-                  }
-                  checked={selectedScanIDs.size === scansInCurrentPage.length}
-                  onChange={(_ev, checked) => onSelectAll(checked)}
-                />
-              </TableCell>
+              {onScanSelect && (
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    indeterminate={
+                      selectedScanIDs.size > 0 &&
+                      selectedScanIDs.size < scansInCurrentPage.length
+                    }
+                    checked={selectedScanIDs.size === scansInCurrentPage.length}
+                    onChange={(_ev, checked) => onSelectAll(checked)}
+                  />
+                </TableCell>
+              )}
               <TableImageCell></TableImageCell>
               <TableHeaderCell>ID</TableHeaderCell>
               {displayIDs && <TableHeaderCell>Scan ID</TableHeaderCell>}
@@ -128,13 +130,15 @@ export const ScansTable: React.FC<Props> = (props) => {
                 hover
                 onClick={(_ev) => onScanClick(scan)}
               >
-                <TableCell className="selectCheckbox" padding="checkbox">
-                  <Checkbox
-                    onClick={stopPropagation(() => onScanSelect(scan))}
-                    className="selectCheckbox"
-                    checked={selectedScanIDs.has(scan.id)}
-                  />
-                </TableCell>
+                {onScanSelect && (
+                  <TableCell className="selectCheckbox" padding="checkbox">
+                    <Checkbox
+                      onClick={stopPropagation(() => onScanSelect(scan))}
+                      className="selectCheckbox"
+                      checked={selectedScanIDs.has(scan.id)}
+                    />
+                  </TableCell>
+                )}
                 <TableImageCell>
                   {scan.image_path ? (
                     <ProtectedImage
@@ -152,7 +156,11 @@ export const ScansTable: React.FC<Props> = (props) => {
                 <TableNotesCell>
                   <EditableField
                     value={scan.notes || ''}
-                    onSave={(value) => onSaveScanNotes(scan, value)}
+                    onSave={
+                      onSaveScanNotes
+                        ? (value) => onSaveScanNotes(scan, value)
+                        : undefined
+                    }
                   />
                 </TableNotesCell>
                 <TableCell>
@@ -161,6 +169,7 @@ export const ScansTable: React.FC<Props> = (props) => {
                     scan={scan}
                     locations={scan.locations}
                     machines={machineNames}
+                    allowDeletion={!!onScanDelete}
                   />
                 </TableCell>
                 <TableCell>
@@ -181,29 +190,33 @@ export const ScansTable: React.FC<Props> = (props) => {
                     <CompleteIcon color="primary" />
                   )}
                 </TableProgressCell>
-                <TableCell align="right">
-                  <IconButton
-                    aria-label="delete"
-                    onClick={stopPropagation(() => onScanDelete(scan))}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
+                {onScanDelete && (
+                  <TableCell align="right">
+                    <IconButton
+                      aria-label="delete"
+                      onClick={stopPropagation(() => onScanDelete(scan))}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                )}
               </TableScanRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[10, 20, 100]}
-        component="div"
-        count={totalNumberOfScans}
-        rowsPerPage={scansPerPage}
-        page={currentPage}
-        onPageChange={(_ev, page) => onCurrentPageChange(page)}
-        onRowsPerPageChange={(ev) => onScansPerPageChange(+ev.target.value)}
-        labelRowsPerPage="Scans per page"
-      />
+      {totalNumberOfScans > scansPerPage && (
+        <TablePagination
+          rowsPerPageOptions={[10, 20, 100]}
+          component="div"
+          count={totalNumberOfScans}
+          rowsPerPage={scansPerPage}
+          page={currentPage}
+          onPageChange={(_ev, page) => onCurrentPageChange(page)}
+          onRowsPerPageChange={(ev) => onScansPerPageChange(+ev.target.value)}
+          labelRowsPerPage="Scans per page"
+        />
+      )}
     </React.Fragment>
   );
 };

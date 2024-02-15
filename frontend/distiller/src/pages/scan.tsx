@@ -88,8 +88,6 @@ const Spacer = styled('div')(({ theme }) => ({
   flexGrow: 1,
 }));
 
-type Props = {};
-
 function jobTypeToIcon(type: JobType) {
   if (type === JobType.Count) {
     return CountIcon;
@@ -100,7 +98,12 @@ function jobTypeToIcon(type: JobType) {
   }
 }
 
-const ScanPage: React.FC<Props> = () => {
+type ScanPageProps = {
+  mutable?: boolean;
+};
+
+const ScanPage: React.FC<ScanPageProps> = (props) => {
+  const { mutable = true } = props;
   const [maximizeImg, setMaximizeImg] = useState(false);
   const [notebookLoading, setNotebookLoading] = React.useState(false);
   const [notebookMenuAnchorEl, setNotebookMenuAnchorEl] =
@@ -301,6 +304,13 @@ const ScanPage: React.FC<Props> = () => {
     microscopePrefix = `/${canonicalName}`;
   }
 
+  // Special case for file: protocol (i.e. the static site mode), we need to add
+  // the the origin and hash to make the links as with the file protocol
+  // the origin is 'null',
+  if (window.location.protocol === 'file:') {
+    origin = `${window.location.origin}/${window.location.pathname}#`;
+  }
+
   return (
     <React.Fragment>
       <Breadcrumbs sx={{ mb: 2 }}>
@@ -309,7 +319,7 @@ const ScanPage: React.FC<Props> = () => {
           <Link
             underline="hover"
             color="inherit"
-            href={`${microscopePrefix}/sessions/`}
+            href={`${origin}${microscopePrefix}/sessions/`}
           >
             Sessions
           </Link>
@@ -319,7 +329,7 @@ const ScanPage: React.FC<Props> = () => {
           <Link
             underline="hover"
             color="inherit"
-            href={`${microscopePrefix}/sessions/`}
+            href={`${origin}${microscopePrefix}/sessions/`}
           >
             {jobId}
           </Link>
@@ -330,8 +340,8 @@ const ScanPage: React.FC<Props> = () => {
           color="inherit"
           href={
             jobId
-              ? `${microscopePrefix}/sessions/${jobId}`
-              : `${microscopePrefix}/scans`
+              ? `${origin}${microscopePrefix}/sessions/${jobId}`
+              : `${origin}${microscopePrefix}/scans`
           }
         >
           Scans
@@ -376,6 +386,7 @@ const ScanPage: React.FC<Props> = () => {
                         scan={scan}
                         locations={scan.locations}
                         machines={machineNames}
+                        allowDeletion={mutable}
                       />
                     </TableCell>
                   </TableRow>
@@ -418,108 +429,114 @@ const ScanPage: React.FC<Props> = () => {
                 <TableCell align="right">
                   <EditableField
                     value={scan.notes || ''}
-                    onSave={(value) => onSaveNotes(scan.id, value)}
+                    onSave={
+                      mutable
+                        ? (value) => onSaveNotes(scan.id, value)
+                        : undefined
+                    }
                   />
                 </TableCell>
               </TableRow>
             </TableBody>
           </Table>
         </CardContent>
-        <CardActions>
-          {actions.indexOf('transfer') !== -1 && (
-            <Button
-              onClick={onTransferClick}
-              size="small"
-              color="primary"
-              variant="outlined"
-              startIcon={<TransferIcon />}
-            >
-              Transfer
-            </Button>
-          )}
-          {actions.indexOf('count') !== -1 && (
-            <Button
-              onClick={onCountClick}
-              size="small"
-              color="primary"
-              variant="outlined"
-              startIcon={<CountIcon />}
-            >
-              Count
-            </Button>
-          )}
-          {notebooks && (
-            <Box sx={{ m: 1, position: 'relative' }}>
+        {actions.length !== 0 && (
+          <CardActions>
+            {actions.indexOf('transfer') !== -1 && (
               <Button
-                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                  setNotebookMenuAnchorEl(event.currentTarget);
-                }}
+                onClick={onTransferClick}
                 size="small"
                 color="primary"
                 variant="outlined"
-                startIcon={<TextSnippetOutlined />}
+                startIcon={<TransferIcon />}
               >
-                Launch notebook
+                Transfer
               </Button>
-              {notebookLoading && (
-                <CircularProgress
-                  size={24}
-                  sx={{
-                    color: 'primary',
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    marginTop: '-12px',
-                    marginLeft: '-12px',
-                  }}
-                />
-              )}
-              <Menu
-                anchorEl={notebookMenuAnchorEl}
-                open={showNotebookMenu}
-                onClose={() => {
-                  setNotebookMenuAnchorEl(null);
-                }}
-                MenuListProps={{
-                  'aria-labelledby': 'basic-button',
-                }}
+            )}
+            {actions.indexOf('count') !== -1 && (
+              <Button
+                onClick={onCountClick}
+                size="small"
+                color="primary"
+                variant="outlined"
+                startIcon={<CountIcon />}
               >
-                {notebooks.map((name: string) => {
-                  return (
-                    <MenuItem
-                      onClick={() => {
-                        onLaunchNotebook(name);
-                      }}
-                    >
-                      {name.toUpperCase()}
-                    </MenuItem>
-                  );
-                })}
-              </Menu>
-            </Box>
-          )}
-          <Spacer />
-          <Button
-            onClick={onNavigatePrev}
-            size="small"
-            color="primary"
-            variant="outlined"
-            startIcon={<LeftIcon />}
-            disabled={isNil(scan.prevScanId)}
-          >
-            Prev Scan
-          </Button>
-          <Button
-            onClick={onNavigateNext}
-            size="small"
-            color="primary"
-            variant="outlined"
-            endIcon={<RightIcon />}
-            disabled={isNil(scan.nextScanId)}
-          >
-            Next Scan
-          </Button>
-        </CardActions>
+                Count
+              </Button>
+            )}
+            {notebooks && (
+              <Box sx={{ m: 1, position: 'relative' }}>
+                <Button
+                  onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                    setNotebookMenuAnchorEl(event.currentTarget);
+                  }}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  startIcon={<TextSnippetOutlined />}
+                >
+                  Launch notebook
+                </Button>
+                {notebookLoading && (
+                  <CircularProgress
+                    size={24}
+                    sx={{
+                      color: 'primary',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      marginTop: '-12px',
+                      marginLeft: '-12px',
+                    }}
+                  />
+                )}
+                <Menu
+                  anchorEl={notebookMenuAnchorEl}
+                  open={showNotebookMenu}
+                  onClose={() => {
+                    setNotebookMenuAnchorEl(null);
+                  }}
+                  MenuListProps={{
+                    'aria-labelledby': 'basic-button',
+                  }}
+                >
+                  {notebooks.map((name: string) => {
+                    return (
+                      <MenuItem
+                        onClick={() => {
+                          onLaunchNotebook(name);
+                        }}
+                      >
+                        {name.toUpperCase()}
+                      </MenuItem>
+                    );
+                  })}
+                </Menu>
+              </Box>
+            )}
+            <Spacer />
+            <Button
+              onClick={onNavigatePrev}
+              size="small"
+              color="primary"
+              variant="outlined"
+              startIcon={<LeftIcon />}
+              disabled={isNil(scan.prevScanId)}
+            >
+              Prev Scan
+            </Button>
+            <Button
+              onClick={onNavigateNext}
+              size="small"
+              color="primary"
+              variant="outlined"
+              endIcon={<RightIcon />}
+              disabled={isNil(scan.nextScanId)}
+            >
+              Next Scan
+            </Button>
+          </CardActions>
+        )}
       </Card>
       {actions.length !== 0 && (
         <Card>

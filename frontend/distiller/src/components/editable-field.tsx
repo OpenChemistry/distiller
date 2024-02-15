@@ -5,10 +5,11 @@ import SaveIcon from '@mui/icons-material/Save';
 import { IconButton, TextField, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { stopPropagation } from '../utils';
+import { isUndefined } from 'lodash';
 
 type Props = {
   value: string;
-  onSave: (value: string) => Promise<any>;
+  onSave: ((value: string) => Promise<any>) | undefined;
 };
 
 const Container = styled('div')(({ theme }) => ({
@@ -39,15 +40,18 @@ const EditableField: React.FC<Props> = ({ value, onSave }) => {
 
   const onSaveClick = () => {
     setSaving(true);
-    onSave(draftValue)
-      .then(() => {
-        setSaving(false);
-        setEditing(false);
-      })
-      .catch(() => {
-        setSaving(false);
-        setError(true);
-      });
+
+    if (onSave !== undefined) {
+      onSave(draftValue)
+        .then(() => {
+          setSaving(false);
+          setEditing(false);
+        })
+        .catch(() => {
+          setSaving(false);
+          setError(true);
+        });
+    }
   };
 
   const onKeyPress = (ev: React.KeyboardEvent<Element>) => {
@@ -56,9 +60,11 @@ const EditableField: React.FC<Props> = ({ value, onSave }) => {
     }
   };
 
+  const allowEdit = !isUndefined(onSave);
+
   return (
     <Container>
-      {editing ? (
+      {allowEdit && editing ? (
         <React.Fragment>
           <Field
             value={draftValue}
@@ -80,9 +86,11 @@ const EditableField: React.FC<Props> = ({ value, onSave }) => {
       ) : (
         <React.Fragment>
           <FieldTypography>{value}</FieldTypography>
-          <IconButton onClick={stopPropagation(onEditClick)} size="large">
-            <EditIcon />
-          </IconButton>
+          {allowEdit && (
+            <IconButton onClick={stopPropagation(onEditClick)} size="large">
+              <EditIcon />
+            </IconButton>
+          )}
         </React.Fragment>
       )}
     </Container>

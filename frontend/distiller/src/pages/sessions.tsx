@@ -279,7 +279,6 @@ const SessionsPage: React.FC = () => {
                     showFilterBadge={
                       !isNil(startDateFilter) || !isNil(endDateFilter)
                     }
-                    showExportButton={false}
                   />
                 </Box>
               )}
@@ -307,7 +306,6 @@ const SessionsPage: React.FC = () => {
           onStartDate={onStartDate}
           onEndDate={onEndDate}
           showFilterBadge={!isNil(startDateFilter) || !isNil(endDateFilter)}
-          showExportButton={false}
         />
       )}
       <TablePagination

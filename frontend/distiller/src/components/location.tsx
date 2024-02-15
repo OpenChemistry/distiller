@@ -22,6 +22,7 @@ type Props = {
   locations: ScanLocation[];
   confirmRemoval: (scan: Scan) => Promise<boolean>;
   machines: string[];
+  allowDeletion?: boolean;
 };
 
 type UniqueLocation = {
@@ -33,6 +34,7 @@ type ChipProps = {
   scan: Scan;
   host: string;
   machines: string[];
+  allowDeletion?: boolean;
 
   confirmRemoval: (scan: Scan) => Promise<boolean>;
 };
@@ -42,9 +44,11 @@ const LocationChip: React.FC<ChipProps> = React.forwardRef<
   ChipProps
 >((props, ref) => {
   const dispatch = useAppDispatch();
-  const { scan, host, machines } = props;
+  const { scan, host, machines, allowDeletion = true } = props;
   const { confirmRemoval, ...otherProps } = props;
-  const [deletable, setDeletable] = React.useState(!isNil(scan.scan_id));
+  const [deletable, setDeletable] = React.useState(
+    !isNil(scan.scan_id) && allowDeletion,
+  );
 
   const onDelete = async () => {
     if (scan === undefined) {
@@ -110,7 +114,7 @@ const NoWrapTooltip = styled(({ className, ...props }: TooltipProps) => (
 });
 
 const LocationComponent: React.FC<Props> = (props, ref) => {
-  const { locations, machines } = props;
+  const { locations, machines, allowDeletion } = props;
   const uniqueLocations: UniqueLocation[] = Object.values(
     locations.reduce(
       (locs, location) => {
@@ -150,6 +154,7 @@ const LocationComponent: React.FC<Props> = (props, ref) => {
                 host={location.host}
                 confirmRemoval={props.confirmRemoval}
                 machines={machines}
+                allowDeletion={allowDeletion}
               />
             </NoWrapTooltip>
           </Grid>

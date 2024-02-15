@@ -30,6 +30,10 @@ import {
   dateTimeDeserializer,
   dateTimeSerializer,
 } from '../routes/url-state';
+import Handlebars from 'handlebars';
+import { getUser } from '../features/auth';
+import { getBlob } from '../client/blob';
+import { staticURL } from '../client';
 
 const bytesToSize = (bytes: number): string => {
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -42,9 +46,21 @@ const bytesToSize = (bytes: number): string => {
   return `${(bytes / 1024 ** i).toFixed(1)} ${sizes[i]}`;
 };
 
-export interface ScansPageProps {}
+export interface ScansPageProps {
+  allowExport?: boolean;
+  allowFilter?: boolean;
+  showDiskUsage?: boolean;
+  mutable?: boolean;
+}
 
-const ScansPage: React.FC<ScansPageProps> = () => {
+const ScansPage: React.FC<ScansPageProps> = (props) => {
+  const {
+    allowExport = true,
+    allowFilter = true,
+    showDiskUsage = true,
+    mutable = true,
+  } = props;
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const totalScans = useAppSelector(totalCount);
@@ -57,6 +73,7 @@ const ScansPage: React.FC<ScansPageProps> = () => {
   const machines = useAppSelector((state) =>
     machineSelectors.selectAll(machineState(state)),
   );
+  const user = useAppSelector(getUser);
   const machineNames = useMemo(
     () => machines.map((machine) => machine.name),
     [machines],
@@ -324,11 +341,55 @@ const ScansPage: React.FC<ScansPageProps> = () => {
     exportScans(csvContent, 'text/csv');
   };
 
+  const onExportHTML = async () => {
+    if (allowExport) {
+      // Template
+      const templateString = (
+        await import('../../templates/index.html.handlebars?raw')
+      ).default;
+
+      const template = Handlebars.compile(templateString);
+
+      const scans = await Promise.all(
+        selectedScans().map(async (scan: Scan) => {
+          // Embed images
+          if (scan.image_path) {
+            const image = await getBlob(`${staticURL}${scan.image_path}`);
+            const data = await new Promise((resolve, _) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.readAsDataURL(image);
+            });
+
+            return { ...scan, image_path: `data:${data}` };
+          }
+
+          return scan;
+        }),
+      );
+
+      const scopes = microscopes.map((microscope) => {
+        return { ...microscope, config: { actions: [] } };
+      });
+
+      const html = template({
+        scans: JSON.stringify(scans),
+        user: JSON.stringify(user),
+        microscopes: JSON.stringify(scopes),
+        machines: JSON.stringify(machines),
+      });
+
+      exportScans(html, 'text/html');
+    }
+  };
+
   const onExport = async (format: ExportFormat) => {
     if (format === ExportFormat.JSON) {
       onExportJSON();
     } else if (format === ExportFormat.CSV) {
       onExportCSV();
+    } else if (format == ExportFormat.HTML) {
+      onExportHTML();
     }
   };
 
@@ -392,7 +453,7 @@ const ScansPage: React.FC<ScansPageProps> = () => {
 
   return (
     <React.Fragment>
-      {disk_usage && (
+      {disk_usage && showDiskUsage && (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ minWidth: 105 }}>
             <Typography variant="body2" color="text.secondary">
@@ -415,9 +476,9 @@ const ScansPage: React.FC<ScansPageProps> = () => {
       <ScansToolbar
         startDate={startDateFilter}
         endDate={endDateFilter}
-        onStartDate={onStartDate}
-        onEndDate={onEndDate}
-        onExport={onExport}
+        onStartDate={allowFilter ? onStartDate : undefined}
+        onEndDate={allowFilter ? onEndDate : undefined}
+        onExport={allowExport ? onExport : undefined}
         showFilterBadge={!isNil(startDateFilter) || !isNil(endDateFilter)}
       />
       <ScansTableContainer
@@ -430,9 +491,10 @@ const ScansPage: React.FC<ScansPageProps> = () => {
         machineNames={machineNames}
         onScanClick={onScanClick}
         onSelectAll={onSelectAll}
-        onScanSelect={onScanSelect}
+        onScanSelect={allowExport ? onScanSelect : undefined}
         onCurrentPageChange={setPage}
         onScansPerPageChange={onScansPerPageChange}
+        mutable={mutable}
       />
     </React.Fragment>
   );

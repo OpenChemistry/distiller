@@ -64,7 +64,14 @@ import { getNotebooks, selectNotebooks } from '../features/notebooks';
 import { fetchOrCreateNotebook } from '../features/notebooks/api';
 import { getScan, patchScan, scansSelector } from '../features/scans';
 import { SCANS, SESSIONS } from '../routes';
-import { IdType, Job, JobType, Microscope, Scan } from '../types';
+import {
+  IdType,
+  Job,
+  JobType,
+  Microscope,
+  NotebookSpecification,
+  Scan,
+} from '../types';
 import { isNil, stopPropagation } from '../utils';
 import { canRunJobs } from '../utils/machine';
 import { canonicalMicroscopeName } from '../utils/microscopes';
@@ -234,7 +241,21 @@ const ScanPage: React.FC<Props> = () => {
     });
   };
 
-  const notebooks = useAppSelector((state) => selectNotebooks(state));
+  const notebookNames = useAppSelector((state) => {
+    const notebooks = selectNotebooks(state);
+
+    if (isNil(scan)) {
+      return null;
+    }
+
+    return notebooks
+      .filter(
+        (notebook) =>
+          isNil(notebook.microscopes) ||
+          notebook.microscopes.includes(scan.microscope_id),
+      )
+      .map((notebook) => notebook.name);
+  });
 
   const onNavigateNext = () => {
     if (microscope === null) {
@@ -448,7 +469,7 @@ const ScanPage: React.FC<Props> = () => {
               Count
             </Button>
           )}
-          {notebooks && (
+          {notebookNames && (
             <Box sx={{ m: 1, position: 'relative' }}>
               <Button
                 onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
@@ -484,7 +505,7 @@ const ScanPage: React.FC<Props> = () => {
                   'aria-labelledby': 'basic-button',
                 }}
               >
-                {notebooks.map((name: string) => {
+                {notebookNames.map((name: string) => {
                   return (
                     <MenuItem
                       onClick={() => {

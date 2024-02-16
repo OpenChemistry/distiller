@@ -1,7 +1,8 @@
+import { isNil } from 'lodash';
 import { apiClient } from '../../client';
-import { Notebook } from '../../types';
+import { IdType, Notebook, NotebookSpecification } from '../../types';
 
-export function getNotebooks(): Promise<string[]> {
+export function getNotebooks(): Promise<NotebookSpecification[]> {
   return apiClient
     .get({
       path: `notebooks`,

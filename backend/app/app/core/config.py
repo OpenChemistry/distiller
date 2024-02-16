@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
 
-from app.schemas import Machine
+from app.schemas import Machine, NotebookSpecification
 
 
 class Settings(BaseSettings):
@@ -72,7 +72,13 @@ class Settings(BaseSettings):
 
     MACHINES: List[Machine]
     NCEMHUB_PATH: str
-    NOTEBOOKS: List[str] = ["DPC", "vacuum_scan_prepare", "vacuum_scan_subtract"]
+    NOTEBOOKS: List[NotebookSpecification] = [
+        {"name": "DPC"},
+        {"name": "vacuum_scan_prepare"},
+        {"name": "vacuum_scan_subtract"},
+        {"name": "distiller_explorer-withCounted", "microscopes": ["4D Camera"]},
+        {"name": "distiller_explorer", "microscopes": ["TEAM 0.5"]},
+    ]
 
     class Config:
         case_sensitive = True

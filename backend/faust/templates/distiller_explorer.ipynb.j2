@@ -1,0 +1,148 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "eec32191-4473-4eff-a276-fb5f59a5ce45",
+   "metadata": {},
+   "source": [
+    "# Browse Distiller scans\n",
+    " - These are normal \"proprietary\" data files"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f81bff5c-2a40-44e2-8d70-65098c62666b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%matplotlib widget\n",
+    "\n",
+    "from pathlib import Path\n",
+    "\n",
+    "import matplotlib.pyplot as plt\n",
+    "from matplotlib.colors import LogNorm, PowerNorm\n",
+    "import numpy as np\n",
+    "import imageio\n",
+    "\n",
+    "import ncempy.io as nio\n",
+    "\n",
+    "import ipywidgets as widgets\n",
+    "from ipywidgets import interact, interactive\n",
+    "\n",
+    "distiller_path = Path('{{ settings.NCEMHUB_PATH }}') / 'scans'\n",
+    "types = ('.emd', '.ser', '.dm3', '.dm4')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0591f300-d332-442f-8528-7efea4e09e06",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Get all EMD files in dated scan directory\n",
+    "microscope = '{{ microscope }}'\n",
+    "date = Path('{{ scan_created_date }}')\n",
+    "\n",
+    "dir_path = distiller_path / microscope / date\n",
+    "files = []\n",
+    "for t in types:\n",
+    "    files.extend(list(dir_path.glob(f'**/*{t}')))\n",
+    "\n",
+    "scanid_tree = {}\n",
+    "for file in sorted(files):\n",
+    "    scanid_tree[file.parent.stem] = file\n",
+    "print(f'found {len(scanid_tree)} files in:\\n{dir_path}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "7640e57d-5b56-4a58-9076-04e7080979e8",
+   "metadata": {
+    "tags": []
+   },
+   "source": [
+    "# Interactive data selection widget"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "31e53931-4f15-48a0-a3ee-a7f114c46f1c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fg1, ax1 = plt.subplots(1,1,figsize=(8,8))\n",
+    "\n",
+    "# Updates the plot\n",
+    "def axUpdate(scanid):\n",
+    "    data = nio.read(scanid_tree[str(scanid)])\n",
+    "    if data['data'].ndim == 2:\n",
+    "        ax1.cla() # slow but need to clear axis every time\n",
+    "        imax1 = ax1.imshow(data['data'])\n",
+    "        fovX = data['pixelSize'][0]*data['data'].shape[0]\n",
+    "        fovY = data['pixelSize'][1]*data['data'].shape[1]\n",
+    "        imax1.set_extent((0,fovX,fovY,0))\n",
+    "        ax1.set(xlabel='X ({})'.format(data['pixelUnit'][0]), ylabel='Y ({})'.format(data['pixelUnit'][1]))\n",
+    "        fname = Path(data['filename'])\n",
+    "        ax1.set(title=f'{fname.name}')\n",
+    "        print('')\n",
+    "    else:\n",
+    "        print('scanid {} is 3D data but only first image shown.'.format(scanid))\n",
+    "        ax1.cla()\n",
+    "        imax1 = ax1.imshow(data['data'][0])\n",
+    "\n",
+    "# Create the box to update the plot\n",
+    "w = interactive(axUpdate, scanid=scanid_tree.keys())\n",
+    "display(w)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d9265243-49c2-46f7-ae5e-bceb769ed5ce",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Open a specific file\n",
+    "data = nio.emd.emdReader(scanid_tree['5934'])\n",
+    "print(data['filename'])\n",
+    "fg,ax = plt.subplots(1,1)\n",
+    "fovX = data['pixelSize'][0]*data['data'].shape[0]\n",
+    "fovY = data['pixelSize'][1]*data['data'].shape[1]\n",
+    "ax.imshow(data['data'], extent=[0,fovX,0,fovY],origin='lower')\n",
+    "ax.set(xlabel='X ({})'.format(data['pixelUnit'][0]), ylabel='Y ({})'.format(data['pixelUnit'][1]));\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0a709223-b582-41ab-9f51-ab00ae4440a8",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "stempy-jupyterlab",
+   "language": "python",
+   "name": "stempy-jupyterlab"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.17"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

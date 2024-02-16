@@ -1,9 +1,10 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import { getNotebooks as getNotebooksAPI } from './api';
+import { IdType, NotebookSpecification } from '../../types';
 
 export interface NotebooksState {
-  notebooks: string[];
+  notebooks: NotebookSpecification[];
   status: 'pending' | 'error' | 'loading' | 'complete';
 }
 
@@ -12,7 +13,7 @@ const initialState: NotebooksState = {
   status: 'pending',
 };
 
-export const getNotebooks = createAsyncThunk<string[]>(
+export const getNotebooks = createAsyncThunk<NotebookSpecification[]>(
   'notebooks/fetch',
   async (_payload, _thunkAPI) => {
     const result = await getNotebooksAPI();

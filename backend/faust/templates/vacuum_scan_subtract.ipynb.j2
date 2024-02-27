@@ -111,8 +111,9 @@
    "metadata": {},
    "source": [
     "# Load the output from the vacuum scan subtraction\n",
-    " - This is output from the vacuum_scan_prepare.ipynb\n",
-    " - The user must enter the scan_id and scan_number of the vacuum subtraction data"
+    " - This is output from the vacuum_scan_prepare.ipynb notebook\n",
+    " - The user must enter the scan_id and scan_number of the vacuum subtraction data\n",
+    " - The vacuum scan's metadata (if available) is checked to ensure the scan is compatible"
    ]
   },
   {
@@ -122,8 +123,25 @@
    "outputs": [],
    "source": [
     "# Load the offsets for the vacuum scan subtraction\n",
-    "vacuum_scan_id = 9918\n",
-    "vacuum_scan_num = 671\n",
+    "vacuum_scan_id = 14943\n",
+    "vacuum_scan_num = 20\n",
+    "\n",
+    "# Load the Vacuum HAADF and check metadata (if available)\n",
+    "vacuum_haadf_path = distiller_path / Path('dm4') / Path(date) / Path(f'scan{vacuum_scan_num}.dm4')\n",
+    "\n",
+    "if vacuum_haadf_path.exists():\n",
+    "    with ncempy.io.dm.fileDM(vacuum_haadf_path) as f0:\n",
+    "        vacuum_md = f0.getMetadata(0)\n",
+    "        vacuum_camera_length = md['Microscope Info STEM Camera Length']\n",
+    "        vacuum_stem_magnification = md['Microscope Info Indicated Magnification']\n",
+    "    if vacuum_camera_length != camera_length:\n",
+    "        print(f'Vacuum camera length = {camera_length} mm')\n",
+    "        raise UserWarning('camera lengths do not match')\n",
+    "    if vacuum_stem_magnification != stem_magnification:\n",
+    "        print(f'Vacuum STEM magnification = {stem_magnification} kx')\n",
+    "        raise UserWarning('STEM magnifications do not match')\n",
+    "else:\n",
+    "    print('No Vacuum HAADF available')\n",
     "\n",
     "offsets_path, vacuum_scan_num, vacuum_scan_id = get_scan_path(\n",
     "    distiller_path / Path(\"counted\") / Path(date),\n",

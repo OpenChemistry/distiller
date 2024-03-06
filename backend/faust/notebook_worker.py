@@ -8,8 +8,8 @@ from aiopath import AsyncPath
 import faust
 from config import settings
 from constants import DATE_DIR_FORMAT, TOPIC_NOTEBOOK_EVENTS
-from schemas import Scan
-from utils import get_scan
+from schemas import Scan, Microscope
+from utils import get_scan, get_microscope_by_id
 
 # Setup logger
 logger = logging.getLogger("notebook_worker")
@@ -35,7 +35,7 @@ notebook_create_events_topic = app.topic(
 
 
 async def render_notebook(
-    scan: Scan, notebook_name: str, scan_created_date: str
+    scan: Scan, microscope: Microscope, notebook_name: str
 ) -> str:
     template_loader = jinja2.FileSystemLoader(
         searchpath=Path(__file__).parent / "templates"
@@ -43,15 +43,19 @@ async def render_notebook(
     template_env = jinja2.Environment(loader=template_loader, enable_async=True)
     template = template_env.get_template(f"{notebook_name}.ipynb.j2")
 
+    scan_created_date = scan.created.astimezone().strftime(DATE_DIR_FORMAT)
+    # Generate the canonical name for the microscope
+    microscope_name = microscope.name.lower().replace(" ", "")
+
     return await template.render_async(
-        settings=settings, scan=scan, scan_created_date=scan_created_date
+        settings=settings, scan=scan, scan_created_date=scan_created_date, microscope=microscope_name
     )
 
 
-async def generate_notebook(scan: Scan, notebook_name: str, notebook_path: AsyncPath):
+async def generate_notebook(scan: Scan, microscope: Microscope, notebook_name: str, notebook_path: AsyncPath):
     await notebook_path.parent.mkdir(parents=True, exist_ok=True)
-    scan_created_date = scan.created.astimezone().strftime(DATE_DIR_FORMAT)
-    notebook_contents = await render_notebook(scan, notebook_name, scan_created_date)
+
+    notebook_contents = await render_notebook(scan, microscope, notebook_name)
     async with notebook_path.open("w") as fp:
         await fp.write(notebook_contents)
 
@@ -62,10 +66,11 @@ async def process_notebook_create_event(
     session: aiohttp.ClientSession, event: NotebookCreateEvent
 ):
     scan = await get_scan(session, event.scan_id)
+    microscope = await get_microscope_by_id(session, scan.microscope_id)
     notebook_path = AsyncPath(event.path)
 
     if not await notebook_path.exists():
-        await generate_notebook(scan, event.name, notebook_path)
+        await generate_notebook(scan, microscope, event.name, notebook_path)
 
 
 @app.agent(notebook_create_events_topic)

@@ -151,3 +151,8 @@ export type Notebook = {
   path: string;
   scan_id: number;
 };
+
+export type NotebookSpecification = {
+  name: string;
+  microscopes: IdType[] | null;
+};

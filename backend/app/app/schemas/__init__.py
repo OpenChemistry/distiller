@@ -5,7 +5,8 @@ from .job import Job, JobCreate, JobType, JobUpdate
 from .jwt import Token, TokenData
 from .machine import Machine
 from .microscope import Microscope, MicroscopeUpdate, MicroscopeUpdateEvent
-from .notebook import Notebook, NotebookCreate, NotebookCreateEvent
+from .notebook import (Notebook, NotebookCreate, NotebookCreateEvent,
+                       NotebookSpecification, NotebookSpecificationResponse)
 from .scan import (Location, LocationCreate, Scan, Scan4DCreate,
                    ScanCreatedEvent, ScanFromFile, ScanFromFileMetadata,
                    ScanState, ScanUpdate, ScanUpdateEvent)

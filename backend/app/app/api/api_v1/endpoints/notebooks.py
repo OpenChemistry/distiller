@@ -1,4 +1,5 @@
 import asyncio
+from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import List
 
@@ -13,7 +14,8 @@ from app.crud import microscope as microscope_crud
 from app.crud import scan as scan_crud
 from app.kafka.producer import send_notebook_event_to_kafka
 from app.models import Scan
-from app.schemas import Notebook, NotebookCreate, NotebookCreateEvent, Scan
+from app.schemas import (Notebook, NotebookCreate, NotebookCreateEvent,
+                         NotebookSpecificationResponse, Scan)
 
 router = APIRouter()
 
@@ -87,10 +89,27 @@ async def create_notebook(notebook: NotebookCreate, db: Session = Depends(get_db
         )
 
 
+notebooks = None
+
+
 @router.get(
     "",
-    response_model=List[str],
+    response_model=List[NotebookSpecificationResponse],
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
-def read_notebooks():
-    return settings.NOTEBOOKS
+def read_notebooks(db: Session = Depends(get_db)):
+    global notebooks
+    if notebooks is None:
+        notebooks = deepcopy(settings.NOTEBOOKS)
+        # convert microscope names to ids
+        for n in notebooks:
+            if n.microscopes is None:
+                continue
+
+            microscopeIds = []
+            for name in n.microscopes:
+                [microscope] = microscope_crud.get_microscopes(db, name)
+                microscopeIds.append(microscope.id)
+            n.microscopes = microscopeIds
+
+    return notebooks

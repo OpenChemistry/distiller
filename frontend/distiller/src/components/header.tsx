@@ -24,7 +24,12 @@ const Title = styled('img')(({ theme }) => ({
   flexGrow: 1,
 }));
 
-const HeaderComponent: React.FC = () => {
+type Props = {
+  showLogin?: boolean;
+};
+
+const HeaderComponent: React.FC<Props> = (props) => {
+  const { showLogin = true } = props;
   const authenticated = useAppSelector(isAuthenticated);
 
   const location: any = useLocation();
@@ -66,12 +71,16 @@ const HeaderComponent: React.FC = () => {
           </Typography>
         )}
         <Title />
-        {authenticated ? (
-          <IconButton onClick={onUserClick} size="large">
-            <UserIcon />
-          </IconButton>
-        ) : (
-          <Button onClick={onUserClick}>Log In</Button>
+        {showLogin && (
+          <React.Fragment>
+            {authenticated ? (
+              <IconButton onClick={onUserClick} size="large">
+                <UserIcon />
+              </IconButton>
+            ) : (
+              <Button onClick={onUserClick}>Log In</Button>
+            )}
+          </React.Fragment>
         )}
       </Toolbar>
     </AppBar>

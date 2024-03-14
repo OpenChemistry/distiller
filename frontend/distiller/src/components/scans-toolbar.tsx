@@ -129,6 +129,11 @@ const ExportMenu: React.FC<ExportMenuProps> = (props) => {
     onClose();
   };
 
+  const exportAsHTML = () => {
+    onExport(ExportFormat.HTML);
+    onClose();
+  };
+
   return (
     <Menu
       id="basic-menu"
@@ -149,6 +154,7 @@ const ExportMenu: React.FC<ExportMenuProps> = (props) => {
     >
       <MenuItem onClick={exportAsJSON}>Download scans as JSON</MenuItem>
       <MenuItem onClick={exportAsCSV}>Download scans as CSV</MenuItem>
+      <MenuItem onClick={exportAsHTML}>Download scans as HTML</MenuItem>
     </Menu>
   );
 };
@@ -156,11 +162,10 @@ const ExportMenu: React.FC<ExportMenuProps> = (props) => {
 type ScansToolbarProps = {
   startDate: DateTime | null;
   endDate: DateTime | null;
-  onStartDate: (date: DateTime | null) => void;
-  onEndDate: (date: DateTime | null) => void;
+  onStartDate?: (date: DateTime | null) => void;
+  onEndDate?: (date: DateTime | null) => void;
   onExport?: (format: ExportFormat) => void;
   showFilterBadge: boolean;
-  showExportButton?: boolean;
 };
 
 export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
@@ -177,7 +182,6 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
     onExport,
     onStartDate,
     onEndDate,
-    showExportButton = true,
   } = props;
 
   const onFilterClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -196,6 +200,8 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
     setExportAnchorEl(null);
   };
 
+  const showFilter = onStartDate !== undefined && onEndDate !== undefined;
+
   return (
     <Toolbar
       sx={{
@@ -205,7 +211,7 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
         justifyContent: 'flex-end',
       }}
     >
-      {showExportButton && onExport && (
+      {onExport && (
         <Box pr={1}>
           <Tooltip title="Export Scans">
             <Button
@@ -219,32 +225,40 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
           </Tooltip>
         </Box>
       )}
-      <Box>
-        <Tooltip title="Filter Scans">
-          <Button
-            onClick={onFilterClick}
-            size="small"
-            color="primary"
-            startIcon={
-              <Badge color="primary" variant="dot" invisible={!showFilterBadge}>
-                <FilterListIcon />
-              </Badge>
-            }
-          >
-            Filter
-          </Button>
-        </Tooltip>
-      </Box>
+      {showFilter && (
+        <Box>
+          <Tooltip title="Filter Scans">
+            <Button
+              onClick={onFilterClick}
+              size="small"
+              color="primary"
+              startIcon={
+                <Badge
+                  color="primary"
+                  variant="dot"
+                  invisible={!showFilterBadge}
+                >
+                  <FilterListIcon />
+                </Badge>
+              }
+            >
+              Filter
+            </Button>
+          </Tooltip>
+        </Box>
+      )}
 
-      <FilterPopover
-        anchorEl={filterAnchorEl}
-        onClose={onFilterClose}
-        startDate={startDate}
-        endDate={endDate}
-        onStartDate={onStartDate}
-        onEndDate={onEndDate}
-      />
-      {showExportButton && onExport && (
+      {showFilter && (
+        <FilterPopover
+          anchorEl={filterAnchorEl}
+          onClose={onFilterClose}
+          startDate={startDate}
+          endDate={endDate}
+          onStartDate={onStartDate}
+          onEndDate={onEndDate}
+        />
+      )}
+      {onExport && (
         <ExportMenu
           anchorEl={exportAnchorEl}
           onClose={onExportClose}

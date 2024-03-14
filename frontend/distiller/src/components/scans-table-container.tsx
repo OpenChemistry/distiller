@@ -25,9 +25,10 @@ type Props = {
   machineNames: string[];
   onScanClick: (scan: Scan) => void;
   onSelectAll: (checked: boolean) => void;
-  onScanSelect: (scan: Scan) => void;
+  onScanSelect?: (scan: Scan) => void;
   onCurrentPageChange: (page: number) => void;
   onScansPerPageChange: (scansPerPage: number) => void;
+  mutable?: boolean;
 };
 
 export const ScansTableContainer: React.FC<Props> = (props) => {
@@ -44,6 +45,7 @@ export const ScansTableContainer: React.FC<Props> = (props) => {
     onScanSelect,
     onCurrentPageChange,
     onScansPerPageChange,
+    mutable = true,
   } = props;
 
   const dispatch = useAppDispatch();
@@ -122,10 +124,10 @@ export const ScansTableContainer: React.FC<Props> = (props) => {
         selectedScanIDs={selectedScanIDs}
         machineNames={machineNames}
         onScanClick={onScanClick}
-        onScanDelete={onScanDelete}
+        onScanDelete={mutable ? onScanDelete : undefined}
         onScanImageClick={onScanImageClick}
         onScanFilesDelete={onScanFilesDelete}
-        onSaveScanNotes={onSaveScanNotes}
+        onSaveScanNotes={mutable ? onSaveScanNotes : undefined}
         onSelectAll={onSelectAll}
         onScanSelect={onScanSelect}
         onCurrentPageChange={onCurrentPageChange}

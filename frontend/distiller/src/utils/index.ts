@@ -1,3 +1,4 @@
+import { isUndefined } from 'lodash';
 import React from 'react';
 
 export function stopPropagation(fn: (ev: React.MouseEvent) => void) {
@@ -26,3 +27,5 @@ export function pickNil<T, N extends undefined | null>(
     return val;
   }
 }
+
+export const isStatic = () => !isUndefined(import.meta.env.VITE_STATIC);

@@ -137,6 +137,7 @@ export type DarkfieldCorrection = {
 export enum ExportFormat {
   JSON = 'json',
   CSV = 'csv',
+  HTML = 'html',
 }
 
 export type Microscope = {

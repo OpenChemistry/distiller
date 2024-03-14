@@ -19,6 +19,7 @@ import {
   getUser as getUserAPI,
   refreshToken as refreshTokenAPI,
 } from './api';
+import { isStatic } from '../../utils';
 
 export interface AuthState {
   user?: User;
@@ -137,8 +138,14 @@ export const restoreSession = createAsyncThunk<User, void>(
 
     await refreshToken(true, thunkAPI.dispatch, controller.signal);
     const microscopes = await dispatch(getMicroscopes()).unwrap();
-    const microscopeID = getMicroscopeID(microscopes, window.location.pathname);
-    dispatch(connectNotifications({ microscopeID }));
+    // Only connect notifications if not in static mode
+    if (!isStatic()) {
+      const microscopeID = getMicroscopeID(
+        microscopes,
+        window.location.pathname,
+      );
+      dispatch(connectNotifications({ microscopeID }));
+    }
     dispatch(getMachines());
 
     const user = await getUserAPI();

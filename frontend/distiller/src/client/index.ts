@@ -206,7 +206,9 @@ export class ThrottledApiClient extends ApiClient implements IApiClient {
 export const apiURL =
   import.meta.env.VITE_API_URL || `${window.location.origin}/api/v1`;
 export const staticURL =
-  import.meta.env.VITE_STATIC_URL || window.location.origin;
+  import.meta.env.VITE_STATIC_URL !== undefined
+    ? import.meta.env.VITE_STATIC_URL
+    : window.location.origin;
 
 const apiClient: IApiClient = new ApiClient();
 apiClient.setBaseURL(apiURL);

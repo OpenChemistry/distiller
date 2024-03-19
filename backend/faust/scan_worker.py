@@ -70,10 +70,19 @@ class ScanStatus(faust.Record, coerce=True):
     created: Optional[str] = None
     uuid: Optional[str] = None
     host: Optional[str] = None
-    paths: List[str] = []
+    paths: List[str] = None
     # map of path to progress for receiver
-    progress_by_path: Dict[str, int] = {}
+    progress_by_path: Dict[str, int] = None
     modified: Optional[datetime] = None
+
+    # We have to initialize the list and dict in __post_init__ as unlike
+    # pydantic, faust does not deal with mutable default values!
+    def __post_init__(self):
+        if self.paths is None:
+            self.paths = []
+
+        if self.progress_by_path is None:
+            self.progress_by_path = {}
 
     def progress(self):
         try:

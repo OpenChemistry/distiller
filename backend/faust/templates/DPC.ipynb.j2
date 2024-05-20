@@ -64,8 +64,7 @@
     "    print('No HAADF available')\n",
     "\n",
     "# Load the sparse 4D Camera dataset\n",
-    "sp = stio.SparseArray.from_hdf5(scan_path)\n",
-    "sp = sp[:, :-1, :, :] # remove the fly back column\n",
+    "sp = stio.SparseArray.from_hdf5(scan_path, keep_flyback=False)\n",
     "\n",
     "# Calculate number of electrons per pattern\n",
     "avg_elec = sp.sum(axis=(2, 3)).sum() / (sp.num_scans * sp.num_frames_per_scan)\n",
@@ -107,7 +106,7 @@
    "outputs": [],
    "source": [
     "# Calculate a virtual bright field and dark field\n",
-    "inner_angles = (0, 282) # in pixels\n",
+    "inner_angles = (0, 255) # in pixels\n",
     "outer_angles = (75, 288)\n",
     "\n",
     "ims = stim.create_stem_images(sp, inner_angles, outer_angles, center=center) # here center is (col, row)\n",
@@ -128,14 +127,14 @@
    "outputs": [],
    "source": [
     "# Calculate the center of mass (COM) of every frame\n",
-    "crop_to = (185, 185) # set to just outside the bright field disk\n",
+    "crop_to = (255, 255) # set to just outside the bright field disk\n",
     "print('Crop to: {} pixels from center'.format(crop_to))\n",
     "\n",
     "com = stim.com_sparse(sp, crop_to=crop_to, init_center=center)\n",
     "\n",
     "# Find the stats for plotting\n",
     "com_mean = np.mean(com, axis=(1, 2))\n",
-    "com_std = np.std(com,axis=(1, 2))\n",
+    "com_std = np.std(com, axis=(1, 2))\n",
     "\n",
     "fg,ax = plt.subplots(1,2,sharex=True,sharey=True)\n",
     "axim0 = ax[0].imshow(com[0,], cmap='bwr', vmin=com_mean[0]-com_std[0], vmax=com_mean[0]+com_std[0],interpolation='none')\n",
@@ -148,7 +147,22 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "metadata": {},
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "np.com_r\n",
+    "plt.figure()\n",
+    "plt.hist(com_r.ravel(),log=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "tags": []
+   },
    "outputs": [],
    "source": [
     "# Calculate the radius and angle for each COM measurement\n",
@@ -156,7 +170,7 @@
     "com_theta = np.arctan2((com[1,] - com_mean[1]), (com[0,] - com_mean[0]))\n",
     "\n",
     "fg,ax = plt.subplots(1, 2, sharex=True, sharey=True)\n",
-    "ax[0].imshow(com_r / np.std(com_r), cmap='magma')\n",
+    "ax[0].imshow(com_r, cmap='magma',vmin=com_r[10:-10,10:-10].min(),vmax=com_r[10:-10,10:-10].max(),interpolation='none')\n",
     "ax[1].imshow(com_theta, cmap='twilight', interpolation='none')\n",
     "fg.suptitle('scan {}'.format(scan_num))\n",
     "ax[0].set(title='COM_r')\n",
@@ -185,8 +199,8 @@
    "outputs": [],
    "source": [
     "flip = True\n",
-    "theta = -14 * np.pi / 180. # rotation between diffraction and real space scan directions\n",
-    "reg = .08 # regularization parameter\n",
+    "theta = -9 * np.pi / 180. # rotation between diffraction and real space scan directions\n",
+    "reg = .1 # regularization parameter\n",
     "\n",
     "# Calculate the phase\n",
     "ph = stim.phase_from_com(com, flip=flip, theta=theta, reg=reg)\n",

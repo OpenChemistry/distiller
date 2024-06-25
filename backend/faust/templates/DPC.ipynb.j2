@@ -20,7 +20,7 @@
     "import matplotlib.pyplot as plt\n",
     "from matplotlib.colors import LogNorm, PowerNorm\n",
     "import numpy as np\n",
-    "import imageio\n",
+    "import imageio.v3 as iio\n",
     "\n",
     "import ncempy\n",
     "\n",
@@ -152,19 +152,6 @@
    },
    "outputs": [],
    "source": [
-    "np.com_r\n",
-    "plt.figure()\n",
-    "plt.hist(com_r.ravel(),log=True)"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {
-    "tags": []
-   },
-   "outputs": [],
-   "source": [
     "# Calculate the radius and angle for each COM measurement\n",
     "com_r = np.sqrt( (com[0,] - com_mean[0])**2 + (com[1,] - com_mean[1])**2 )\n",
     "com_theta = np.arctan2((com[1,] - com_mean[1]), (com[0,] - com_mean[0]))\n",
@@ -231,11 +218,11 @@
     "# Save the DPC, COM_x, COM_y, BF, and ADF as Tifs with the raw data\n",
     "print('Saving COM and DPC for scan number {}'.format(scan_num))\n",
     "scan_path_no_suffix = str(scan_path.parent / scan_path.stem)\n",
-    "imageio.imwrite(Path(scan_path_no_suffix + '_DPC').with_suffix('.tif'), ph.astype(np.float32))\n",
-    "imageio.imwrite(Path(scan_path_no_suffix + '_comx').with_suffix('.tif'), com[0,].astype(np.float32))\n",
-    "imageio.imwrite(Path(scan_path_no_suffix + '_comy').with_suffix('.tif'), com[1,].astype(np.float32))\n",
-    "imageio.imwrite(Path(scan_path_no_suffix + '_BF').with_suffix('.tif'), bf.astype(np.float32))\n",
-    "imageio.imwrite(Path(scan_path_no_suffix + '_ADF').with_suffix('.tif'), adf.astype(np.float32))\n",
+    "iio.imwrite(Path(scan_path_no_suffix + '_DPC').with_suffix('.tif'), ph.astype(np.float32))\n",
+    "iio.imwrite(Path(scan_path_no_suffix + '_comx').with_suffix('.tif'), com[0,].astype(np.float32))\n",
+    "iio.imwrite(Path(scan_path_no_suffix + '_comy').with_suffix('.tif'), com[1,].astype(np.float32))\n",
+    "iio.imwrite(Path(scan_path_no_suffix + '_BF').with_suffix('.tif'), bf.astype(np.float32))\n",
+    "iio.imwrite(Path(scan_path_no_suffix + '_ADF').with_suffix('.tif'), adf.astype(np.float32))\n",
     "print(Path(scan_path_no_suffix + '_DPC').with_suffix('.tif'))"
    ]
   },

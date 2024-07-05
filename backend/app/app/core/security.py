@@ -3,7 +3,8 @@ from typing import Any, Optional, Union
 
 from fastapi import HTTPException, Request, status
 from fastapi.staticfiles import StaticFiles
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 
 from app.api.deps import oauth2_scheme
@@ -39,7 +40,7 @@ async def verify_token(request: Request):
 
     try:
         jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-    except JWTError as jwt_error:
+    except InvalidTokenError as jwt_error:
         logger.exception(jwt_error)
         raise unauthorized
 

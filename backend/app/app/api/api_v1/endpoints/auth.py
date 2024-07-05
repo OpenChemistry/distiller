@@ -3,7 +3,8 @@ from typing import Optional
 
 from fastapi import (APIRouter, Depends, HTTPException, Request, Response,
                      status)
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -104,7 +105,7 @@ async def refresh_token(request: Request, db: Session = Depends(get_db)):
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-    except JWTError:
+    except InvalidTokenError:
         raise credentials_exception
     user = crud.get_user(db, username=username)
     if user is None:

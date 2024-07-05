@@ -3,7 +3,8 @@ from typing import Generator
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.security.api_key import APIKeyCookie, APIKeyHeader, APIKeyQuery
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_403_FORBIDDEN
 
@@ -68,7 +69,7 @@ async def get_current_user(
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
-    except JWTError:
+    except InvalidTokenError:
         raise credentials_exception
     user = crud.get_user(db, username=token_data.username)
     if user is None:

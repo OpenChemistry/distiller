@@ -1,7 +1,7 @@
 uvicorn[standard]
 fastapi
 python-multipart
-python-jose[cryptography]
+pyjwt[crypto]
 passlib[bcrypt]
 sqlalchemy
 pydantic[dotenv]

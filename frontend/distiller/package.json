@@ -20,7 +20,7 @@
     "@types/react-dom": "^18.2.19",
     "@types/react-redux": "^7.1.33",
     "@types/react-router-dom": "^5.3.3",
-    "fetch-mock": "^9.11.0",
+    "fetch-mock": "^10.0.8",
     "handlebars": "^4.7.8",
     "humanize-duration": "^3.32.1",
     "lodash": "^4.17.21",

@@ -35,6 +35,7 @@ async def start():
         bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
         value_serializer=serializer,
         enable_idempotence=True,
+        max_request_size=5242880, # 5MB
     )
     await producer.start()
 

@@ -281,7 +281,7 @@ async def submit_job(machine: str, batch_submit_file: str) -> int:
 
 
 async def cancel_job(machine: str, slurm_id: str) -> None:
-    logger.info("Trying to cancel job: ", slurm_id, " on machine: ", machine, " ...")
+    logger.info("Trying to cancel job: %s  on machine: %s ...", slurm_id, machine)
     r = await sfapi_delete(f"compute/jobs/{machine}/{slurm_id}")
     r.raise_for_status()
 

@@ -413,7 +413,10 @@ async def remove_scan(id: int, host: str, db: Session = Depends(get_db)):
     db_scan = crud.get_scan(db, id=id)
     scan_updated_event = schemas.ScanUpdateEvent(id=id)
     if db_scan is not None:
-        scan_updated_event.locations = db_scan.locations
+        scan_updated_event.locations = [
+            schemas.scan.Location.from_orm(l) for l in db_scan.locations
+        ]
+
         await send_scan_event_to_kafka(scan_updated_event)
 
 

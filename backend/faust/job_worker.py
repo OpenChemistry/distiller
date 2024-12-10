@@ -452,8 +452,8 @@ def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
         )
         submit = job["submit"]
         _submit = datetime.strptime(submit, settings.SFAPI_SUBMIT_TIME_FORMAT)
-        tz = pytz.timezone(settings.SFAPI_TZ)
-        submit = tz.localize(_submit)
+        # tz = pytz.timezone(settings.SFAPI_TZ)
+        # submit = tz.localize(_submit)
 
         jobs.append(
             SfapiJob(
@@ -462,7 +462,7 @@ def extract_jobs(sfapi_response: dict) -> List[SfapiJob]:
                 name=job["jobname"],
                 slurm_id=int(job["jobid"]),
                 elapsed=elapsed,
-                submit=submit,
+                submit=_submit,
             )
         )
 

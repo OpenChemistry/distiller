@@ -585,7 +585,7 @@ async def monitor_jobs():
 
                 # If the job is completed and we are dealing with a transfer job
                 # then update the location.
-                if job.state == JobState.COMPLETED and JobType.TRANSFER in job.name:
+                if job.state == JobState.COMPLETED and any(job_type in job.name for job_type in [JobType.TRANSFER, JobType.COUNT]):
                     job = await get_job(session, id)
 
                     if not job.scan_ids:

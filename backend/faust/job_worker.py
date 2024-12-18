@@ -5,6 +5,7 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+from dateutil import tz
 
 import aiohttp
 import httpx
@@ -19,9 +20,15 @@ from dotenv import dotenv_values
 
 import faust
 from config import settings
-from constants import (DATE_DIR_FORMAT, SFAPI_BASE_URL, SFAPI_TOKEN_URL,
-                       SLURM_RUNNING_STATES, TOPIC_JOB_CANCEL_EVENTS,
-                       TOPIC_JOB_SUBMIT_EVENTS, JobState)
+from constants import (
+    DATE_DIR_FORMAT,
+    SFAPI_BASE_URL,
+    SFAPI_TOKEN_URL,
+    SLURM_RUNNING_STATES,
+    TOPIC_JOB_CANCEL_EVENTS,
+    TOPIC_JOB_SUBMIT_EVENTS,
+    JobState,
+)
 from faust_records import CancelJobEvent, Job, JobType, SubmitJobEvent
 from schemas import JobUpdate
 from schemas import Location as LocationRest
@@ -490,6 +497,23 @@ async def read_slurm_out(slurm_id: int, workdir: str) -> Union[str, bytes, None]
 completed_jobs = set()
 
 
+def _scan_path(job_type: JobType, scan: Scan) -> str:
+    date_dir = scan.created.astimezone().strftime(DATE_DIR_FORMAT)
+
+    # If this is a count job then we need to update the path
+    if job_type == JobType.COUNT:
+        timestamp = scan.created
+        timestamp_local = timestamp.astimezone(tz.gettz("US/Pacific"))
+        formatted_timestamp = timestamp_local.strftime("%y%m%d_%H%M")
+        scan_id = f"{scan.scan_id:05}"
+        filename = f"FOURD_{formatted_timestamp}_{scan.id}_{scan_id}.h5"
+        path = AsyncPath(settings.JOB_NCEMHUB_COUNT_DATA_PATH) / date_dir / filename
+    else: # Transfer job
+        path = AsyncPath(settings.JOB_NCEMHUB_RAW_DATA_PATH) / date_dir
+
+    return path
+
+
 @app.timer(interval=60)
 async def monitor_jobs():
     async with aiohttp.ClientSession() as session:
@@ -585,7 +609,10 @@ async def monitor_jobs():
 
                 # If the job is completed and we are dealing with a transfer job
                 # then update the location.
-                if job.state == JobState.COMPLETED and any(job_type in job.name for job_type in [JobType.TRANSFER, JobType.COUNT]):
+                if job.state == JobState.COMPLETED and any(
+                    job_type in job.name
+                    for job_type in [JobType.TRANSFER, JobType.COUNT]
+                ):
                     job = await get_job(session, id)
 
                     if not job.scan_ids:
@@ -593,18 +620,15 @@ async def monitor_jobs():
 
                     scan_id = job.scan_ids[0]
                     scan = await get_scan(session, scan_id)
-                    date_dir = scan.created.astimezone().strftime(DATE_DIR_FORMAT)
                     machine = job.machine
 
+                    path = _scan_path(job.job_type, scan)
                     update = ScanUpdate(
                         id=scan_id,
                         locations=[
                             LocationRest(
                                 host=f"{machine}",
-                                path=str(
-                                    AsyncPath(settings.JOB_NCEMHUB_RAW_DATA_PATH)
-                                    / date_dir
-                                ),
+                                path=str(path),
                             )
                         ],
                     )

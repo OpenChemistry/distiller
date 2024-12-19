@@ -497,16 +497,18 @@ async def read_slurm_out(slurm_id: int, workdir: str) -> Union[str, bytes, None]
 completed_jobs = set()
 
 
-def _scan_path(job: Job, scan: Scan) -> str:
+def _scan_path(job_type: JobType, scan: Scan) -> str:
     date_dir = scan.created.astimezone().strftime(DATE_DIR_FORMAT)
     path = AsyncPath(settings.JOB_NCEMHUB_RAW_DATA_PATH) / date_dir
 
     # If this is a count job then we need to update the path
-    if JobType.COUNT in job.name:
-        timestamp = datetime.fromisoformat(scan.created)
+    if job_type == JobType.COUNT:
+        timestamp = scan.created
         timestamp_local = timestamp.astimezone(tz.gettz("US/Pacific"))
         formatted_timestamp = timestamp_local.strftime("%y%m%d_%H%M")
-        filename = f"FOURD_{formatted_timestamp}_{scan.id}_{scan.scan_id}.h5"
+        scan_id = f"{scan.scan_id:05}"
+        filename = f"FOURD_{formatted_timestamp}_{scan.id}_{scan_id}.h5"
+        print(filename)
         path = AsyncPath(settings.JOB_NCEMHUB_COUNT_DATA_PATH) / date_dir / filename
 
     return path
@@ -621,7 +623,7 @@ async def monitor_jobs():
                     scan = await get_scan(session, scan_id)
                     machine = job.machine
 
-                    path = _scan_path(scan)
+                    path = _scan_path(job.job_type, scan)
                     update = ScanUpdate(
                         id=scan_id,
                         locations=[

@@ -13,22 +13,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Install Ubuntu packages
-        run: |
-          sudo apt-get install -y \
-            build-essential \
-            curl \
-            libsnappy-dev \
-            libbz2-dev \
-            liblz4-dev \
-            zlib1g-dev \
-            python3-rocksdb
-
       - name: Install dependencies
         run: |
-          # The requirements from requirements.base.txt minus rocksdb which
-          # is install as a debian package above
-          pip install faust-streaming pydantic[dotenv]==v1.10.10 numpy
+          pip install -r requirements.base.txt
           pip install -r requirements.job.txt -r requirements.dev.txt
       - name: Set PYTHONPATH
         run: |

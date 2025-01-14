@@ -36,6 +36,11 @@ services:
       zoo1:
         condition: service_started
     restart: on-failure
+    healthcheck:
+      test: kafka-topics --bootstrap-server kafka:9092 --list
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   fast-api:
     build: 
@@ -65,11 +70,9 @@ services:
       NCEMHUB_PATH: "/tmp"
     depends_on:
       kafka:
-        condition: service_started
-      zoo1:
-        condition: service_started
+        condition: service_healthy
       postgres:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./app/alembic:/app/alembic
     restart: on-failure
@@ -83,12 +86,12 @@ services:
       POSTGRES_DB: postgres
     platform: linux/amd64
     container_name: postgres
-    depends_on:
-      kafka:
-        condition: service_started
-      zoo1:
-        condition: service_started
     restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   job-worker:
     build:
@@ -102,11 +105,7 @@ services:
       API_URL: "http://fast-api:80/api/v1"
     depends_on:
       kafka:
-        condition: service_started
-      zoo1:
-        condition: service_started
-      fast-api:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
 
   notebook-worker:
@@ -121,11 +120,7 @@ services:
       API_URL: "http://fast-api:80/api/v1"
     depends_on:
       kafka:
-        condition: service_started
-      zoo1:
-        condition: service_started
-      fast-api:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
 
   cron-worker:
@@ -142,11 +137,7 @@ services:
       API_URL: "http://fast-api:80/api/v1"
     depends_on:
       kafka:
-        condition: service_started
-      zoo1:
-        condition: service_started
-      fast-api:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
 
   custodian-worker:
@@ -163,11 +154,7 @@ services:
       API_URL: "http://fast-api:80/api/v1"
     depends_on:
       kafka:
-        condition: service_started
-      zoo1:
-        condition: service_started
-      fast-api:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
 
   scan-file-worker:
@@ -184,11 +171,7 @@ services:
       API_URL: "http://fast-api:80/api/v1"
     depends_on:
       kafka:
-        condition: service_started
-      zoo1:
-        condition: service_started
-      fast-api:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
 
   scan-worker:
@@ -205,9 +188,5 @@ services:
       API_URL: "http://fast-api:80/api/v1"
     depends_on:
       kafka:
-        condition: service_started
-      zoo1:
-        condition: service_started
-      fast-api:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure

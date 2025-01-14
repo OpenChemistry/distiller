@@ -5,13 +5,10 @@ from fastapi import HTTPException, Request, status
 from fastapi.staticfiles import StaticFiles
 import jwt
 from jwt.exceptions import InvalidTokenError
-from passlib.context import CryptContext
 
 from app.api.deps import oauth2_scheme
 from app.core.config import settings
 from app.core.logging import logger
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 ALGORITHM = "HS256"

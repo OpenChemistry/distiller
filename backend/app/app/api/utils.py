@@ -1,18 +1,23 @@
+import bcrypt
 from aiofiles.threadpool.binary import AsyncBufferedIOBase
 from fastapi import UploadFile
-from passlib.context import CryptContext
 
 from app.core.constants import BLOCKSIZE
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
+# See https://github.com/fastapi/fastapi/discussions/11773#discussioncomment-10640267
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(
+        bytes(plain_password, encoding="utf-8"),
+        bytes(hashed_password, encoding="utf-8"),
+    )
 
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(
+        bytes(password, encoding="utf-8"),
+        bcrypt.gensalt(),
+    )
 
 
 async def upload_to_file(upload: UploadFile, fp: AsyncBufferedIOBase):

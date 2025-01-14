@@ -2,7 +2,7 @@ uvicorn[standard]
 fastapi
 python-multipart
 pyjwt[crypto]
-passlib[bcrypt]
+bcrypt
 sqlalchemy
 pydantic[dotenv]
 psycopg2

@@ -19,6 +19,7 @@ export function authenticate(
     .post({
       path: 'token',
       form,
+      extra: { 'credentials': 'include' },
     })
     .then((res) => res.json());
 }
@@ -27,6 +28,7 @@ export function refreshToken(): Promise<AuthResponse> {
   return apiClient
     .post({
       path: 'refresh_token',
+      extra: { 'credentials': 'include' },
     })
     .then((res) => res.json());
 }

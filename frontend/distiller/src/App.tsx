@@ -1,5 +1,11 @@
 import React, { useEffect } from 'react';
-import { Route, HashRouter, BrowserRouter, Routes } from 'react-router-dom';
+import {
+  Route,
+  HashRouter,
+  BrowserRouter,
+  Routes,
+  useLocation,
+} from 'react-router-dom';
 
 import { CssBaseline } from '@mui/material';
 import {
@@ -18,6 +24,7 @@ import ScanPage from './pages/scan';
 import ScansPage from './pages/scans';
 import SessionPage from './pages/session';
 import SessionsPage from './pages/sessions';
+import InteractemPage from './pages/interactem';
 import {
   AUTH_PATH,
   HOME_PATH,
@@ -25,6 +32,8 @@ import {
   SCANS_PATH,
   SESSIONS,
   SESSIONS_PATH,
+  INTERACTEM,
+  INTERACTEM_PATH,
 } from './routes';
 import DefaultMicroscope from './routes/default';
 import PrivateRoute from './routes/private';
@@ -41,11 +50,21 @@ const theme = createTheme();
 
 const NavigationAndRoutes: React.FC = () => {
   const showNavigation = useShouldShowNavigation();
+  const location = useLocation();
+  const isInteractemPage = location.pathname.includes(`/${INTERACTEM}`);
 
   return (
-    <div className="content">
+    <div className={`content ${isInteractemPage ? 'content--interactem' : ''}`}>
       <div className="inner-content">
         <Routes>
+          <Route
+            path={`/:microscope/${INTERACTEM}`}
+            element={
+              <PrivateRoute>
+                <InteractemPage />
+              </PrivateRoute>
+            }
+          />
           <Route
             path={`/:microscope/${SESSIONS}`}
             element={
@@ -108,6 +127,7 @@ const NavigationAndRoutes: React.FC = () => {
             path={`${SCANS_PATH}/:scanId`}
             element={<DefaultMicroscope />}
           />
+          <Route path={INTERACTEM_PATH} element={<DefaultMicroscope />} />
           <Route path={SESSIONS_PATH} element={<DefaultMicroscope />} />
           <Route path={SCANS_PATH} element={<DefaultMicroscope />} />
           <Route path={AUTH_PATH} element={<AuthPage />} />

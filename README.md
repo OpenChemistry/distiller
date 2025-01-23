@@ -5,7 +5,7 @@ Distiller is designed to streamline data acquisition and processing workflows fo
 ## Features
 
 - **Real-time Monitoring**: Detects new microscopy data and displays metadata.
-- **Automated Processing**: Launches NERSC jobs for data transfer and electron counting using stempy.
+- **Automated HPC Processing**: Launches jobs at NERSC for data transfer and electron counting using [stempy](https://github.com/openchemistry/stempy).
 - **Streaming Sessions**: Enables real-time data processing on NERSC compute nodes.
 - **Jupyter Notebooks**: Facilitates post-processing via NERSC's Jupyter hub.
 

@@ -530,6 +530,7 @@ async def monitor_jobs():
                 params = {
                     "kwargs": kwargs,
                     "sacct": True,
+                    "cached": False,
                 }
 
                 try:

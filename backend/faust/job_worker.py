@@ -499,6 +499,7 @@ completed_jobs = set()
 
 def _scan_path(job_type: JobType, scan: Scan) -> str:
     date_dir = scan.created.astimezone().strftime(DATE_DIR_FORMAT)
+    path = AsyncPath(settings.JOB_NCEMHUB_RAW_DATA_PATH) / date_dir
 
     # If this is a count job then we need to update the path
     if job_type == JobType.COUNT:
@@ -508,11 +509,8 @@ def _scan_path(job_type: JobType, scan: Scan) -> str:
         scan_id = f"{scan.scan_id:05}"
         filename = f"FOURD_{formatted_timestamp}_{scan.id}_{scan_id}.h5"
         path = AsyncPath(settings.JOB_NCEMHUB_COUNT_DATA_PATH) / date_dir / filename
-    else: # Transfer job
-        path = AsyncPath(settings.JOB_NCEMHUB_RAW_DATA_PATH) / date_dir
 
     return path
-
 
 @app.timer(interval=60)
 async def monitor_jobs():

@@ -6,6 +6,7 @@
     "@date-io/luxon": "^3.0.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@interactem/interactem": "^0.0.1",
     "@mui/icons-material": "^5.16.0",
     "@mui/material": "^5.16.11",
     "@mui/x-date-pickers": "^7.3.2",

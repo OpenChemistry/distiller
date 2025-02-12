@@ -59,3 +59,10 @@ body {
     transform: rotate(359deg);
   }
 }
+
+.interactem-content {
+  display: unset;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}

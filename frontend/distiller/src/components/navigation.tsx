@@ -6,7 +6,8 @@ import StreamIcon from '@mui/icons-material/Stream';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 
-import { SCANS_PATH, SESSIONS_PATH } from '../routes';
+import { INTERACTEM_PATH, SCANS_PATH, SESSIONS_PATH } from '../routes';
+import AccountTree from '@mui/icons-material/AccountTree';
 
 type NavPath = {
   pathname: string;
@@ -18,6 +19,7 @@ const PATHS: { [name: string]: NavPath } = (
   [
     { pathname: SCANS_PATH, icon: <ScansIcon />, label: 'Scans' },
     { pathname: SESSIONS_PATH, icon: <StreamIcon />, label: 'Sessions' },
+    { pathname: INTERACTEM_PATH, icon: <AccountTree />, label: 'interactEM' },
   ] as const
 ).reduce(
   (paths, path) => {

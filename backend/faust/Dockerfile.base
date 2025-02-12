@@ -1,5 +1,5 @@
 
-FROM python:3.9-slim-bullseye
+FROM python:3.9-bullseye
 
 COPY requirements.base.txt /app/requirements.txt
 

@@ -1301,15 +1301,15 @@ expect@^29.0.0:
     jest-message-util "^29.7.0"
     jest-util "^29.7.0"
 
-fetch-mock@^11.1.5:
-  version "11.1.5"
-  resolved "https://registry.yarnpkg.com/fetch-mock/-/fetch-mock-11.1.5.tgz#77f78942f3733cfba47fc232b8528d1138a6761f"
-  integrity sha512-KHmZDnZ1ry0pCTrX4YG5DtThHi0MH+GNI9caESnzX/nMJBrvppUHMvLx47M0WY9oAtKOMiPfZDRpxhlHg89BOA==
+fetch-mock@^12.3.0:
+  version "12.3.0"
+  resolved "https://registry.yarnpkg.com/fetch-mock/-/fetch-mock-12.3.0.tgz#3b584ed53f564260bef27773cdc1aa87130ce8e8"
+  integrity sha512-+ZHzLuzrKpP3u5PZo8ghFP1Kr3UJUTZ5PT/uQZtLv7UagDCVRt1bSzVg6MoTFdjQ0GXsx/crq2t0tGabkbH2yA==
   dependencies:
     "@types/glob-to-regexp" "^0.4.4"
     dequal "^2.0.3"
     glob-to-regexp "^0.4.1"
-    is-subset "^0.1.1"
+    is-subset-of "^3.1.10"
     regexparam "^3.0.0"
 
 fill-range@^7.1.1:
@@ -1458,10 +1458,12 @@ is-stream@^2.0.0:
   resolved "https://registry.yarnpkg.com/is-stream/-/is-stream-2.0.1.tgz#fac1e3d53b97ad5a9d0ae9cef2389f5810a5c077"
   integrity sha512-hFoiJiTl63nn+kstHGBtewWSKnQLpyb155KHheA1l39uvtO9nWIop1p3udqPcUd/xbF1VLMO4n7OI6p7RbngDg==
 
-is-subset@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/is-subset/-/is-subset-0.1.1.tgz#8a59117d932de1de00f245fcdd39ce43f1e939a6"
-  integrity sha512-6Ybun0IkarhmEqxXCNw/C0bna6Zb/TkfUX9UbwJtK6ObwAVCxmAP308WWTHviM/zAqXk05cdhYsUsZeGQh99iw==
+is-subset-of@^3.1.10:
+  version "3.1.10"
+  resolved "https://registry.yarnpkg.com/is-subset-of/-/is-subset-of-3.1.10.tgz#d3f4331b9ca288318fae92ad5d953241b6f7b00b"
+  integrity sha512-avvaYgVmYWyaZ1NDFiv4y9JGkrE2je3op1Po4VYKKJKR8H2qVPsg1GZuuXl5elCTxTlwAIsrAjWAs4BVrISFRw==
+  dependencies:
+    typedescriptor "3.0.2"
 
 isexe@^2.0.0:
   version "2.0.0"
@@ -2038,6 +2040,11 @@ tslib@^2.6.2:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.2.tgz#703ac29425e7b37cd6fd456e92404d46d1f3e4ae"
   integrity sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==
+
+typedescriptor@3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/typedescriptor/-/typedescriptor-3.0.2.tgz#9ad1715bc2be1cf063d5acbc4cd4bfc96d644225"
+  integrity sha512-hyVbaCUd18UiXk656g/imaBLMogpdijIEpnhWYrSda9rhvO4gOU16n2nh7xG5lv/rjumnZzGOdz0CEGTmFe0fQ==
 
 typescript@~5.7.2:
   version "5.7.2"

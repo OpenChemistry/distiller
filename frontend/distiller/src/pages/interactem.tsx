@@ -3,11 +3,11 @@ import React from 'react';
 import { InteractEM } from '@interactem/interactem';
 import '@interactem/interactem/style.css';
 
-const interactEMUrl =
+const interactemApiUrl =
   import.meta.env.VITE_INTERACTEM_URL ||
-  `${window.location.origin}/interactem/api/v1`;
+  `${window.location.origin}/interactem/`;
 const natsServers =
-  import.meta.env.VITE_NATS_SERVER_URL || `${window.location.origin}/nats`;
+  import.meta.env.VITE_NATS_SERVER_URL || `${window.location.origin}/interactem/nats`;
 
 const InteractemPage: React.FC = () => {
   return (
@@ -15,7 +15,7 @@ const InteractemPage: React.FC = () => {
       <InteractEM
         authMode="external"
         natsServers={natsServers}
-        apiBaseURL={interactEMUrl}
+        apiBaseURL={interactemApiUrl}
       />
     </div>
   );

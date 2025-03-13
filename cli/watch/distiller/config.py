@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     MICROSCOPE: str
     POLL: bool = False
     RECURSIVE: bool = False
+    MAX_WAIT: int = 30
+    MAX_RETRIES: int = 400
 
     class Config:
         case_sensitive = True

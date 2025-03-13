@@ -169,8 +169,8 @@ def before_retry_client(retry_state) -> None:
     retry=tenacity.retry_if_exception_type(httpx.TimeoutException)
     | tenacity.retry_if_exception_type(httpx.ConnectError)
     | tenacity.retry_if_exception_type(httpx.HTTPStatusError),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
     before=before_retry_client,
     before_sleep=tenacity.before_sleep_log(logger, logging.INFO),
 )
@@ -195,8 +195,8 @@ async def sfapi_get(url: str, params: Dict[str, Any] = {}) -> httpx.Response:
     retry=tenacity.retry_if_exception_type(httpx.TimeoutException)
     | tenacity.retry_if_exception_type(httpx.ConnectError)
     | tenacity.retry_if_exception_type(httpx.HTTPStatusError),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
     before=before_retry_client,
     before_sleep=tenacity.before_sleep_log(logger, logging.INFO),
 )
@@ -221,8 +221,8 @@ async def sfapi_post(url: str, data: Dict[str, Any]) -> httpx.Response:
     retry=tenacity.retry_if_exception_type(httpx.TimeoutException)
     | tenacity.retry_if_exception_type(httpx.ConnectError)
     | tenacity.retry_if_exception_type(httpx.HTTPStatusError),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
     before=before_retry_client,
     before_sleep=tenacity.before_sleep_log(logger, logging.INFO),
 )

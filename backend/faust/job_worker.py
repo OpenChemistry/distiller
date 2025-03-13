@@ -5,7 +5,6 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-from dateutil import tz
 
 import aiohttp
 import httpx
@@ -16,19 +15,14 @@ from aiopath import AsyncPath
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
 from authlib.jose import JsonWebKey
 from authlib.oauth2.rfc7523 import PrivateKeyJWT
+from dateutil import tz
 from dotenv import dotenv_values
 
 import faust
 from config import settings
-from constants import (
-    DATE_DIR_FORMAT,
-    SFAPI_BASE_URL,
-    SFAPI_TOKEN_URL,
-    SLURM_RUNNING_STATES,
-    TOPIC_JOB_CANCEL_EVENTS,
-    TOPIC_JOB_SUBMIT_EVENTS,
-    JobState,
-)
+from constants import (DATE_DIR_FORMAT, SFAPI_BASE_URL, SFAPI_TOKEN_URL,
+                       SLURM_RUNNING_STATES, TOPIC_JOB_CANCEL_EVENTS,
+                       TOPIC_JOB_SUBMIT_EVENTS, JobState)
 from faust_records import CancelJobEvent, Job, JobType, SubmitJobEvent
 from schemas import JobUpdate
 from schemas import Location as LocationRest
@@ -511,6 +505,7 @@ def _scan_path(job_type: JobType, scan: Scan) -> str:
         path = AsyncPath(settings.JOB_NCEMHUB_COUNT_DATA_PATH) / date_dir / filename
 
     return path
+
 
 @app.timer(interval=60)
 async def monitor_jobs():

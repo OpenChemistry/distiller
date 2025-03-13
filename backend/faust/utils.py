@@ -32,8 +32,8 @@ def extract_scan_id(path: str) -> int:
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def create_scan(session: aiohttp.ClientSession, event: ScanCreate) -> Scan:
     headers = {
@@ -54,8 +54,8 @@ async def create_scan(session: aiohttp.ClientSession, event: ScanCreate) -> Scan
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def update_scan(session: aiohttp.ClientSession, event: ScanUpdate) -> Scan:
     headers = {
@@ -76,8 +76,8 @@ async def update_scan(session: aiohttp.ClientSession, event: ScanUpdate) -> Scan
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_scans(
     session: aiohttp.ClientSession,
@@ -130,8 +130,8 @@ async def get_scans(
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_scan(session: aiohttp.ClientSession, id: int) -> Scan:
     headers = {
@@ -150,8 +150,8 @@ async def get_scan(session: aiohttp.ClientSession, id: int) -> Scan:
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def update_job(session: aiohttp.ClientSession, event: JobUpdate) -> Job:
     headers = {
@@ -172,8 +172,8 @@ async def update_job(session: aiohttp.ClientSession, event: JobUpdate) -> Job:
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_jobs(session: aiohttp.ClientSession, slurm_id: int) -> List[Job]:
     headers = {
@@ -196,8 +196,8 @@ async def get_jobs(session: aiohttp.ClientSession, slurm_id: int) -> List[Job]:
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_job(session: aiohttp.ClientSession, id: int) -> Job:
     headers = {
@@ -216,8 +216,8 @@ async def get_job(session: aiohttp.ClientSession, id: int) -> Job:
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def delete_locations(session: aiohttp.ClientSession, id: int, host: str) -> None:
     headers = {
@@ -242,8 +242,8 @@ async def delete_locations(session: aiohttp.ClientSession, id: int, host: str) -
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_machines(session: aiohttp.ClientSession) -> List[str]:
     headers = {
@@ -263,8 +263,8 @@ async def get_machines(session: aiohttp.ClientSession) -> List[str]:
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_machine(session: aiohttp.ClientSession, name: str) -> Machine:
     headers = {
@@ -284,8 +284,8 @@ async def get_machine(session: aiohttp.ClientSession, name: str) -> Machine:
         aiohttp.client_exceptions.ServerConnectionError
     )
     | tenacity.retry_if_exception_type(aiohttp.client_exceptions.ClientConnectionError),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_microscope(session: aiohttp.ClientSession, name: str) -> Microscope:
     headers = {
@@ -311,8 +311,8 @@ async def get_microscope(session: aiohttp.ClientSession, name: str) -> Microscop
         aiohttp.client_exceptions.ServerConnectionError
     )
     | tenacity.retry_if_exception_type(aiohttp.client_exceptions.ClientConnectionError),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_microscope_by_id(session: aiohttp.ClientSession, id: int) -> Microscope:
     headers = {
@@ -338,8 +338,8 @@ async def get_microscope_by_id(session: aiohttp.ClientSession, id: int) -> Micro
         aiohttp.client_exceptions.ServerConnectionError
     )
     | tenacity.retry_if_exception_type(aiohttp.client_exceptions.ClientConnectionError),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_notebooks(session: aiohttp.ClientSession, id: int) -> List[str]:
     headers = {

@@ -45,7 +45,7 @@ class File(BaseModel):
 
 
 class SyncEvent(BaseModel):
-    microscope_id: Optional[int]
+    microscope_id: Optional[int] = None
     files: List[File]
 
 class Location(BaseModel):
@@ -60,12 +60,12 @@ class ScanFromFileMetadata(BaseModel):
 class Microscope(BaseModel):
     id: int
     name: str
-    config: Optional[Dict[str, Any]]
-    state: Optional[Dict[str, Any]]
+    config: Optional[Dict[str, Any]] = None
+    state: Optional[Dict[str, Any]] = None
 
 class Scan(BaseModel):
     id: int
-    scan_id: Optional[int]
+    scan_id: Optional[int] = None
     locations: List[Location]
     created: datetime
     image_path: Optional[str] = None

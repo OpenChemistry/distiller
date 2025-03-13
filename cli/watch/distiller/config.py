@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from pydantic import AnyHttpUrl, BaseSettings
+from pydantic import AnyHttpUrl
+from pydantic_settings import BaseSettings
 from schemas import WatchMode
 
 
@@ -16,6 +17,8 @@ class Settings(BaseSettings):
     MICROSCOPE: str
     POLL: bool = False
     RECURSIVE: bool = False
+    MAX_WAIT: int = 30
+    MAX_RETRIES: int = 400
 
     class Config:
         case_sensitive = True

@@ -85,13 +85,16 @@ async def monitor(microscope_id: int, queue: asyncio.Queue) -> None:
             handler = get_mode_handler(mode, session, microscope_id, host)
             while True:
                 async for event in AIOEventIterator(queue):
-                    await handler.on_event(event)
-
+                    try:
+                        await handler.on_event(event)
+                    except asyncio.CancelledError:
+                        raise
+                    except Exception:
+                        logger.exception("Error processing event: %s", str(event))
 
     except asyncio.CancelledError:
         logger.info("Monitor loop canceled.")
-    except Exception:
-        logger.exception("Exception in monitoring loop.")
+
 
 async def get_microscope_id(name: str) -> int:
     async with aiohttp.ClientSession() as session:

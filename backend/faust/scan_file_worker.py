@@ -143,8 +143,8 @@ async def generate_ncemhub_scan_file_path(
     )
     | tenacity.retry_if_exception_type(aiohttp.client_exceptions.ClientResponseError)
     | tenacity.retry_if_exception_type(asyncio.exceptions.TimeoutError),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def upload_haadf_image(session: aiohttp.ClientSession, path: AsyncPath):
     format = settings.IMAGE_FORMAT
@@ -422,8 +422,8 @@ async def watch_for_haadf_events(haadf_events):
     )
     | tenacity.retry_if_exception_type(aiohttp.client_exceptions.ClientResponseError)
     | tenacity.retry_if_exception_type(asyncio.exceptions.TimeoutError),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def upload_image(session: aiohttp.ClientSession, id: int, path: AsyncPath):
     format = settings.IMAGE_FORMAT

@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from pydantic import AnyHttpUrl, BaseSettings
+from pydantic import AnyHttpUrl
+from pydantic_settings import BaseSettings
 from schemas import WatchMode
 
 

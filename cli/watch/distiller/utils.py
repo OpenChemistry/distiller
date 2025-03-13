@@ -23,7 +23,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 if settings.LOG_FILE_PATH is not None:
     file_handler = RotatingFileHandler(
-        settings.LOG_FILE_PATH, maxBytes=102400, backupCount=5
+        settings.LOG_FILE_PATH, maxBytes=104857600, backupCount=10 # 100MB
     )
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)

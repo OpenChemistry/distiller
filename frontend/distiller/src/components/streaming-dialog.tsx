@@ -37,7 +37,7 @@ type Props = {
 };
 
 const maxTime = DateTime.fromObject({
-  hour: 2,
+  hour: 8,
   minute: 0,
 });
 const minTime = DateTime.fromObject({

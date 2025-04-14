@@ -44,8 +44,8 @@ def ser_file_path(emi_file_path: AsyncPath) -> AsyncPath:
          asyncio.TimeoutError
     )
     ,
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def create_scan_from_file(microscope_id: int, host: str, session: aiohttp.ClientSession, scan_file_path: AsyncPath):
     logger.info(f"Uploading {scan_file_path}")
@@ -97,8 +97,8 @@ async def create_scan_from_file(microscope_id: int, host: str, session: aiohttp.
     retry=tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ServerConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_scans(
     session: aiohttp.ClientSession,

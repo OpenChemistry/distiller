@@ -25,8 +25,8 @@ from . import ModeHandler
          asyncio.TimeoutError
     )
     ,
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def upload_dm4(session: aiohttp.ClientSession, dm4_path: AsyncPath):
     logger.info(f"Uploading {dm4_path}")

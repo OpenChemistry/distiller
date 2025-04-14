@@ -36,7 +36,7 @@ def remove(scan: Scan, host: str, paths: List[str]):
         f"{host}",
         user=f"{settings.CUSTODIAN_USER}",
         connect_kwargs={"key_filename": settings.CUSTODIAN_PRIVATE_KEY},
-    ).run(f"rm {scan.scan_id} {' '.join(paths)}", hide=True)
+    ).run(f"rm {scan.scan_id} {' '.join(paths)}", hide=True, pty=False)
     if result.exited != 0:
         logger.error(
             "Error removing scan {scan.scan_id}({scan.id}), exit code: {result.exit_code}."

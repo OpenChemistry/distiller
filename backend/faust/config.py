@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     CUSTODIAN_PRIVATE_KEY: str
     CUSTODIAN_VALID_HOSTS: List[str] = []
 
+    MAX_WAIT: int = 10
+    MAX_RETRIES: int = 10
+
     class Config:
         case_sensitive = True
         env_file = ".env"

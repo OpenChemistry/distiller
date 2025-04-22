@@ -42,8 +42,8 @@ async def create_sync_snapshot(host, watch_dirs: List[str]) -> List[File]:
     ) | tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ClientConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def post_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -> None:
     headers = {
@@ -65,8 +65,8 @@ async def post_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -> N
         aiohttp.client_exceptions.ClientConnectionError
     ),
 
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def post_file_event(
     session: aiohttp.ClientSession, event: FileSystemEventModel
@@ -88,8 +88,8 @@ async def post_file_event(
         aiohttp.client_exceptions.ClientConnectionError
     ),
 
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def patch_microscope(
     session: aiohttp.ClientSession, id: int, update: MicroscopeUpdate

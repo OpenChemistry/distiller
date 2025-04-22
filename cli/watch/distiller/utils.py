@@ -23,7 +23,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 if settings.LOG_FILE_PATH is not None:
     file_handler = RotatingFileHandler(
-        settings.LOG_FILE_PATH, maxBytes=102400, backupCount=5
+        settings.LOG_FILE_PATH, maxBytes=104857600, backupCount=10 # 100MB
     )
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
@@ -35,8 +35,8 @@ if settings.LOG_FILE_PATH is not None:
     ) | tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ClientConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_microscope(session: aiohttp.ClientSession, name: str) -> Microscope:
     headers = {
@@ -62,8 +62,8 @@ async def get_microscope(session: aiohttp.ClientSession, name: str) -> Microscop
     ) | tenacity.retry_if_exception_type(
         aiohttp.client_exceptions.ClientConnectionError
     ),
-    wait=tenacity.wait_exponential(max=10),
-    stop=tenacity.stop_after_attempt(10),
+    wait=tenacity.wait_exponential(max=settings.MAX_WAIT),
+    stop=tenacity.stop_after_attempt(settings.MAX_RETRIES),
 )
 async def get_microscope_by_id(session: aiohttp.ClientSession, id: int) -> Microscope:
     headers = {

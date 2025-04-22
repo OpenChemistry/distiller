@@ -1,4 +1,5 @@
 import asyncio
+import concurrent.futures
 import logging
 from typing import List
 
@@ -43,6 +44,11 @@ def remove(scan: Scan, host: str, paths: List[str]):
         )
 
 
+remove_thread_pool = concurrent.futures.ThreadPoolExecutor(
+    max_workers=settings.CUSTODIAN_MAX_CONCURRENT_REMOVES
+)
+
+
 @app.agent(custodian_events_topic)
 async def watch_for_custodian_events(custodian_events):
     async for event in custodian_events:
@@ -73,5 +79,5 @@ async def watch_for_custodian_events(custodian_events):
                 logger.exception("Exception removing files.")
 
         loop = asyncio.get_event_loop()
-        future = loop.run_in_executor(None, remove, scan, host, paths)
+        future = loop.run_in_executor(remove_thread_pool, remove, scan, host, paths)
         future.add_done_callback(_log_exception)

@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     CUSTODIAN_USER: str
     CUSTODIAN_PRIVATE_KEY: str
     CUSTODIAN_VALID_HOSTS: List[str] = []
+    CUSTODIAN_MAX_CONCURRENT_REMOVES: int = 5
 
     MAX_WAIT: int = 10
     MAX_RETRIES: int = 10

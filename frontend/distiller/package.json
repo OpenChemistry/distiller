@@ -21,7 +21,7 @@
     "@types/react-redux": "^7.1.34",
     "@types/react-router-dom": "^5.3.3",
     "eta": "^3.5.0",
-    "fetch-mock": "^11.1.5",
+    "fetch-mock": "^12.5.2",
     "humanize-duration": "^3.32.1",
     "lodash": "^4.17.21",
     "luxon": "^3.6.1",

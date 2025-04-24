@@ -30,10 +30,10 @@ import {
   dateTimeDeserializer,
   dateTimeSerializer,
 } from '../routes/url-state';
-import Handlebars from 'handlebars';
 import { getUser } from '../features/auth';
 import { getBlob } from '../client/blob';
 import { staticURL } from '../client';
+import { Eta } from 'eta';
 
 const bytesToSize = (bytes: number): string => {
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -343,13 +343,6 @@ const ScansPage: React.FC<ScansPageProps> = (props) => {
 
   const onExportHTML = async () => {
     if (allowExport) {
-      // Template
-      const templateString = (
-        await import('../../templates/index.html.handlebars?raw')
-      ).default;
-
-      const template = Handlebars.compile(templateString);
-
       const scans = await Promise.all(
         selectedScans().map(async (scan: Scan) => {
           // Embed images
@@ -368,11 +361,27 @@ const ScansPage: React.FC<ScansPageProps> = (props) => {
         }),
       );
 
+      // Render the template using eta
+      const etaOptions = {
+        autoEscape: false,
+        // Use custom delimiters to avoid conflicts with JavaScript in template
+        tags: ['<<%', '%>>'] as [string, string],
+        // This allow us to reference the variable without the `it.` prefix in the template
+        functionHeader:
+          'const scans=it.scans, user=it.user, microscopes=it.microscopes, machines=it.machines',
+      };
+
       const scopes = microscopes.map((microscope) => {
         return { ...microscope, config: { actions: [] } };
       });
 
-      const html = template({
+      // Load the template
+      const templateString = (
+        await import('../../templates/index.html.eta?raw')
+      ).default;
+
+      const eta = new Eta(etaOptions);
+      const html = eta.renderString(templateString, {
         scans: JSON.stringify(scans),
         user: JSON.stringify(user),
         microscopes: JSON.stringify(scopes),

@@ -9,22 +9,22 @@ export const mockEndpoints = () => {
     exp: 600.0,
   });
 
-  const scans = JSON.parse('"{{{ scans }}}"'.slice(1, -1));
+  const scans = JSON.parse('"<<%~ scans %>>"'.slice(1, -1));
 
   fetchMock.mock(
     createApiRegex('scans\\?microscope_id=1&skip=0&limit=20'),
     scans,
   );
 
-  const microscopes = JSON.parse('"{{{ microscopes }}}"'.slice(1, -1));
+  const microscopes = JSON.parse('"<<%~ microscopes %>>"'.slice(1, -1));
 
   fetchMock.mock(createApiRegex('microscopes\\??'), microscopes);
 
-  const machines = JSON.parse('"{{{ machines }}}"'.slice(1, -1));
+  const machines = JSON.parse('"<<%~ machines %>>"'.slice(1, -1));
 
   fetchMock.mock(createApiRegex('machines\\??'), machines);
 
-  const user = JSON.parse('"{{{ user }}}"'.slice(1, -1));
+  const user = JSON.parse('"<<%~ user %>>"'.slice(1, -1));
 
   fetchMock.mock(createApiRegex('users/me\\??'), user);
 

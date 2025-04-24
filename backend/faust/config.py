@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     NCEMHUB_PATH: str
     NCEMHUB_DATA_PATH: str
     STREAMING_CONFIG_FILEPATH: Optional[str]
+    STREAMING_IMAGE: str
 
     # Max age a scan can be to still have a HAADF metadata associated with it (hours)
     # This is need to avoid associate a metadata with a old scan if the scan ids

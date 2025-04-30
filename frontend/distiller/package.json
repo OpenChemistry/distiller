@@ -39,7 +39,7 @@
     "@vitejs/plugin-react": "^4.4.1",
     "prettier": "^3.5.3",
     "pretty-quick": "^4.1.1",
-    "vite": "^6.3.3",
+    "vite": "^6.3.4",
     "vite-plugin-singlefile": "^2.0.1"
   },
   "scripts": {

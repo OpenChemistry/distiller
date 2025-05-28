@@ -15,7 +15,7 @@
     "@types/humanize-duration": "^3.27.4",
     "@types/lodash": "^4.17.16",
     "@types/luxon": "^3.6.0",
-    "@types/node": "^22.14.1",
+    "@types/node": "^22.15.24",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.2.19",
     "@types/react-redux": "^7.1.34",

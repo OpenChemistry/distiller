@@ -1,9 +1,17 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app), using the [Redux](https://redux.js.org/) and [Redux Toolkit](https://redux-toolkit.js.org/) template.
 
 ## Setting the server API URL
+
 ```bash
-export VITE_API_URL=http://...
+# Don't use trailing "/"
+export VITE_API_URL="http://localhost:8000/api/v1"
 ```
+
+## Installing
+
+In the project directory, first run:
+
+### `yarn install`
 
 ## Available Scripts
 
@@ -13,6 +21,8 @@ In the project directory, you can run:
 
 Runs the app in the development mode.<br />
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+
+You can sign in to distiller using: `username=distiller, password=password` for local development after `docker compose up -d`.
 
 The page will reload if you make edits.<br />
 You will also see any lint errors in the console.

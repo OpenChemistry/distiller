@@ -348,10 +348,10 @@
   resolved "https://registry.npmjs.org/@hookform/resolvers/-/resolvers-3.10.0.tgz"
   integrity sha512-79Dv+3mDF7i+2ajj7SkypSKHhl1cbln1OGavqrsF7p6mbUv11xpqpacPsGDCTRvCSjEEIez2ef1NveSVL3b0Ag==
 
-"@interactem/interactem@^0.0.8":
-  version "0.0.8"
-  resolved "https://registry.npmjs.org/@interactem/interactem/-/interactem-0.0.8.tgz"
-  integrity sha512-RG7nYsl8HKh0Y8NYFcAMn4AXcR8SxFjs1jg0oXg8ObsLkly9GRRCQAir5rpWAgq9BAIVhNDLv/rGIia5WXpbuA==
+"@interactem/interactem@^0.0.12":
+  version "0.0.12"
+  resolved "https://registry.npmjs.org/@interactem/interactem/-/interactem-0.0.12.tgz"
+  integrity sha512-yb6jradQEQ/DE+iNc7xPYCgmLe4ZvtxijpKU+bQZetwFVH+PX3RiA8SdY3S25ahiOxGOWeDZlRBKIqIsxZiFAg==
   dependencies:
     "@dagrejs/dagre" "^1.1.4"
     "@emotion/react" "^11.14.0"

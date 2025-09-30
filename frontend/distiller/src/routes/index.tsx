@@ -5,3 +5,5 @@ export const SCANS = 'scans';
 export const SCANS_PATH = `/${SCANS}`;
 export const SESSIONS = 'sessions';
 export const SESSIONS_PATH = `/${SESSIONS}`;
+export const INTERACTEM = 'interactem';
+export const INTERACTEM_PATH = `/${INTERACTEM}`;

@@ -20,6 +20,7 @@ import {
   refreshToken as refreshTokenAPI,
 } from './api';
 import { isStatic } from '../../utils';
+import { loginInteractem } from '@interactem/interactem';
 
 export interface AuthState {
   user?: User;
@@ -77,6 +78,10 @@ export const login = createAsyncThunk<User, AuthenticatePayload>(
 
     const { access_token, exp } = auth;
     apiClient.setToken(access_token);
+    const res = await loginInteractem(access_token);
+    if (!res.success) {
+      console.error(res.error);
+    }
 
     refreshController.abort();
     const controller = new AbortController();
@@ -110,6 +115,10 @@ async function refreshToken(
 
     const { access_token, exp } = auth;
     apiClient.setToken(access_token);
+    const res = await loginInteractem(access_token);
+    if (!res.success) {
+      console.error(res.error);
+    }
 
     if (autoRefresh) {
       setTimeout(

@@ -83,10 +83,20 @@ export function getScanJobs(id: IdType): Promise<Job[]> {
     .then((res) => res.json());
 }
 
-export function patchScan(id: IdType, updates: Partial<Scan>): Promise<Scan> {
+export function patchScan(
+  id: IdType,
+  updates: Partial<Scan>,
+  merge?: boolean,
+): Promise<Scan> {
+  const params: any = {};
+  if (!isNil(merge)) {
+    params['merge'] = merge;
+  }
+
   return apiClient
     .patch({
       path: `scans/${id}`,
+      params,
       json: updates,
     })
     .then((res) => res.json());

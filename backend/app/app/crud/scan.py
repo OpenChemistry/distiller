@@ -175,8 +175,10 @@ def update_scan(
     notes: Optional[str] = None,
     metadata: Optional[Dict[str, Any]] = None,
     job_id: Optional[int] = None,
+    merge: bool = False,
 ):
     updated = False
+    scan = None
 
     if progress is not None:
         statement = (
@@ -233,6 +235,14 @@ def update_scan(
         updated = updated or notes_updated
 
     if metadata is not None:
+        if merge:
+            scan = get_scan(db, id)
+            if scan is None:
+                raise Exception(f"Scan with id {id} does not exist.")
+            existing_metadata = scan.metadata_ or {}
+            if not isinstance(existing_metadata, dict):
+                existing_metadata = {}
+            metadata = {**existing_metadata, **metadata}
         statement = (
             update(models.Scan)
             .where(models.Scan.id == id)
@@ -247,7 +257,7 @@ def update_scan(
 
     if job_id is not None:
         jobs_updated = False
-        scan = get_scan(db, id)
+        scan = scan or get_scan(db, id)
         if scan is None:
             raise Exception(f"Scan with id {id} does not exist.")
         # If jobs get too large, this operation should be moved

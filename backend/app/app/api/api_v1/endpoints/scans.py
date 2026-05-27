@@ -8,8 +8,16 @@ from typing import List, Optional, cast
 from urllib.parse import unquote
 
 import aiofiles
-from fastapi import (APIRouter, Depends, File, HTTPException, Response,
-                     UploadFile, status)
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    Response,
+    UploadFile,
+    status,
+)
 from fastapi.security.api_key import APIKey
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
@@ -273,7 +281,10 @@ def read_scan(response: Response, id: int, db: Session = Depends(get_db)):
     dependencies=[Depends(oauth2_password_bearer_or_api_key)],
 )
 async def update_scan(
-    id: int, payload: schemas.ScanUpdate, db: Session = Depends(get_db)
+    id: int,
+    payload: schemas.ScanUpdate,
+    merge: bool = Query(False),
+    db: Session = Depends(get_db),
 ):
     db_scan = crud.get_scan(db, id=id)
     if db_scan is None:
@@ -289,6 +300,7 @@ async def update_scan(
         notes=payload.notes,
         metadata=payload.metadata,
         job_id=payload.job_id,
+        merge=merge
     )
 
     if updated:

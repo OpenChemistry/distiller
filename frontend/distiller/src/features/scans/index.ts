@@ -93,10 +93,10 @@ export const getJobScans = createAsyncThunk<
 
 export const patchScan = createAsyncThunk<
   Scan,
-  { id: IdType; updates: Partial<Scan> }
+  { id: IdType; updates: Partial<Scan>; merge?: boolean }
 >('scans/patch', async (payload, _thunkAPI) => {
-  const { id, updates } = payload;
-  const scan = await patchScanAPI(id, updates);
+  const { id, updates, merge } = payload;
+  const scan = await patchScanAPI(id, updates, merge);
 
   return scan;
 });

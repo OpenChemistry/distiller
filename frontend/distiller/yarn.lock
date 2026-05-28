@@ -1931,10 +1931,10 @@ use-sync-external-store@^1.4.0:
   resolved "https://registry.npmjs.org/use-sync-external-store/-/use-sync-external-store-1.5.0.tgz"
   integrity sha512-Rb46I4cGGVBmjamjphe8L/UnvJD+uPPtTkNvX5mZgqdbavhI4EbgIWJiIHXJ8bc/i9EQGPRh4DwEURJ552Do0A==
 
-vite-plugin-singlefile@^2.0.1:
-  version "2.2.0"
-  resolved "https://registry.npmjs.org/vite-plugin-singlefile/-/vite-plugin-singlefile-2.2.0.tgz"
-  integrity sha512-Ik1wXmJaGzeQtUeIV7JprDUqqy6DlLzXAY27Blei5peE4c9VJF+Kp9xWDJeuX0RJUZmFbIAuw1/RAh06A+Ql7w==
+vite-plugin-singlefile@^2.3.3:
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/vite-plugin-singlefile/-/vite-plugin-singlefile-2.3.3.tgz#e859aea4c0c4b74fcbba6baf527e88f2ad09de69"
+  integrity sha512-XVnGH0QzbOa8fxRSsHdCarVN1BSBXNi7uLMQYlrGRN5apdHkk62XQWRJhVever0lnfuyBkwn+kvVChdm/OoOUg==
   dependencies:
     micromatch "^4.0.8"
 

@@ -18,6 +18,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "ignoreDeprecations": "6.0",
     "jsx": "react-jsx",
     "types": ["vite/client", "mocha", "jest", "@testing-library/jest-dom"]
   },

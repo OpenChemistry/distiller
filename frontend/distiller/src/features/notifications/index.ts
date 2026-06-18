@@ -23,10 +23,15 @@ import {
 import { startMockNotifications } from './mock';
 
 class NotificationHub {
+  private ws: WebSocket;
+  private closedByClient = false;
+
   constructor(
     ws: WebSocket,
     dispatch: ThunkDispatch<unknown, unknown, AnyAction>,
   ) {
+    this.ws = ws;
+
     const messageListener = (ev: MessageEvent<string>) => {
       let msg: any = undefined;
       try {
@@ -50,9 +55,21 @@ class NotificationHub {
 
     ws.addEventListener('message', messageListener);
     ws.addEventListener('close', () => {
-      dispatch(setStatus('disconnected'));
+      if (!this.closedByClient) {
+        dispatch(setStatus('disconnected'));
+      }
       ws.removeEventListener('message', messageListener);
     });
+  }
+
+  close() {
+    this.closedByClient = true;
+    if (
+      this.ws.readyState === WebSocket.CONNECTING ||
+      this.ws.readyState === WebSocket.OPEN
+    ) {
+      this.ws.close();
+    }
   }
 }
 
@@ -60,6 +77,7 @@ let notificationHub: NotificationHub | undefined = undefined;
 
 export interface NotificationsState {
   status: 'connected' | 'disconnected' | 'connecting';
+  microscopeID?: number;
 }
 
 const initialState: NotificationsState = {
@@ -73,6 +91,9 @@ export const connectNotifications = createAsyncThunk<void, ConnectPayload>(
     const { dispatch } = thunkAPI;
     const { microscopeID } = payload;
 
+    notificationHub?.close();
+    notificationHub = undefined;
+
     let ws: WebSocket = await apiClient.ws({
       path: 'notifications',
       params: { microscope_id: microscopeID },
@@ -85,6 +106,14 @@ export const connectNotifications = createAsyncThunk<void, ConnectPayload>(
     if (mock) {
       startMockNotifications(ws);
     }
+  },
+);
+
+export const disconnectNotifications = createAsyncThunk<void>(
+  'notifications/disconnect',
+  async () => {
+    notificationHub?.close();
+    notificationHub = undefined;
   },
 );
 
@@ -105,9 +134,15 @@ export const notificationsSlice = createSlice({
       })
       .addCase(connectNotifications.rejected, (state) => {
         state.status = 'disconnected';
+        state.microscopeID = undefined;
       })
-      .addCase(connectNotifications.fulfilled, (state, _action) => {
+      .addCase(connectNotifications.fulfilled, (state, action) => {
         state.status = 'connected';
+        state.microscopeID = action.meta.arg.microscopeID;
+      })
+      .addCase(disconnectNotifications.fulfilled, (state) => {
+        state.status = 'disconnected';
+        state.microscopeID = undefined;
       });
   },
 });
@@ -117,5 +152,9 @@ export const { setStatus } = notificationsSlice.actions;
 export function getNotificationHub() {
   return notificationHub;
 }
+
+export const notificationMicroscopeID = (state: {
+  notifications: NotificationsState;
+}) => state.notifications.microscopeID;
 
 export default notificationsSlice.reducer;

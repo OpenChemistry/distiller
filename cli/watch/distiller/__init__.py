@@ -23,4 +23,4 @@ from schemas import SyncEvent
 from watchdog.events import (EVENT_TYPE_CLOSED, EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED,
                              EVENT_TYPE_MOVED, FileSystemEvent)
 from watchdog.observers.polling import PollingObserver as Observer
-from modes import scan_4d_files, scan_4d_haadf_files, scan_files
+from modes import arina_scan_files, scan_4d_files, scan_4d_haadf_files, scan_files

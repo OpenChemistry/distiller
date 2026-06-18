@@ -142,7 +142,7 @@ def get_scans_count(
 
 def create_scan(
     db: Session,
-    scan: Union[schemas.Scan4DCreate, schemas.ScanFromFile],
+    scan: Union[schemas.ScanCreate, schemas.ScanFromFile],
     image_path: Union[str, None] = None,
 ) -> models.Scan:
     locations = scan.locations

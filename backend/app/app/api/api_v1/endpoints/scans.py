@@ -36,12 +36,12 @@ from app.kafka.producer import (send_job_event_to_kafka,
                                 send_scan_file_event_to_kafka)
 from app.models import Scan
 from app.schemas.events import RemoveScanFilesEvent
-from app.schemas.scan import Scan4DCreate, ScanCreatedEvent
+from app.schemas.scan import ScanCreate, ScanCreatedEvent
 
 router = APIRouter()
 
 
-async def create_4d_scan(db: Session, scan: Scan4DCreate):
+async def create_scan_from_metadata(db: Session, scan: ScanCreate):
     scan = crud.create_scan(db=db, scan=scan)
     format = settings.IMAGE_FORMAT
     # See if we have HAADF image for this scan
@@ -133,7 +133,7 @@ async def create_scan_from_file(
 # we have to the parsing ourself, the OpenAPI doc will not be correct!
 @router.post(
     "",
-    summary="Note: This API either take a JSON body for creating a 4D scan or a scan files. We are parsing the request manually, the OpenAPI documentation is not correct.",
+    summary="Note: This API takes JSON scan metadata or multipart scan files. We parse the request manually, so the OpenAPI documentation is not correct.",
     response_model=schemas.Scan,
     response_model_by_alias=False,
 )
@@ -148,8 +148,9 @@ async def create_scan(
     try:
         content_type = request.headers["content-type"]
         if content_type == "application/json":
-            scan = schemas.Scan4DCreate.parse_obj(await request.json())
-            scan = await create_4d_scan(db, scan)
+            scan = await create_scan_from_metadata(
+                db, schemas.ScanCreate.parse_obj(await request.json())
+            )
         elif content_type.startswith("multipart/form-data"):
             form_data = await request.form()
 

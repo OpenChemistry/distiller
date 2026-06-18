@@ -68,7 +68,7 @@ class Scan(BaseModel):
         return cls(**obj_dict, job_ids=job_ids, locations=locations)
 
 
-class Scan4DCreate(BaseModel):
+class ScanCreate(BaseModel):
     scan_id: int
     created: datetime
     uuid: str

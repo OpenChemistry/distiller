@@ -12,6 +12,8 @@ class WatchMode(str, Enum):
     SCAN_4D_HAADF_FILES = "scan_4d_haadf_files"
     # Watch for scan files to create scans from
     SCAN_FILES  = "scan_files"
+    # Watch for ARINA/Dectris master/data HDF5 scan groups
+    ARINA_SCAN_FILES = "arina_scan_files"
 
 
 class FileSystemEventType(str, Enum):
@@ -57,6 +59,14 @@ class ScanFromFileMetadata(BaseModel):
     locations: List[Location]
     microscope_id: int
 
+class ScanCreate(BaseModel):
+    scan_id: int
+    created: datetime
+    uuid: str
+    locations: List[Location]
+    metadata: Optional[Dict[str, Any]] = None
+    microscope_id: int
+
 class Microscope(BaseModel):
     id: int
     name: str
@@ -69,6 +79,12 @@ class Scan(BaseModel):
     locations: List[Location]
     created: datetime
     image_path: Optional[str] = None
+    progress: Optional[int] = None
+
+class ScanUpdate(BaseModel):
+    progress: Optional[int] = None
+    locations: Optional[List[Location]] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 class ScanStatusFile(BaseModel):
     progress: float

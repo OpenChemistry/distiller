@@ -23,7 +23,11 @@ from schemas import FileSystemEvent as FileSystemEventModel
 from schemas import SyncEvent, Microscope
 from watchdog.events import (EVENT_TYPE_MODIFIED, EVENT_TYPE_CREATED)
 
-if settings.POLL or settings.MODE in [WatchMode.SCAN_4D_FILES, WatchMode.SCAN_4D_HAADF_FILES]:
+if settings.POLL or settings.MODE in [
+    WatchMode.SCAN_4D_FILES,
+    WatchMode.SCAN_4D_HAADF_FILES,
+    WatchMode.ARINA_SCAN_FILES,
+]:
     from watchdog.observers.polling import PollingObserver as Observer
 else:
     from watchdog.observers import Observer
@@ -69,6 +73,9 @@ def get_mode_handler(mode: WatchMode, session: aiohttp.ClientSession, microscope
     elif mode == WatchMode.SCAN_FILES:
         from modes.scan_files import ScanFilesModeHandler
         return ScanFilesModeHandler(microscope_id, host, session)
+    elif mode == WatchMode.ARINA_SCAN_FILES:
+        from modes.arina_scan_files import ArinaScanFilesModeHandler
+        return ArinaScanFilesModeHandler(microscope_id, host, session)
     else:
         raise Exception(f"Unrecognized mode: {mode}")
 

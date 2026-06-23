@@ -12,8 +12,9 @@ export const machinesAdapter = createEntityAdapter<Machine, string>({
   sortComparer: (a, b) => a.name.localeCompare(b.name),
 });
 
-export interface MachinesState
-  extends ReturnType<typeof machinesAdapter.getInitialState> {
+export interface MachinesState extends ReturnType<
+  typeof machinesAdapter.getInitialState
+> {
   status: 'idle' | 'loading' | 'complete';
 }
 

@@ -13,8 +13,9 @@ export const microscopesAdapter = createEntityAdapter<Microscope, number>({
   sortComparer: (a, b) => a.name.localeCompare(b.name),
 });
 
-export interface MicroscopesState
-  extends ReturnType<typeof microscopesAdapter.getInitialState> {
+export interface MicroscopesState extends ReturnType<
+  typeof microscopesAdapter.getInitialState
+> {
   status: 'pending' | 'error' | 'loading' | 'complete';
   selected: IdType | null;
 }

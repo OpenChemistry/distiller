@@ -20,8 +20,9 @@ import {
 
 export const scansAdapter = createEntityAdapter<Scan>();
 
-export interface ScansState
-  extends ReturnType<(typeof scansAdapter)['getInitialState']> {
+export interface ScansState extends ReturnType<
+  (typeof scansAdapter)['getInitialState']
+> {
   status: 'idle' | 'loading' | 'complete';
   totalCount: number;
 }

@@ -19,8 +19,9 @@ import {
 
 export const jobsAdapter = createEntityAdapter<Job>();
 
-export interface JobsState
-  extends ReturnType<(typeof jobsAdapter)['getInitialState']> {
+export interface JobsState extends ReturnType<
+  (typeof jobsAdapter)['getInitialState']
+> {
   status: 'idle' | 'loading' | 'complete';
   totalCount: number;
 }

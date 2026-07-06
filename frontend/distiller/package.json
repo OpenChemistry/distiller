@@ -22,7 +22,7 @@
     "@types/react-router-dom": "^5.3.3",
     "eta": "^4.6.0",
     "fetch-mock": "^12.6.0",
-    "humanize-duration": "^3.33.2",
+    "humanize-duration": "^3.34.0",
     "lodash": "^4.18.1",
     "luxon": "^3.7.2",
     "react": "^18.3.1",

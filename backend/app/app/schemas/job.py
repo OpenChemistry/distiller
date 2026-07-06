@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class JobType(str, Enum):
@@ -48,20 +48,19 @@ class JobState(str, Enum):
 
 
 class Job(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     job_type: JobType
-    scan_ids: Optional[List[int]]
+    scan_ids: Optional[List[int]] = None
     machine: str
-    slurm_id: Optional[int]
+    slurm_id: Optional[int] = None
     state: JobState = JobState.INITIALIZING
     params: Dict[str, Union[str, int, float]]
-    output: Optional[str]
-    elapsed: Optional[timedelta]
-    submit: Optional[datetime]
-    notes: Optional[str]
-
-    class Config:
-        orm_mode = True
+    output: Optional[str] = None
+    elapsed: Optional[timedelta] = None
+    submit: Optional[datetime] = None
+    notes: Optional[str] = None
 
     @classmethod
     def from_orm(cls, obj) -> "Job":
@@ -71,16 +70,16 @@ class Job(BaseModel):
 
 class JobCreate(BaseModel):
     job_type: JobType
-    scan_id: Optional[int]
+    scan_id: Optional[int] = None
     params: Dict[str, Union[str, int, float]]
     machine: str
 
 
 class JobUpdate(BaseModel):
-    slurm_id: Optional[int]
-    state: Optional[JobState]
-    output: Optional[str]
-    elapsed: Optional[timedelta]
-    scan_id: Optional[int]
-    submit: Optional[datetime]
-    notes: Optional[str]
+    slurm_id: Optional[int] = None
+    state: Optional[JobState] = None
+    output: Optional[str] = None
+    elapsed: Optional[timedelta] = None
+    scan_id: Optional[int] = None
+    submit: Optional[datetime] = None
+    notes: Optional[str] = None

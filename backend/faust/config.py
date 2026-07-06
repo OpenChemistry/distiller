@@ -1,9 +1,14 @@
 from typing import List, Optional
 
-from pydantic import AnyHttpUrl, BaseSettings
+from pydantic import AnyHttpUrl
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        case_sensitive=True, env_file=".env", extra="ignore"
+    )
+
     API_URL: AnyHttpUrl = "http://localhost:8000/api/v1"
     API_KEY_NAME: str
     API_KEY: str
@@ -25,7 +30,7 @@ class Settings(BaseSettings):
     JOB_QOS: str
     JOB_QOS_FILTER: str
     JOB_BBCP_EXECUTABLE_PATH: str
-    JOB_MACHINE_OVERRIDES_PATH: Optional[str]
+    JOB_MACHINE_OVERRIDES_PATH: Optional[str] = None
 
     IMAGE_UPLOAD_DIR: str
     IMAGE_FORMAT: str = "jpeg"
@@ -34,7 +39,7 @@ class Settings(BaseSettings):
     HAADF_NCEMHUB_DM4_DATA_PATH: str
     NCEMHUB_PATH: str
     NCEMHUB_DATA_PATH: str
-    STREAMING_CONFIG_FILEPATH: Optional[str]
+    STREAMING_CONFIG_FILEPATH: Optional[str] = None
     STREAMING_IMAGE: str
 
     # Max age a scan can be to still have a HAADF metadata associated with it (hours)
@@ -49,10 +54,5 @@ class Settings(BaseSettings):
 
     MAX_WAIT: int = 10
     MAX_RETRIES: int = 10
-
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
-
 
 settings = Settings()

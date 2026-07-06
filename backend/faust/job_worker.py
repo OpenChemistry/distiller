@@ -101,7 +101,9 @@ async def get_machine(session: aiohttp.ClientSession, name: str) -> Machine:
 
         if await machine_override_path.exists():
             overrides = dotenv_values(machine_override_path)
-            machine = machine.copy(update=overrides)
+            machine = Machine.model_validate(
+                {**machine.model_dump(), **overrides}
+            )
 
     return machine
 

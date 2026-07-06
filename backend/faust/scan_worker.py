@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 
 import aiohttp
 import pytz
-from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 
 import faust
 from config import settings
@@ -181,7 +181,7 @@ async def process_status_file(
     if event.content is None:
         raise Exception("Status file not included!")
 
-    status_file = ScanStatusFile.parse_raw(event.content)
+    status_file = ScanStatusFile.model_validate_json(event.content)
     scan_id = status_file.last_scan_number
     new_scan = scan_id not in scan_id_to_distiller_id
     primary_status_file = (
@@ -355,7 +355,7 @@ async def watch_for_event(file_events):
                 raise Exception("Status file not included!")
 
             try:
-                status_file = ScanStatusFile.parse_raw(event.content)
+                status_file = ScanStatusFile.model_validate_json(event.content)
             except ValidationError:
                 logger.warning(f"Skipping {path}, with validation error.")
                 continue
@@ -391,7 +391,7 @@ async def process_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -
         )
 
         try:
-            status = ScanStatusFile.parse_raw(f.content)
+            status = ScanStatusFile.model_validate_json(f.content)
         except ValidationError:
             logger.warning(f"Skipping {path}, with validation error.")
             continue

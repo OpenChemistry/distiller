@@ -1,11 +1,15 @@
 from typing import List, Optional
 
 from pydantic import AnyHttpUrl
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from schemas import WatchMode
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        case_sensitive=True, env_file=".env", extra="ignore"
+    )
+
     API_URL: AnyHttpUrl = "http://localhost:8000/api/v1"
     API_KEY_NAME: str
     API_KEY: str
@@ -19,10 +23,5 @@ class Settings(BaseSettings):
     RECURSIVE: bool = False
     MAX_WAIT: int = 30
     MAX_RETRIES: int = 400
-
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
-
 
 settings = Settings()

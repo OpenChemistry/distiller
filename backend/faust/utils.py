@@ -42,7 +42,7 @@ async def create_scan(session: aiohttp.ClientSession, event: ScanCreate) -> Scan
     }
 
     async with session.post(
-        f"{settings.API_URL}/scans", headers=headers, data=event.json()
+        f"{settings.API_URL}/scans", headers=headers, data=event.model_dump_json()
     ) as r:
         r.raise_for_status()
         json = await r.json()
@@ -64,7 +64,9 @@ async def update_scan(session: aiohttp.ClientSession, event: ScanUpdate) -> Scan
     }
 
     async with session.patch(
-        f"{settings.API_URL}/scans/{event.id}", headers=headers, data=event.json()
+        f"{settings.API_URL}/scans/{event.id}",
+        headers=headers,
+        data=event.model_dump_json(),
     ) as r:
         r.raise_for_status()
         json = await r.json()
@@ -160,7 +162,9 @@ async def update_job(session: aiohttp.ClientSession, event: JobUpdate) -> Job:
     }
 
     async with session.patch(
-        f"{settings.API_URL}/jobs/{event.id}", headers=headers, data=event.json()
+        f"{settings.API_URL}/jobs/{event.id}",
+        headers=headers,
+        data=event.model_dump_json(),
     ) as r:
         r.raise_for_status()
         json = await r.json()

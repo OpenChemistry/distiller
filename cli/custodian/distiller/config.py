@@ -1,15 +1,15 @@
-from typing import List
+from typing import List, Optional
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    SCAN_DIRECTORIES: List[str]
-    LOG_FILE_PATH: str = None
+    model_config = SettingsConfigDict(
+        case_sensitive=True, env_file=".env", extra="ignore"
+    )
 
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
+    SCAN_DIRECTORIES: List[str]
+    LOG_FILE_PATH: Optional[str] = None
 
 
 settings = Settings()

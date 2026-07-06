@@ -23,8 +23,8 @@ class JobEventType(str, Enum):
 
 class SubmitJobEvent(BaseModel):
     job: Job
-    scan: Optional[Scan]
-    event_type = JobEventType.SUBMIT
+    scan: Optional[Scan] = None
+    event_type: JobEventType = JobEventType.SUBMIT
 
 
 class RemoveScanFilesEvent(BaseModel):
@@ -34,16 +34,16 @@ class RemoveScanFilesEvent(BaseModel):
 
 class UpdateJobEvent(BaseModel):
     id: int
-    slurm_id: Optional[int]
-    state: Optional[JobState]
-    output: Optional[str]
-    elapsed: Optional[timedelta]
-    submit: Optional[datetime]
-    notes: Optional[str]
-    scan_ids: Optional[List[int]]
-    event_type = JobEventType.UPDATED
+    slurm_id: Optional[int] = None
+    state: Optional[JobState] = None
+    output: Optional[str] = None
+    elapsed: Optional[timedelta] = None
+    submit: Optional[datetime] = None
+    notes: Optional[str] = None
+    scan_ids: Optional[List[int]] = None
+    event_type: JobEventType = JobEventType.UPDATED
 
 
 class CancelJobEvent(BaseModel):
     job: Job
-    event_type = JobEventType.CANCEL
+    event_type: JobEventType = JobEventType.CANCEL

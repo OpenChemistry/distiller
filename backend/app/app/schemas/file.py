@@ -23,20 +23,20 @@ class FileSystemEvent(BaseModel):
     event_type: FileSystemEventType
     src_path: str
     is_directory: bool
-    created: datetime = None
+    created: Optional[datetime] = None
     host: str
     content: Optional[str] = None
 
 
 class File(BaseModel):
     path: str
-    created: datetime = None
+    created: Optional[datetime] = None
     host: str
     content: Optional[str] = None
 
 
 class SyncEvent(BaseModel):
-    microscope_id: Optional[int]
+    microscope_id: Optional[int] = None
     files: List[File]
 
 

@@ -24,7 +24,10 @@ async def create_job(job_create: schemas.JobCreate, db: Session = Depends(get_db
     job = crud.create_job(db=db, job=job_create)
     scan = job.scans[0] if job.scans else None
     await send_job_event_to_kafka(
-        SubmitJobEvent(job=schemas.Job.from_orm(job), scan=scan)
+        SubmitJobEvent(
+            job=schemas.Job.from_orm(job),
+            scan=schemas.Scan.from_orm(scan) if scan is not None else None,
+        )
     )
     return job
 
@@ -103,7 +106,7 @@ async def update_job(
     (updated, job) = crud.update_job(db, id, payload)
     job = schemas.Job.from_orm(job)
     if updated:
-        job_updated_event = UpdateJobEvent(**job.dict())
+        job_updated_event = UpdateJobEvent(**job.model_dump())
 
         if payload.scan_id:
             scan_updated_event = schemas.ScanUpdateEvent(id=payload.scan_id)

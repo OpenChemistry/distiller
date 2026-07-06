@@ -3,16 +3,15 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class Location(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     host: str
     path: str
-
-    class Config:
-        orm_mode = True
 
 
 class LocationCreate(BaseModel):
@@ -42,27 +41,26 @@ def metadata_infinity(metadata):
 
 
 class Scan(BaseModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
     id: int
-    scan_id: Optional[int]
+    scan_id: Optional[int] = None
     progress: int
     created: datetime
     locations: List[Location]
-    image_path: Optional[str]
-    notes: Optional[str]
-    job_ids: Optional[List[int]]
-    metadata: Optional[Dict[str, Any]] = Field(alias="metadata_")
+    image_path: Optional[str] = None
+    notes: Optional[str] = None
+    job_ids: Optional[List[int]] = None
+    metadata: Optional[Dict[str, Any]] = Field(None, alias="metadata_")
     microscope_id: int
-    uuid: Optional[str]
+    uuid: Optional[str] = None
 
-    _metadata_infinity = validator("metadata", allow_reuse=True)(metadata_infinity)
-
-    class Config:
-        orm_mode = True
+    _metadata_infinity = field_validator("metadata")(metadata_infinity)
 
     @classmethod
     def from_orm(cls, obj) -> "Scan":
         job_ids = [job.id for job in obj.jobs]
-        locations = [Location.from_orm(location) for location in obj.locations]
+        locations = [Location.model_validate(location) for location in obj.locations]
         obj_dict = obj.__dict__.copy()
         obj_dict.pop("locations", None)
         return cls(**obj_dict, job_ids=job_ids, locations=locations)
@@ -73,10 +71,10 @@ class Scan4DCreate(BaseModel):
     created: datetime
     uuid: str
     locations: List[LocationCreate]
-    metadata: Optional[Dict[str, Any]]
-    microscope_id: Optional[int]
+    metadata: Optional[Dict[str, Any]] = None
+    microscope_id: Optional[int] = None
 
-    _metadata_infinity = validator("metadata", allow_reuse=True)(metadata_infinity)
+    _metadata_infinity = field_validator("metadata")(metadata_infinity)
 
 
 class ScanFromFileMetadata(BaseModel):
@@ -89,21 +87,21 @@ class ScanFromFile(BaseModel):
     sha: str
     created: datetime
     locations: List[LocationCreate]
-    metadata: Optional[Dict[str, Any]]
+    metadata: Optional[Dict[str, Any]] = None
     microscope_id: int
 
-    _metadata_infinity = validator("metadata", allow_reuse=True)(metadata_infinity)
+    _metadata_infinity = field_validator("metadata")(metadata_infinity)
 
 
 class ScanUpdate(BaseModel):
     progress: Optional[int] = None
     locations: Optional[List[LocationCreate]] = None
-    notes: Optional[str]
-    image_path: Optional[str]
-    metadata: Optional[Dict[str, Any]]
-    job_id: Optional[int]
+    notes: Optional[str] = None
+    image_path: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+    job_id: Optional[int] = None
 
-    _metadata_infinity = validator("metadata", allow_reuse=True)(metadata_infinity)
+    _metadata_infinity = field_validator("metadata")(metadata_infinity)
 
 
 class ScanEventType(str, Enum):
@@ -119,21 +117,21 @@ class ScanEventType(str, Enum):
 
 class ScanEvent(BaseModel):
     id: int
-    progress: Optional[int]
-    locations: Optional[List[Location]]
+    progress: Optional[int] = None
+    locations: Optional[List[Location]] = None
     event_type: ScanEventType
 
 
 class ScanCreatedEvent(ScanEvent):
     microscope_id: int
-    scan_id: Optional[int]
+    scan_id: Optional[int] = None
     created: datetime
-    event_type = ScanEventType.CREATED
+    event_type: ScanEventType = ScanEventType.CREATED
     image_path: Optional[str] = None
 
 
 class ScanUpdateEvent(ScanEvent):
-    event_type = ScanEventType.UPDATED
-    job_ids: Optional[List[int]]
-    image_path: Optional[str]
-    notes: Optional[str]
+    event_type: ScanEventType = ScanEventType.UPDATED
+    job_ids: Optional[List[int]] = None
+    image_path: Optional[str] = None
+    notes: Optional[str] = None

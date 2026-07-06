@@ -52,7 +52,7 @@ async def post_sync_event(session: aiohttp.ClientSession, event: SyncEvent) -> N
     }
 
     async with session.post(
-        f"{settings.API_URL}/files/sync", headers=headers, data=event.json()
+        f"{settings.API_URL}/files/sync", headers=headers, data=event.model_dump_json()
     ) as r:
         r.raise_for_status()
 
@@ -77,7 +77,7 @@ async def post_file_event(
     }
 
     async with session.post(
-        f"{settings.API_URL}/files", headers=headers, data=event.json()
+        f"{settings.API_URL}/files", headers=headers, data=event.model_dump_json()
     ) as r:
         r.raise_for_status()
 
@@ -100,7 +100,9 @@ async def patch_microscope(
     }
 
     async with session.patch(
-        f"{settings.API_URL}/microscopes/{id}", headers=headers, data=update.json()
+        f"{settings.API_URL}/microscopes/{id}",
+        headers=headers,
+        data=update.model_dump_json(),
     ) as r:
         r.raise_for_status()
 

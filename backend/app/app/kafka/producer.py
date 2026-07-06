@@ -23,7 +23,7 @@ from app.schemas.events import (CancelJobEvent, JobEventType,
 
 
 def serializer(event: FileSystemEvent) -> bytes:
-    return event.json(exclude_none=True).encode()
+    return event.model_dump_json(exclude_none=True).encode()
 
 
 producer = None

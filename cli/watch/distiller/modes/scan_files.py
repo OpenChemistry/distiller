@@ -80,7 +80,10 @@ async def create_scan_from_file(microscope_id: int, host: str, session: aiohttp.
             metadata = ScanFromFileMetadata(microscope_id=microscope_id, created=datetime.fromtimestamp(stat_info.st_ctime).astimezone(), locations=[location])
 
             data.add_field(
-                "scan_metadata", metadata.json(), content_type="application/json")
+                "scan_metadata",
+                metadata.model_dump_json(),
+                content_type="application/json",
+            )
 
             async with session.post(
                 f"{settings.API_URL}/scans", headers=headers, data=data

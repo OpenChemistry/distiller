@@ -77,7 +77,7 @@ def get_jobs_count(
 
 
 def create_job(db: Session, job: schemas.JobCreate):
-    _job = job.dict()
+    _job = job.model_dump()
     scan_id = _job.pop("scan_id")
     db_job = models.Job(**_job)
     db.add(db_job)

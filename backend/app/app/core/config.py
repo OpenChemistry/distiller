@@ -76,8 +76,6 @@ class Settings(BaseSettings):
     # have been reset in in the detector software.
     HAADF_SCAN_AGE_LIMIT: int = 1
 
-    SENTRY_DSN_URL: Optional[AnyHttpUrl] = None
-
     MACHINES: List[Machine]
     NCEMHUB_PATH: str
     NOTEBOOKS: List[str] = [

@@ -11,7 +11,6 @@ aiokafka
 alembic
 aiofiles
 aiopath
-sentry-sdk
 coloredlogs
 python-dateutil
 cachetools

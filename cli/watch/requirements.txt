@@ -3,7 +3,7 @@ aiohttp
 watchdog
 coloredlogs
 cachetools
-pydantic>=2.13,<3
+pydantic>=2.13.4,<3
 tenacity
 h5py
 ncempy

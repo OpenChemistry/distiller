@@ -7,4 +7,4 @@ pydantic>=2.13,<3
 tenacity
 h5py
 ncempy
-pydantic-settings>=2,<3
+pydantic-settings>=2.14.2,<3

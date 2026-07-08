@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Dict, List, Optional, Union
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
 
 
 class JobType(str, Enum):
@@ -67,6 +67,10 @@ class Job(BaseModel):
         scan_ids = [scan.id for scan in obj.scans]
         return cls(**obj.__dict__, scan_ids=scan_ids)
 
+    @field_serializer("elapsed", when_used="json")
+    def serialize_elapsed(self, elapsed: Optional[timedelta]) -> Optional[float]:
+        return elapsed.total_seconds() if elapsed is not None else None
+
 
 class JobCreate(BaseModel):
     job_type: JobType
@@ -83,3 +87,7 @@ class JobUpdate(BaseModel):
     scan_id: Optional[int] = None
     submit: Optional[datetime] = None
     notes: Optional[str] = None
+
+    @field_serializer("elapsed", when_used="json")
+    def serialize_elapsed(self, elapsed: Optional[timedelta]) -> Optional[float]:
+        return elapsed.total_seconds() if elapsed is not None else None

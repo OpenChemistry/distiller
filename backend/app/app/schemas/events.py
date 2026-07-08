@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 
 from app.schemas.job import Job, JobState
 from app.schemas.scan import Scan
@@ -42,6 +42,10 @@ class UpdateJobEvent(BaseModel):
     notes: Optional[str] = None
     scan_ids: Optional[List[int]] = None
     event_type: JobEventType = JobEventType.UPDATED
+
+    @field_serializer("elapsed", when_used="json")
+    def serialize_elapsed(self, elapsed: Optional[timedelta]) -> Optional[float]:
+        return elapsed.total_seconds() if elapsed is not None else None
 
 
 class CancelJobEvent(BaseModel):

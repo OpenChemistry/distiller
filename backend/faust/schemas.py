@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from dateutil.parser import parse
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
 from json_utils import numpy_dumps
 
@@ -62,6 +62,10 @@ class JobUpdate(BaseModel):
     elapsed: Optional[timedelta] = None
     submit: Optional[datetime] = None
     notes: Optional[str] = None
+
+    @field_serializer("elapsed", when_used="json")
+    def serialize_elapsed(self, elapsed: Optional[timedelta]) -> Optional[float]:
+        return elapsed.total_seconds() if elapsed is not None else None
 
 
 class Job(BaseModel):

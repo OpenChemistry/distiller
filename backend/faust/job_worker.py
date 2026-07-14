@@ -13,7 +13,6 @@ import pytz
 import tenacity
 from aiopath import AsyncPath
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
-from authlib.jose import JsonWebKey
 from authlib.oauth2.rfc7523 import PrivateKeyJWT
 from dateutil import tz
 from dotenv import dotenv_values
@@ -49,7 +48,7 @@ _client = None
 async def get_oauth2_client() -> AsyncOAuth2Client:
     global _client
     if _client is None:
-        client_key = JsonWebKey.import_key(json.loads(settings.SFAPI_PRIVATE_KEY))
+        client_key = json.loads(settings.SFAPI_PRIVATE_KEY)
         _client = AsyncOAuth2Client(
             client_id=settings.SFAPI_CLIENT_ID,
             client_secret=client_key,

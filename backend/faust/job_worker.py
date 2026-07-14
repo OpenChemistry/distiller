@@ -304,26 +304,20 @@ async def update_slurm_job_id(
 async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
-    def get_created_datetime(event):
-        if event.scan and hasattr(event.scan, "created"):
-            return datetime.fromisoformat(event.scan.created)
-        return datetime.now()
+    created_datetime = event.scan.created if event.scan is not None else datetime.now()
 
     job_type_map = {
         JobType.STREAMING: {
             "base_dir": settings.JOB_NCEMHUB_COUNT_DATA_PATH,
             "bbcp": False,
-            "created_datetime": get_created_datetime(event),
         },
         JobType.COUNT: {
             "base_dir": settings.JOB_NCEMHUB_COUNT_DATA_PATH,
             "bbcp": True,
-            "created_datetime": get_created_datetime(event),
         },
         JobType.TRANSFER: {
             "base_dir": settings.JOB_NCEMHUB_RAW_DATA_PATH,
             "bbcp": True,
-            "created_datetime": get_created_datetime(event),
         },
     }
 
@@ -334,7 +328,6 @@ async def process_submit_job_event(
 
     machine = await get_machine(session, event.job.machine)
 
-    created_datetime = job_cfg["created_datetime"]
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
     base_dir = job_cfg["base_dir"]
 

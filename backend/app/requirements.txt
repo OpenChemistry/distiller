@@ -1,5 +1,5 @@
 uvicorn[standard]
-fastapi>=0.139.0
+fastapi>=0.139.2
 python-multipart
 pyjwt[crypto]
 bcrypt

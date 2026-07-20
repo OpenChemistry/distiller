@@ -30,7 +30,7 @@
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.18.1",
     "typescript": "~7.0.2",
-    "use-local-storage-state": "^19.5.0"
+    "use-local-storage-state": "^20.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

@@ -37,7 +37,7 @@
     "@types/jest": "^30.0.0",
     "@types/mocha": "^10.0.10",
     "@vitejs/plugin-react": "^6.0.3",
-    "prettier": "^3.9.5",
+    "prettier": "^3.9.6",
     "pretty-quick": "^4.2.2",
     "vite": "^8.1.5",
     "vite-plugin-singlefile": "^2.3.3"

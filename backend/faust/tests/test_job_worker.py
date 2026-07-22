@@ -74,25 +74,23 @@ async def test_machine_overrides(
 
 
 def test_submit_job_event_coerces_scan_created_to_datetime():
-    event = SubmitJobEvent.loads(
-        json.dumps(
-            {
-                "job": {
-                    "id": 1,
-                    "job_type": "count",
-                    "machine": "perlmutter",
-                    "params": {},
-                    "scan_ids": [1],
-                },
-                "scan": {
-                    "id": 1,
-                    "locations": [],
-                    "created": "2026-07-14T17:54:08Z",
-                    "scan_id": 1,
-                },
-                "event_type": "job.submit",
-            }
-        )
+    event = SubmitJobEvent.from_data(
+        {
+            "job": {
+                "id": 1,
+                "job_type": "count",
+                "machine": "perlmutter",
+                "params": {},
+                "scan_ids": [1],
+            },
+            "scan": {
+                "id": 1,
+                "locations": [],
+                "created": "2026-07-14T17:54:08Z",
+                "scan_id": 1,
+            },
+            "event_type": "job.submit",
+        }
     )
 
     assert isinstance(event.scan.created, datetime)

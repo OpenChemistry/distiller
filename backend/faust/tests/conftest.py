@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -6,10 +7,9 @@ from faust_records import Location, Scan
 from schemas import Machine
 
 
-# Change to match how faust record comes in... as str
 @pytest.fixture
 def created():
-    return "2022-01-10T14:29:59+00:00"
+    return datetime.fromisoformat("2022-01-10T14:29:59+00:00")
 
 
 @pytest.fixture

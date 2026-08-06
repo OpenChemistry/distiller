@@ -1,4 +1,6 @@
 faust-streaming[rocksdb]
+# Faust 0.11 passes concrete requests, which aiokafka 0.13+ no longer accepts.
+aiokafka>=0.10,<0.13
 pydantic>=2.13,<3
 pydantic-settings>=2.14.2,<3
 numpy

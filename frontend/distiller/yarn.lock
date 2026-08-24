@@ -1102,10 +1102,10 @@ hoist-non-react-statics@^3.3.0, hoist-non-react-statics@^3.3.1:
   dependencies:
     react-is "^16.7.0"
 
-humanize-duration@^3.34.0:
-  version "3.34.0"
-  resolved "https://registry.yarnpkg.com/humanize-duration/-/humanize-duration-3.34.0.tgz#aec0eb289e0d83c5abb78716af74eadf44faeaf8"
-  integrity sha512-NDxhYxiiRzsST6xULIHuYWRvsCtviJXRdjarhyWyh78S4Ou+MWhM2k4HQ+y7iegdrzreXe11isd0au1N2PB/pQ==
+humanize-duration@^3.34.1:
+  version "3.34.1"
+  resolved "https://registry.yarnpkg.com/humanize-duration/-/humanize-duration-3.34.1.tgz#da8f19549be8ee3600999fabc5375b2d3e0e65f7"
+  integrity sha512-YIiigjQ+O31rvcyDJPK1ptTZtvSErjBtmHy93VhbwxB/VwMG0FszKs2IB667tFxmOhNapePQQxa24luQRDkKFQ==
 
 ignore@^7.0.5:
   version "7.0.5"

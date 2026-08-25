@@ -136,7 +136,7 @@ async def create_scan(
     }
 
     async with session.post(
-        f"{settings.API_URL}/scans", headers=headers, data=scan.json()
+        f"{settings.API_URL}/scans", headers=headers, data=scan.model_dump_json()
     ) as r:
         r.raise_for_status()
         return Scan(**await r.json())
@@ -162,6 +162,8 @@ async def update_scan(
     }
 
     async with session.patch(
-        f"{settings.API_URL}/scans/{scan_id}", headers=headers, data=update.json()
+        f"{settings.API_URL}/scans/{scan_id}",
+        headers=headers,
+        data=update.model_dump_json(),
     ) as r:
         r.raise_for_status()

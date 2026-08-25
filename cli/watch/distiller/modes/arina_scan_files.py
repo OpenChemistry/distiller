@@ -26,7 +26,9 @@ from . import ModeHandler
 
 _ARINA_MASTER_PATTERN = re.compile(r"^.+_master\.h5$")
 _ARINA_DATA_PATTERN = re.compile(r"^(.+)_data_[0-9]{6}\.h5$")
-_ARINA_SCAN_ID_PATTERN = re.compile(r"^(\d+)_.*(?:_master|_data_\d{6})\.h5$")
+_ARINA_SCAN_PREFIX_PATTERN = re.compile(r"^(.+?)(?:_master|_data_\d{6})\.h5$")
+_ARINA_SCAN_ID_PATTERN = re.compile(r"\d+")
+_MAX_SCAN_ID = 2**31 - 1
 _ARINA_FILE_EVENTS = [
     EVENT_TYPE_CREATED,
     EVENT_TYPE_MOVED,
@@ -285,12 +287,16 @@ def _extract_scan_status(master_path: Path) -> ScanStatus:
     return _build_scan_status(master_path, expected_frames, files)
 
 
-def _extract_arina_scan_id(path: Path) -> Optional[int]:
-    match = _ARINA_SCAN_ID_PATTERN.search(path.name)
-    if match is None:
-        return None
+def _extract_arina_scan_id(path: Path) -> int:
+    prefix_match = _ARINA_SCAN_PREFIX_PATTERN.match(path.name)
+    prefix = prefix_match.group(1) if prefix_match is not None else path.stem
 
-    return int(match.group(1))
+    scan_id_match = _ARINA_SCAN_ID_PATTERN.search(prefix)
+    if scan_id_match is not None:
+        return int(scan_id_match.group())
+
+    # Keep the filename-derived fallback within PostgreSQL's signed integer range.
+    return uuid.uuid5(uuid.NAMESPACE_URL, prefix).int % _MAX_SCAN_ID + 1
 
 
 def _generate_arina_uuid(
@@ -314,8 +320,6 @@ async def _create_arina_scan_from_master(
     created = datetime.fromtimestamp(stat_info.st_ctime).astimezone()
     locations = [Location(host=host, path=str(path)) for path in status.locations]
     scan_id = _extract_arina_scan_id(master_path)
-    if scan_id is None:
-        raise ValueError(f"Could not extract ARINA scan id from {master_path.name}")
 
     scan = ScanCreate(
         microscope_id=microscope_id,

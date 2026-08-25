@@ -1,4 +1,5 @@
 import re
+import tempfile
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
@@ -7,11 +8,13 @@ from typing import Any, Dict, List, Optional, cast
 
 import aiohttp
 import h5py
+import matplotlib.pyplot as plt
+import numpy as np
 from aiopath import AsyncPath
 from cachetools import TTLCache
 from config import settings
 from schemas import Location, Scan, ScanCreate, ScanUpdate
-from utils import create_scan, get_scans, logger, update_scan
+from utils import create_scan, get_scans, logger, update_scan, upload_scan_image
 from watchdog.events import (
     EVENT_TYPE_CLOSED,
     EVENT_TYPE_CREATED,
@@ -152,6 +155,37 @@ def _extract_metadata(status: ScanStatus) -> Dict[str, Any]:
                     exc,
                 )
         return metadata
+
+
+def _is_virtual_image_dataset(name: str, dataset: h5py.Dataset) -> bool:
+    name = name.lower()
+
+    return "virtual" in name and "image data" in name and dataset.ndim == 2
+
+
+def _read_first_virtual_image(paths: List[Path]) -> Optional[np.ndarray]:
+    for path in paths:
+        try:
+            with h5py.File(path, "r") as h5:
+                def read_dataset(name: str, obj):
+                    if not isinstance(obj, h5py.Dataset):
+                        return None
+                    if not _is_virtual_image_dataset(name, obj):
+                        return None
+
+                    return np.asarray(obj[()])
+
+                image = h5.visititems(read_dataset)
+                if image is not None:
+                    return image
+        except (OSError, RuntimeError) as exc:
+            logger.debug("Could not read ARINA virtual image from %s: %s", path, exc)
+
+    return None
+
+
+def _save_jpeg_thumbnail(image: np.ndarray, path: Path) -> None:
+    plt.imsave(str(path), image, format="jpeg")
 
 
 def _read_expected_frames(master: h5py.File) -> Optional[int]:
@@ -349,9 +383,15 @@ class ArinaScanFilesModeHandler(ModeHandler):
         if _ARINA_MASTER_PATTERN.match(path.name):
             return path
 
+        if path.suffix != ".h5":
+            return None
+
         data_match = _ARINA_DATA_PATTERN.match(path.name)
-        if data_match:
-            return path.parent / f"{data_match.group(1)}_master.h5"
+        prefix = data_match.group(1) if data_match else path.stem
+        master_path = path.with_name(f"{prefix}_master.h5")
+
+        if data_match or master_path.is_file():
+            return master_path
 
         return None
 
@@ -416,9 +456,38 @@ class ArinaScanFilesModeHandler(ModeHandler):
         )
         self._last_sent_progress[key] = progress
 
-    async def _create_or_update_scan(self, key: str, status: ScanStatus):
+    async def _upload_thumbnail(self, distiller_id: int, status: ScanStatus) -> bool:
+        # The virtual images live in a separate file with the same scan prefix.
+        prefix = status.master_path.name.removesuffix("_master.h5")
+        virtual_image_path = status.master_path.with_name(f"{prefix}.h5")
+        image = _read_first_virtual_image([virtual_image_path])
+        if image is not None:
+            await update_scan(
+                self.session,
+                distiller_id,
+                ScanUpdate(
+                    locations=[Location(host=self.host, path=str(virtual_image_path))]
+                ),
+            )
+        else:
+            image = _read_first_virtual_image(status.locations)
+
+        if image is None:
+            logger.debug("No ARINA virtual image found for %s.", status.master_path)
+            return False
+
+        with tempfile.TemporaryDirectory() as tmp:
+            image_path = Path(tmp) / f"{distiller_id}.jpeg"
+            _save_jpeg_thumbnail(image, image_path)
+            await upload_scan_image(self.session, distiller_id, image_path)
+
+        logger.info("Uploaded ARINA thumbnail for %s.", status.master_path)
+
+        return True
+
+    async def _create_or_update_scan(self, key: str, status: ScanStatus) -> bool:
         if not self._scan_can_be_published(status):
-            return
+            return False
 
         progress = round(cast(float, status.progress) * 100)
         distiller_id = await self._distiller_scan_id(key, status)
@@ -426,6 +495,10 @@ class ArinaScanFilesModeHandler(ModeHandler):
             distiller_id = await self._create_distiller_scan(key, status)
 
         await self._update_progress(key, distiller_id, progress, status)
+        if status.complete:
+            return await self._upload_thumbnail(distiller_id, status)
+
+        return False
 
     async def _handle_master(self, master_path: Path):
         key = str(master_path.resolve())
@@ -454,8 +527,8 @@ class ArinaScanFilesModeHandler(ModeHandler):
             )
         logger.info(message, *args)
 
-        await self._create_or_update_scan(key, status)
-        if status.complete:
+        # Keep handling events until the completed scan's thumbnail is uploaded.
+        if await self._create_or_update_scan(key, status):
             self._uploaded[key] = True
 
     async def on_event(self, event: FileSystemEvent):

@@ -6,5 +6,6 @@ cachetools
 pydantic>=2.13.4,<3
 tenacity
 h5py
+matplotlib
 ncempy
 pydantic-settings>=2.15.0,<3

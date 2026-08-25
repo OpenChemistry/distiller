@@ -7,6 +7,7 @@ import sys
 import tenacity
 import aiohttp
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 from typing import List, Optional
 from config import settings
 import coloredlogs
@@ -167,3 +168,40 @@ async def update_scan(
         data=update.model_dump_json(),
     ) as r:
         r.raise_for_status()
+
+
+def _is_retryable_image_upload_error(exc: BaseException) -> bool:
+    if isinstance(exc, aiohttp.ClientResponseError):
+        return exc.status in (408, 429, 500, 502, 503, 504)
+
+    return isinstance(exc, (aiohttp.ClientConnectionError, asyncio.TimeoutError))
+
+
+@tenacity.retry(
+    retry=tenacity.retry_if_exception(_is_retryable_image_upload_error),
+    wait=tenacity.wait_exponential(max=5),
+    stop=tenacity.stop_after_attempt(5),
+    reraise=True,
+)
+async def upload_scan_image(
+    session: aiohttp.ClientSession,
+    scan_id: int,
+    image_path: Path,
+) -> None:
+    headers = {settings.API_KEY_NAME: settings.API_KEY}
+    data = aiohttp.FormData()
+
+    with image_path.open("rb") as fp:
+        data.add_field(
+            "file",
+            fp,
+            filename=image_path.name,
+            content_type="image/jpeg",
+        )
+        async with session.put(
+            f"{settings.API_URL}/scans/{scan_id}/image",
+            headers=headers,
+            data=data,
+            timeout=aiohttp.ClientTimeout(total=30),
+        ) as r:
+            r.raise_for_status()

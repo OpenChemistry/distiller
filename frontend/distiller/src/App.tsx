@@ -13,6 +13,7 @@ import FooterComponent from './components/footer';
 import HeaderComponent from './components/header';
 import NavigationComponent from './components/navigation';
 import { restoreSession } from './features/auth';
+import NotificationSubscription from './features/notifications/subscription';
 import AuthPage from './pages/auth';
 import ScanPage from './pages/scan';
 import ScansPage from './pages/scans';
@@ -135,6 +136,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <Router>
           <div className="app">
+            <NotificationSubscription />
             <CssBaseline />
             <div className="header">
               <HeaderComponent showLogin={!isStatic()} />

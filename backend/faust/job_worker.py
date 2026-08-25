@@ -13,7 +13,6 @@ import pytz
 import tenacity
 from aiopath import AsyncPath
 from authlib.integrations.httpx_client.oauth2_client import AsyncOAuth2Client
-from authlib.jose import JsonWebKey
 from authlib.oauth2.rfc7523 import PrivateKeyJWT
 from dateutil import tz
 from dotenv import dotenv_values
@@ -49,7 +48,7 @@ _client = None
 async def get_oauth2_client() -> AsyncOAuth2Client:
     global _client
     if _client is None:
-        client_key = JsonWebKey.import_key(json.loads(settings.SFAPI_PRIVATE_KEY))
+        client_key = json.loads(settings.SFAPI_PRIVATE_KEY)
         _client = AsyncOAuth2Client(
             client_id=settings.SFAPI_CLIENT_ID,
             client_secret=client_key,
@@ -304,26 +303,20 @@ async def update_slurm_job_id(
 async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
-    def get_created_datetime(event):
-        if event.scan and hasattr(event.scan, "created"):
-            return datetime.fromisoformat(event.scan.created)
-        return datetime.now()
+    created_datetime = event.scan.created if event.scan is not None else datetime.now()
 
     job_type_map = {
         JobType.STREAMING: {
             "base_dir": settings.JOB_NCEMHUB_COUNT_DATA_PATH,
             "bbcp": False,
-            "created_datetime": get_created_datetime(event),
         },
         JobType.COUNT: {
             "base_dir": settings.JOB_NCEMHUB_COUNT_DATA_PATH,
             "bbcp": True,
-            "created_datetime": get_created_datetime(event),
         },
         JobType.TRANSFER: {
             "base_dir": settings.JOB_NCEMHUB_RAW_DATA_PATH,
             "bbcp": True,
-            "created_datetime": get_created_datetime(event),
         },
     }
 
@@ -334,7 +327,6 @@ async def process_submit_job_event(
 
     machine = await get_machine(session, event.job.machine)
 
-    created_datetime = job_cfg["created_datetime"]
     date_dir = created_datetime.astimezone().strftime(DATE_DIR_FORMAT)
     base_dir = job_cfg["base_dir"]
 

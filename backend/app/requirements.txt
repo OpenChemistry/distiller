@@ -4,7 +4,7 @@ python-multipart
 pyjwt[crypto]
 bcrypt
 sqlalchemy
-pydantic>=2.13.4,<3
+pydantic>=2.13.5,<3
 pydantic-settings>=2.15.0,<3
 psycopg2
 aiokafka

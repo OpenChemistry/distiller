@@ -156,6 +156,8 @@ async def update_scan(
     session: aiohttp.ClientSession,
     scan_id: int,
     update: ScanUpdate,
+    *,
+    merge: bool = False,
 ) -> None:
     headers = {
         settings.API_KEY_NAME: settings.API_KEY,
@@ -165,6 +167,7 @@ async def update_scan(
     async with session.patch(
         f"{settings.API_URL}/scans/{scan_id}",
         headers=headers,
+        params={"merge": "true"} if merge else None,
         data=update.model_dump_json(),
     ) as r:
         r.raise_for_status()

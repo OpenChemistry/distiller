@@ -157,6 +157,30 @@ def _extract_metadata(status: ScanStatus) -> Dict[str, Any]:
         return metadata
 
 
+def _extract_stem_metadata(path: Path) -> Dict[str, Any]:
+    metadata: Dict[str, Any] = {}
+    try:
+        with h5py.File(path, "r") as h5:
+            if "STEM Metadata" not in h5:
+                return metadata
+
+            attrs = h5["STEM Metadata"].attrs
+            for key in attrs:
+                try:
+                    metadata[key] = {"value": _json_safe(attrs[key])}
+                except (OSError, KeyError, RuntimeError, TypeError, ValueError) as exc:
+                    logger.warning(
+                        "Could not extract STEM metadata attribute %s from %s: %s",
+                        key,
+                        path,
+                        exc,
+                    )
+    except (OSError, RuntimeError) as exc:
+        logger.debug("Could not read STEM metadata from %s: %s", path, exc)
+
+    return metadata
+
+
 def _is_virtual_image_dataset(name: str, dataset: h5py.Dataset) -> bool:
     name = name.lower()
 
@@ -453,6 +477,7 @@ class ArinaScanFilesModeHandler(ModeHandler):
                 locations=locations,
                 metadata=_extract_metadata(status),
             ),
+            merge=True,
         )
         self._last_sent_progress[key] = progress
 
@@ -460,16 +485,19 @@ class ArinaScanFilesModeHandler(ModeHandler):
         # The virtual images live in a separate file with the same scan prefix.
         prefix = status.master_path.name.removesuffix("_master.h5")
         virtual_image_path = status.master_path.with_name(f"{prefix}.h5")
+        metadata = _extract_stem_metadata(virtual_image_path)
         image = _read_first_virtual_image([virtual_image_path])
-        if image is not None:
+        if image is not None or metadata:
             await update_scan(
                 self.session,
                 distiller_id,
                 ScanUpdate(
-                    locations=[Location(host=self.host, path=str(virtual_image_path))]
+                    locations=[Location(host=self.host, path=str(virtual_image_path))],
+                    metadata=metadata or None,
                 ),
+                merge=True,
             )
-        else:
+        if image is None:
             image = _read_first_virtual_image(status.locations)
 
         if image is None:

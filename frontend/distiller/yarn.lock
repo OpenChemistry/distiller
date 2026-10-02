@@ -656,10 +656,10 @@
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.17.25.tgz#69765ac7bcddb0eb072961cf292524a8f5b3c2c0"
   integrity sha512-+K1NIO8I+F9/wNulfVvu23QYd0Pe9/OCqRrim4NoYIf1VoEDL90Ve4ClzpyqBLc7NpGGWRvYNCKZ1BE/Jpf8dQ==
 
-"@types/luxon@^3.7.5":
-  version "3.7.5"
-  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-3.7.5.tgz#d223e1adfdadb140eca9c51647aba59b98508128"
-  integrity sha512-jJ41Q4z6ZVO260MNDdHfW7+7a5iMiX8Mr6ZJHcmgrvhZha6dz5704o/lF2kKl6URjH6ivEL97w9xS/MgpJEphg==
+"@types/luxon@^3.7.6":
+  version "3.7.6"
+  resolved "https://registry.yarnpkg.com/@types/luxon/-/luxon-3.7.6.tgz#1acddd4b0e58c8e53ce505a979936aaa81f2f222"
+  integrity sha512-6KSjliQAXK8ZLgFQO4B7iE4Rpf/B3rItzCFuXezBY/XIAGxOdLd7vRNK9/StRPwiS/yJsVbB7HKpW46B8tcEuQ==
 
 "@types/mocha@^10.0.10":
   version "10.0.10"

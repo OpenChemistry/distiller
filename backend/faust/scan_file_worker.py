@@ -214,17 +214,18 @@ def extract_dm_metadata(dm_path: str):
 
         # Store the X and Y pixel size, offset and unit
         try:
-            metadata["PhysicalSizeX"] = metadata["Calibrations.Dimension.1.Scale"]
+            metadata["PhysicalSizeX"] = metadata["Calibrations Dimension 1 Scale"]
             metadata["PhysicalSizeXOrigin"] = metadata[
-                "Calibrations.Dimension.1.Origin"
+                "Calibrations Dimension 1 Origin"
             ]
-            metadata["PhysicalSizeXUnit"] = metadata["Calibrations.Dimension.1.Units"]
-            metadata["PhysicalSizeY"] = metadata["Calibrations.Dimension.2.Scale"]
+            metadata["PhysicalSizeXUnit"] = metadata["Calibrations Dimension 1 Units"]
+            metadata["PhysicalSizeY"] = metadata["Calibrations Dimension 2 Scale"]
             metadata["PhysicalSizeYOrigin"] = metadata[
-                "Calibrations.Dimension.2.Origin"
+                "Calibrations Dimension 2 Origin"
             ]
-            metadata["PhysicalSizeYUnit"] = metadata["Calibrations.Dimension.2.Units"]
-        except:
+            metadata["PhysicalSizeYUnit"] = metadata["Calibrations Dimension 2 Units"]
+        except Exception:
+            logger.warning(f"Unable to extract PhysicalSize from: {dm_path}")
             metadata["PhysicalSizeX"] = 1
             metadata["PhysicalSizeXOrigin"] = 0
             metadata["PhysicalSizeXUnit"] = ""

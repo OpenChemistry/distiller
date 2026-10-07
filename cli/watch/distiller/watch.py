@@ -4,10 +4,11 @@ import platform
 import re
 import signal
 import sys
+import threading
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
-from typing import List
-import platform
+from signal import Signals
+from typing import List, Optional
 
 import aiohttp
 
@@ -45,14 +46,19 @@ def get_host():
     return host
 
 
-async def watch(host: str,
-    microscope_id: int, dirs: List[str], queue: asyncio.Queue, loop: asyncio.BaseEventLoop
+async def watch(
+    host: str,
+    microscope_id: int,
+    dirs: List[str],
+    queue: asyncio.Queue,
+    loop: asyncio.BaseEventLoop,
+    observer: Observer,
 ) -> None:
     handler = AIOEventHandler(queue, loop)
 
-    observer = Observer()
     for d in dirs:
         observer.schedule(handler, str(d), recursive=settings.RECURSIVE)
+    observer.daemon = True
     observer.start()
 
     if settings.SYNC:
@@ -109,20 +115,83 @@ async def get_microscope_id(name: str) -> int:
 
         return microscope.id
 
-async def shutdown(signal, loop, monitor_task):
-    logger.info(f"Received exit signal {signal.name}...")
-    logger.info(f"Canceling monitoring task.")
-    monitor_task.cancel()
+def _stop_observer_sync(observer: Observer) -> None:
+    try:
+        observer.stop()
+        observer.join(timeout=5.0)
+    except Exception:
+        logger.exception("Error stopping observer.")
 
-    tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
-    logger.info(f"Waiting for {len(tasks)} to complete.")
-    await asyncio.gather(*tasks)
-    logger.info(f"Stopping event loop.")
-    loop = asyncio.get_event_loop()
+
+async def _stop_observer(
+    observer: Observer,
+    loop: asyncio.AbstractEventLoop,
+    timeout: float = 5.0,
+) -> None:
+    if observer is None or not observer.is_alive():
+        return
+    logger.info("Stopping observer.")
+    done_event = asyncio.Event()
+
+    def _worker():
+        try:
+            _stop_observer_sync(observer)
+        finally:
+            if not loop.is_closed():
+                loop.call_soon_threadsafe(done_event.set)
+
+    thread = threading.Thread(target=_worker, daemon=True)
+    thread.start()
+    try:
+        await asyncio.wait_for(done_event.wait(), timeout=timeout)
+    except asyncio.TimeoutError:
+        logger.warning("Observer cleanup timed out.")
+
+
+async def shutdown(
+    loop: asyncio.AbstractEventLoop,
+    signal=None,
+    observer: Optional[Observer] = None,
+) -> None:
+    if signal is not None:
+        try:
+            signal_name = Signals(signal).name
+        except Exception:
+            signal_name = getattr(signal, "name", str(signal))
+        logger.info(f"Received exit signal {signal_name}...")
+
+    if observer is not None and observer.is_alive():
+        await _stop_observer(observer, loop, timeout=5.0)
+
+    tasks = [t for t in asyncio.all_tasks(loop) if t is not asyncio.current_task()]
+    if tasks:
+        logger.info(f"Waiting for {len(tasks)} tasks to complete.")
+        for t in tasks:
+            t.cancel()
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for res in results:
+            if isinstance(res, Exception):
+                logger.error("Error during task cancellation: %s", res)
+
+    logger.info("Stopping event loop.")
     loop.stop()
 
-def main():
-    loop = asyncio.get_event_loop()
+
+async def _windows_wakeup() -> None:
+    while True:
+        await asyncio.sleep(0.5)
+
+
+def main() -> None:
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    if loop.is_closed():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
     queue = asyncio.Queue()
 
@@ -130,20 +199,82 @@ def main():
     logger.info(f"Watch mode: {settings.MODE}")
     logger.info(f"Using: {Observer.__name__}")
     logger.info(f"Microscopy: {settings.MICROSCOPE}")
-    microscope_id = asyncio.run(get_microscope_id(settings.MICROSCOPE))
 
-    loop.create_task(watch(get_host(), microscope_id, settings.WATCH_DIRECTORIES, queue, loop))
-    monitor_task = loop.create_task(monitor(microscope_id, queue))
+    observer: Optional[Observer] = None
+    _shutdown_task: Optional[asyncio.Task] = None
+    startup_error: Optional[BaseException] = None
 
-    # Install signal handler ( not in Windows )
-    if platform.system() != "Windows":
+    def _trigger_shutdown(signal=None) -> asyncio.Task:
+        nonlocal _shutdown_task
+        if _shutdown_task is None:
+            _shutdown_task = loop.create_task(
+                shutdown(loop, signal, observer)
+            )
+        return _shutdown_task
+
+    # Install signal handlers and Windows wakeup task BEFORE startup
+    if platform.system() == "Windows":
+        # On Windows, asyncio event loop blocks in GetQueuedCompletionStatus
+        # with INFINITE timeout when idle, which prevents the main thread
+        # from processing Ctrl-C (SIGINT). A periodic wakeup task ensures
+        # signals are processed promptly.
+        loop.create_task(_windows_wakeup())
+
+        def _windows_signal_handler(signal, frame):
+            if loop.is_running():
+                loop.call_soon_threadsafe(_trigger_shutdown, signal)
+
+        signals_to_handle = [signal.SIGINT, signal.SIGTERM]
+        if hasattr(signal, "SIGBREAK"):
+            signals_to_handle.append(signal.SIGBREAK)
+
+        for s in signals_to_handle:
+            try:
+                signal.signal(s, _windows_signal_handler)
+            except (ValueError, AttributeError):
+                pass
+    else:
         signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
         for s in signals:
-            loop.add_signal_handler(
-                s, lambda s=s: asyncio.create_task(shutdown(s, loop, monitor_task))
-            )
+            loop.add_signal_handler(s, _trigger_shutdown, s)
 
-    loop.run_forever()
+    async def _start():
+        nonlocal observer, startup_error
+        try:
+            microscope_id = await get_microscope_id(settings.MICROSCOPE)
+            observer = Observer()
+            watch_task = loop.create_task(
+                watch(get_host(), microscope_id, settings.WATCH_DIRECTORIES, queue, loop, observer)
+            )
+            loop.create_task(monitor(microscope_id, queue))
+            await watch_task
+        except (asyncio.CancelledError, KeyboardInterrupt):
+            raise
+        except Exception as exc:
+            startup_error = exc
+            logger.exception("Failed to start watch service.")
+            _trigger_shutdown(None)
+
+    loop.create_task(_start())
+
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        logger.info("Received KeyboardInterrupt...")
+        task = _trigger_shutdown(signal.SIGINT)
+        if not task.done():
+            loop.run_until_complete(task)
+    finally:
+        if not loop.is_closed():
+            try:
+                loop.run_until_complete(loop.shutdown_asyncgens())
+            except Exception:
+                logger.exception("Error shutting down async generators.")
+            loop.close()
+
+    if startup_error is not None:
+        raise startup_error
+
 
 if __name__ == "__main__":
     main()

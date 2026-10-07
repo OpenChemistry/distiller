@@ -1,4 +1,4 @@
-faust-streaming[rocksdb]>=0.12.0
+faust-streaming[rocksdb]>=0.15.3
 aiokafka>=0.14.0,<0.15
 pydantic>=2.13.5,<3
 pydantic-settings>=2.15.0,<3

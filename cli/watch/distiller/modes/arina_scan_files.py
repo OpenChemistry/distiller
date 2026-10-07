@@ -157,6 +157,23 @@ def _extract_metadata(status: ScanStatus) -> Dict[str, Any]:
         return metadata
 
 
+def _to_dimension_int(value: Any) -> Optional[int]:
+    if isinstance(value, dict) and "value" in value:
+        value = value["value"]
+
+    if isinstance(value, list):
+        if len(value) == 1:
+            value = value[0]
+        else:
+            return None
+
+    try:
+        val = int(value)
+        return val if val > 0 else None
+    except (ValueError, TypeError):
+        return None
+
+
 def _extract_stem_metadata(path: Path) -> Dict[str, Any]:
     metadata: Dict[str, Any] = {}
     try:
@@ -177,6 +194,14 @@ def _extract_stem_metadata(path: Path) -> Dict[str, Any]:
                     )
     except (OSError, RuntimeError) as exc:
         logger.debug("Could not read STEM metadata from %s: %s", path, exc)
+
+    # Copy the NumPixelsX and NumPixelsY attributes to Dimensions 1 and Dimensions 2 for compatibility with 4DSTEM.
+    if "NumPixelsX" in metadata and "NumPixelsY" in metadata:
+        dim1 = _to_dimension_int(metadata["NumPixelsX"])
+        dim2 = _to_dimension_int(metadata["NumPixelsY"])
+        if dim1 is not None and dim2 is not None:
+            metadata["Dimensions 1"] = dim1
+            metadata["Dimensions 2"] = dim2
 
     return metadata
 

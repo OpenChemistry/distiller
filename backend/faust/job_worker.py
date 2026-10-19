@@ -2,9 +2,10 @@ import asyncio
 import copy
 import json
 import logging
+import shlex
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import aiohttp
 import httpx
@@ -31,9 +32,15 @@ from utils import get_job
 from utils import get_machine
 from utils import get_machine as fetch_machine
 from utils import get_machines as fetch_machines
+from utils import get_microscope_by_id
 from utils import get_scan
 from utils import update_job as update_job_request
 from utils import update_scan
+from transfer_config import (
+    TransferConfig,
+    prepare_transfer_files,
+    resolve_destination_path,
+)
 
 # Setup logger
 logger = logging.getLogger("job_worker")
@@ -149,6 +156,42 @@ async def render_bbcp_script(job: Job, dest_dir: str) -> str:
 
     logger.info(output)
 
+    return output
+
+
+def _validate_qos_against_filter(qos: str, qos_filter: Optional[str]) -> None:
+    if qos_filter is not None:
+        allowed_qos = {q.strip() for q in qos_filter.split(",") if q.strip()}
+        if qos not in allowed_qos:
+            raise ValueError(
+                f"Effective QoS '{qos}' is outside monitoring qos_filter '{qos_filter}'"
+            )
+
+
+async def render_file_transfer_script(
+    job: Job,
+    machine: Machine,
+    dest_dir: str,
+    source_host: str,
+    files: List[Tuple[str, str]],
+    username: Optional[str] = None,
+) -> str:
+    template_loader = jinja2.FileSystemLoader(
+        searchpath=Path(__file__).parent / "templates"
+    )
+    template_env = jinja2.Environment(loader=template_loader, enable_async=True)
+    template_env.filters["shellquote"] = shlex.quote
+    template = template_env.get_template("transfer_files.sh.j2")
+    output = await template.render_async(
+        job=job,
+        machine=machine,
+        dest_dir=dest_dir,
+        source_host=source_host,
+        files=files,
+        username=username or settings.ACQUISITION_USER,
+        settings=settings,
+        job_dir=str(Path(settings.JOB_SCRIPT_DIRECTORY) / str(job.id)),
+    )
     return output
 
 
@@ -301,12 +344,113 @@ async def update_slurm_job_id(
     await update_job_request(session, update)
 
 
+async def _submit_file_transfer_job(
+    session: aiohttp.ClientSession,
+    event: SubmitJobEvent,
+    full_scan: Scan,
+    transfer_cfg: TransferConfig,
+) -> None:
+    machine = await get_machine(session, event.job.machine)
+    # Monitoring uses the cached machine configuration, without submission overrides.
+    machines = await get_machines(session)
+    _validate_qos_against_filter(
+        machine.qos, machines[event.job.machine].qos_filter
+    )
+
+    distiller_root = (
+        transfer_cfg.distiller_root or settings.JOB_NCEMHUB_RAW_DATA_PATH
+    )
+    dest_dir = resolve_destination_path(
+        distiller_root=distiller_root,
+        destination_subdir=transfer_cfg.destination_subdir,
+        created_datetime=full_scan.created,
+        scan_id=full_scan.id,
+    )
+
+    source_locations = [
+        loc
+        for loc in full_scan.locations
+        if loc.host == transfer_cfg.source_host
+    ]
+    if not source_locations:
+        raise ValueError(
+            f"No source locations found for scan {full_scan.id} matching source_host '{transfer_cfg.source_host}'."
+        )
+
+    files = prepare_transfer_files(source_locations)
+    job_script_output = await render_file_transfer_script(
+        job=event.job,
+        machine=machine,
+        dest_dir=dest_dir,
+        source_host=transfer_cfg.source_host,
+        files=files,
+        username=transfer_cfg.username,
+    )
+
+    job_dir = AsyncPath(settings.JOB_SCRIPT_DIRECTORY) / str(event.job.id)
+    if await job_dir.exists():
+        logger.warning(f"Job dir exists overriding: '{job_dir}'")
+    await job_dir.mkdir(parents=True, exist_ok=True)
+
+    metadata = {"job_id": event.job.id, "scan_id": full_scan.id, "destination": dest_dir}
+    async with (job_dir / "transfer.json").open("w") as fp:
+        await fp.write(json.dumps(metadata, indent=2))
+
+    submission_script_path = job_dir / f"{event.job.job_type}-{event.job.id}.sh"
+    async with submission_script_path.open("w") as fp:
+        await fp.write(job_script_output)
+
+    slurm_id = await submit_job(machine.name, str(submission_script_path))
+    await update_slurm_job_id(session, event.job.id, slurm_id)
+
+
+async def _process_submit_file_transfer_job_event(
+    session: aiohttp.ClientSession, event: SubmitJobEvent
+) -> bool:
+    """Handle file transfer submission or failure. Return False to use the legacy path."""
+    scan_id = (
+        event.scan.id
+        if event.scan
+        else (event.job.scan_ids[0] if event.job.scan_ids else None)
+    )
+    if scan_id is None:
+        return False
+
+    try:
+        full_scan = await get_scan(session, scan_id)
+        microscope = await get_microscope_by_id(session, full_scan.microscope_id)
+        config = (microscope.config or {}).get("transfer")
+        if config is None:
+            return False
+
+        transfer_cfg = TransferConfig.model_validate(config)
+        await _submit_file_transfer_job(session, event, full_scan, transfer_cfg)
+        return True
+    except Exception as exc:
+        logger.error(
+            f"Failed to submit file transfer job {event.job.id}: {exc}"
+        )
+        await update_job(
+            session,
+            job_id=event.job.id,
+            state=JobState.FAILED,
+            output=f"File transfer submission error: {exc}",
+        )
+        return True
+
+
 async def process_submit_job_event(
     session: aiohttp.ClientSession, event: SubmitJobEvent
 ) -> None:
+    if event.job.job_type == JobType.TRANSFER:
+        if await _process_submit_file_transfer_job_event(session, event):
+            return
+
     def get_created_datetime(event):
-        if event.scan and hasattr(event.scan, "created"):
-            return datetime.fromisoformat(event.scan.created)
+        if event.scan and hasattr(event.scan, "created") and event.scan.created is not None:
+            if isinstance(event.scan.created, datetime):
+                return event.scan.created
+            return datetime.fromisoformat(str(event.scan.created))
         return datetime.now()
 
     job_type_map = {
@@ -418,6 +562,10 @@ async def watch_for_submit_job_events(submit_jobs_events):
                 await process_submit_job_event(session, event)
             except SfApiError as ex:
                 logger.error(f"Error submitting job: {ex.message}")
+            except Exception as ex:
+                logger.exception(
+                    f"Unexpected error submitting job {event.job.id}: {ex}"
+                )
 
 
 @app.agent(cancel_job_events_topic)
@@ -428,14 +576,18 @@ async def watch_for_cancel_job_events(cancel_job_events):
                 await process_cancel_job_event(session, event)
             except SfApiError as ex:
                 logger.error(f"Error cancelling job: {ex.message}")
+            except Exception as ex:
+                logger.exception(
+                    f"Unexpected error cancelling job {event.job.id}: {ex}"
+                )
 
 
 async def update_job(
     session: aiohttp.ClientSession,
     job_id: int,
     state: str,
-    elapsed: timedelta,
-    submit: datetime,
+    elapsed: Optional[timedelta] = None,
+    submit: Optional[datetime] = None,
     output: Optional[str] = None,
 ) -> None:
     update = JobUpdate(
@@ -509,6 +661,74 @@ def _scan_path(job_type: JobType, scan: Scan) -> str:
     return path
 
 
+async def _resolve_transfer_destination(
+    job_id: int, scan_id: int, metadata_path: AsyncPath
+) -> str:
+    """Read the submission-time destination after Slurm reports completion."""
+    if not await metadata_path.exists():
+        raise ValueError(f"File transfer job {job_id} missing transfer.json")
+    async with metadata_path.open("r") as fp:
+        metadata = json.loads(await fp.read())
+    if not isinstance(metadata, dict):
+        raise ValueError(f"File transfer job {job_id} has invalid transfer metadata")
+    if metadata.get("job_id") != job_id or metadata.get("scan_id") != scan_id:
+        raise ValueError(f"File transfer job {job_id} transfer metadata has mismatched job or scan ID")
+    destination = metadata.get("destination")
+    if not isinstance(destination, str) or not Path(destination).is_absolute():
+        raise ValueError(f"File transfer job {job_id} transfer metadata has invalid destination")
+    return destination
+
+
+async def _process_completed_job(
+    session: aiohttp.ClientSession, job_id: int, job: SfapiJob
+) -> None:
+    """Register a transfer/count destination, retrying API failures on later polls."""
+    try:
+        job_model = await get_job(session, job_id)
+
+        if not job_model.scan_ids:
+            raise ValueError(f"No scan_ids for job {job_id}")
+
+        scan_id = job_model.scan_ids[0]
+        scan = await get_scan(session, scan_id)
+        machine = job_model.machine
+
+        if "-files-" in job.name.lower():
+            metadata_path = AsyncPath(job.workdir) / "transfer.json"
+            if not await metadata_path.exists():
+                metadata_path = AsyncPath(settings.JOB_SCRIPT_DIRECTORY) / str(job_id) / "transfer.json"
+            try:
+                path = await _resolve_transfer_destination(
+                    job_id, scan_id, metadata_path
+                )
+            except ValueError as exc:
+                error_msg = str(exc)
+                logger.error(error_msg)
+                await update_job(
+                    session,
+                    job_id,
+                    state=JobState.FAILED,
+                    elapsed=job.elapsed,
+                    submit=job.submit,
+                    output=error_msg,
+                )
+                completed_jobs.add(job_id)
+                return
+        else:
+            path = _scan_path(job_model.job_type, scan)
+
+        update = ScanUpdate(
+            id=scan_id,
+            locations=[LocationRest(host=f"{machine}", path=str(path))],
+        )
+        await update_scan(session, update)
+        completed_jobs.add(job_id)
+    except Exception:
+        logger.exception(
+            f"Exception updating scan location for job {job_id}. Will retry."
+        )
+
+
 @app.timer(interval=60)
 async def monitor_jobs():
     async with aiohttp.ClientSession() as session:
@@ -578,9 +798,6 @@ async def monitor_jobs():
                 if job.state not in SLURM_RUNNING_STATES:
                     output = await read_slurm_out(job.slurm_id, job.workdir)
 
-                    # Add to completed set so we can skip over it
-                    completed_jobs.add(id)
-
                 # sacct return a state of the form "CANCELLED by XXXX" for the
                 # cancelled state, reset set it so it will be converted to the
                 # right slurm state.
@@ -603,32 +820,19 @@ async def monitor_jobs():
 
                     continue
 
-                # If the job is completed and we are dealing with a transfer job
+                # If the job is still running, continue monitoring
+                if job.state in SLURM_RUNNING_STATES:
+                    continue
+
+                # If the job is completed and we are dealing with a transfer or count job,
                 # then update the location.
                 if job.state == JobState.COMPLETED and any(
                     job_type in job.name
                     for job_type in [JobType.TRANSFER, JobType.COUNT]
                 ):
-                    job = await get_job(session, id)
-
-                    if not job.scan_ids:
-                        raise ValueError(f"No scan_ids for job {id}")
-
-                    scan_id = job.scan_ids[0]
-                    scan = await get_scan(session, scan_id)
-                    machine = job.machine
-
-                    path = _scan_path(job.job_type, scan)
-                    update = ScanUpdate(
-                        id=scan_id,
-                        locations=[
-                            LocationRest(
-                                host=f"{machine}",
-                                path=str(path),
-                            )
-                        ],
-                    )
-                    await update_scan(session, update)
+                    await _process_completed_job(session, id, job)
+                else:
+                    completed_jobs.add(id)
 
         except httpx.ReadTimeout as ex:
             logger.warning("Job monitoring request timed out", ex)

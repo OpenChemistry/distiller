@@ -1,3 +1,4 @@
+import json
 import re
 import tempfile
 import uuid
@@ -422,6 +423,7 @@ class ArinaScanFilesModeHandler(ModeHandler):
         self._uploaded = TTLCache(maxsize=100000, ttl=24 * 60 * 60)
         self._scan_ids = TTLCache(maxsize=100000, ttl=24 * 60 * 60)
         self._last_sent_progress = TTLCache(maxsize=100000, ttl=24 * 60 * 60)
+        self._registered_companion = TTLCache(maxsize=100000, ttl=24 * 60 * 60)
 
     def _master_path_for_event(self, event: FileSystemEvent) -> Optional[Path]:
         event_path = event.src_path
@@ -506,24 +508,53 @@ class ArinaScanFilesModeHandler(ModeHandler):
         )
         self._last_sent_progress[key] = progress
 
-    async def _upload_thumbnail(self, distiller_id: int, status: ScanStatus) -> bool:
+    @staticmethod
+    def _companion_path(master_path: Path) -> Path:
+        prefix = master_path.name.removesuffix("_master.h5")
+        return master_path.with_name(f"{prefix}.h5")
+
+    async def _register_companion(
+        self, key: str, distiller_id: int, status: ScanStatus
+    ) -> bool:
         # The virtual images live in a separate file with the same scan prefix.
-        prefix = status.master_path.name.removesuffix("_master.h5")
-        virtual_image_path = status.master_path.with_name(f"{prefix}.h5")
-        metadata = _extract_stem_metadata(virtual_image_path)
-        image = _read_first_virtual_image([virtual_image_path])
-        if image is not None or metadata:
-            await update_scan(
-                self.session,
-                distiller_id,
-                ScanUpdate(
-                    locations=[Location(host=self.host, path=str(virtual_image_path))],
-                    metadata=metadata or None,
-                ),
-                merge=True,
+        virtual_image_path = self._companion_path(status.master_path)
+        if not virtual_image_path.is_file():
+            return False
+
+        try:
+            with h5py.File(virtual_image_path, "r"):
+                pass
+        except (OSError, RuntimeError) as exc:
+            logger.debug(
+                "ARINA companion file is not readable HDF5 yet: %s: %s",
+                virtual_image_path,
+                exc,
             )
-        if image is None:
-            image = _read_first_virtual_image(status.locations)
+            return False
+
+        metadata = _extract_stem_metadata(virtual_image_path)
+        resolved_path = str(virtual_image_path.resolve())
+        cache_val = (resolved_path, json.dumps(metadata, sort_keys=True, default=str))
+        if self._registered_companion.get(key) == cache_val:
+            return True
+
+        location = Location(host=self.host, path=str(virtual_image_path))
+        await update_scan(
+            self.session,
+            distiller_id,
+            ScanUpdate(
+                locations=[location],
+                metadata=metadata or None,
+            ),
+            merge=True,
+        )
+        self._registered_companion[key] = cache_val
+
+        return True
+
+    async def _upload_thumbnail(self, distiller_id: int, status: ScanStatus) -> bool:
+        virtual_image_path = self._companion_path(status.master_path)
+        image = _read_first_virtual_image([virtual_image_path, *status.locations])
 
         if image is None:
             logger.debug("No ARINA virtual image found for %s.", status.master_path)
@@ -548,15 +579,15 @@ class ArinaScanFilesModeHandler(ModeHandler):
             distiller_id = await self._create_distiller_scan(key, status)
 
         await self._update_progress(key, distiller_id, progress, status)
-        if status.complete:
-            return await self._upload_thumbnail(distiller_id, status)
+        await self._register_companion(key, distiller_id, status)
+        if status.complete and key not in self._uploaded:
+            if await self._upload_thumbnail(distiller_id, status):
+                self._uploaded[key] = True
 
-        return False
+        return True
 
     async def _handle_master(self, master_path: Path):
         key = str(master_path.resolve())
-        if key in self._uploaded:
-            return
 
         status = _extract_scan_status(master_path)
         message = "ARINA scan status for %s: complete=%s frames=%s/%s"
@@ -580,9 +611,7 @@ class ArinaScanFilesModeHandler(ModeHandler):
             )
         logger.info(message, *args)
 
-        # Keep handling events until the completed scan's thumbnail is uploaded.
-        if await self._create_or_update_scan(key, status):
-            self._uploaded[key] = True
+        await self._create_or_update_scan(key, status)
 
     async def on_event(self, event: FileSystemEvent):
         if event.is_directory or event.event_type not in _ARINA_FILE_EVENTS:

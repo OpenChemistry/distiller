@@ -443,8 +443,13 @@ async def upload_image(
     db: Session = Depends(get_db),
 ) -> None:
     format = settings.IMAGE_FORMAT
+    static_dir = Path(settings.IMAGE_STATIC_DIR).resolve()
+    upload_path = (static_dir / f"{id}.{format}").resolve()
+    if not upload_path.is_relative_to(static_dir):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid path"
+        )
 
-    upload_path = Path(settings.IMAGE_STATIC_DIR) / f"{id}.{format}"
     async with aiofiles.open(upload_path, "wb") as fp:
         await upload_to_file(file, fp)
 

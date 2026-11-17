@@ -8,6 +8,13 @@ import { store } from './app/store';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 
+window.addEventListener('vite:preloadError', (event) => {
+  // A deployment may remove a lazy chunk referenced by an already open app.
+  // Reload so index.html points to the current set of hashed assets.
+  event.preventDefault();
+  window.location.reload();
+});
+
 const container = document.getElementById('root');
 const root = createRoot(container!);
 root.render(

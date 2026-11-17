@@ -9,7 +9,7 @@ from json_utils import NumpyEncoder
 from .location import Location
 
 
-class Scan(faust.Record):
+class Scan(faust.Record, coerce=True):
     id: int
     locations: List[Location]
     created: datetime

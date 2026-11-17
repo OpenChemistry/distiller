@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 import job_worker
+from faust_records import SubmitJobEvent
 
 
 @pytest.mark.asyncio
@@ -863,3 +864,27 @@ async def test_legacy_completion_skips_metadata(mocker, tmp_path, job_type):
     update.assert_awaited_once()
     assert update.await_args.args[1].locations[0].path == str(job_worker._scan_path(job_type, scan))
     assert 10 in job_worker.completed_jobs
+
+
+def test_submit_job_event_coerces_scan_created_to_datetime():
+    event = SubmitJobEvent.from_data(
+        {
+            "job": {
+                "id": 1,
+                "job_type": "count",
+                "machine": "perlmutter",
+                "params": {},
+                "scan_ids": [1],
+            },
+            "scan": {
+                "id": 1,
+                "locations": [],
+                "created": "2026-07-14T17:54:08Z",
+                "scan_id": 1,
+            },
+            "event_type": "job.submit",
+        }
+    )
+
+    assert isinstance(event.scan.created, datetime)
+    assert event.scan.created.isoformat() == "2026-07-14T17:54:08+00:00"

@@ -30,6 +30,6 @@ case "$target" in
     *) echo "Destination escapes scan directory" >&2; exit 1 ;;
 esac
 mkdir -p -- "$(dirname -- "$target")"
-{{ settings.JOB_BBCP_EXECUTABLE_PATH | shellquote }} -z -f -V -s {{ settings.JOB_BBCP_NUMBER_OF_STREAMS }} \
+{{ settings.JOB_BBCP_EXECUTABLE_PATH | shellquote }} -z -f -V -s {{ settings.JOB_BBCP_NUMBER_OF_STREAMS }} -Z 50000:51000 \
     {{ (username ~ '@' ~ source_host ~ ':' ~ source_path) | shellquote }} "$target"
 {% endfor %}

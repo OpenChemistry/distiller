@@ -102,6 +102,7 @@ async def test_rendered_bbcp_job(
 import shutil, sys
 source, destination = sys.argv[-2:]
 assert sys.argv[1:5] == ["-z", "-f", "-V", "-s"]
+assert sys.argv[6:8] == ["-Z", "50000:51000"]
 assert source.startswith("EXPECTED_USERNAME@acquisition:")
 shutil.copyfile(source.split(":", 1)[1], destination)
 """.replace("EXPECTED_USERNAME", username or "operator"))

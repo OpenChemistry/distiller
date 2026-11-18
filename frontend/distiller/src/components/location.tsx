@@ -45,6 +45,9 @@ const LocationChip: React.FC<ChipProps> = React.forwardRef<
 >((props, ref) => {
   const dispatch = useAppDispatch();
   const { scan, host, machines, allowDeletion = true } = props;
+  const isIpAddress =
+    host.includes(':') || /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host);
+  const hostLabel = isIpAddress ? host : host.split('.')[0];
   const { confirmRemoval, ...otherProps } = props;
   const [deletable, setDeletable] = React.useState(
     !isNil(scan.scan_id) && allowDeletion,
@@ -67,7 +70,7 @@ const LocationChip: React.FC<ChipProps> = React.forwardRef<
     <Chip
       {...otherProps}
       ref={ref}
-      label={host}
+      label={hostLabel}
       onDelete={deletable && !machines.includes(host) ? onDelete : undefined}
     />
   );

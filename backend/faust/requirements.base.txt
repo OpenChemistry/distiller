@@ -1,5 +1,5 @@
 faust-streaming[rocksdb]>=0.15.4
 aiokafka>=0.15.0,<0.16
-pydantic>=2.14.3,<3
+pydantic>=2.14.4,<3
 pydantic-settings>=2.16.3,<3
 numpy

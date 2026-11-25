@@ -9,7 +9,7 @@
     "@mui/icons-material": "^5.18.0",
     "@mui/material": "^5.18.0",
     "@mui/x-date-pickers": "^7.3.2",
-    "@reduxjs/toolkit": "^2.14.0",
+    "@reduxjs/toolkit": "^2.15.0",
     "@testing-library/react": "^15.0.7",
     "@testing-library/user-event": "^14.6.13",
     "@types/humanize-duration": "^3.27.4",

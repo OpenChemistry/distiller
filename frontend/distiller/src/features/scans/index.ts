@@ -40,10 +40,12 @@ export const getScans = createAsyncThunk<
     start?: DateTime;
     end?: DateTime;
     microscopeId: IdType;
+    notesSearch?: string;
+    metadataSearch?: string;
   }
 >('scans/fetch', async (_payload, _thunkAPI) => {
-  const { skip, limit, start, end, microscopeId } = _payload;
-  const result = await getScansAPI(microscopeId, skip, limit, start, end);
+  const { skip, limit, start, end, microscopeId, notesSearch, metadataSearch } = _payload;
+  const result = await getScansAPI(microscopeId, skip, limit, start, end, notesSearch, metadataSearch);
 
   return result;
 });

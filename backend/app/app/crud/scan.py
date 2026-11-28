@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from sqlalchemy import desc, or_, update
+from sqlalchemy import Text, desc, or_, update
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -31,6 +31,8 @@ def _get_scans_query(
     sha: Optional[str] = None,
     uuid: Optional[str] = None,
     job_id: Optional[int] = None,
+    notes_search: Optional[str] = None,
+    metadata_search: Optional[str] = None,
 ):
     query = db.query(models.Scan)
     if scan_id > -1:
@@ -69,6 +71,17 @@ def _get_scans_query(
     if job_id is not None:
         query = query.filter(models.Scan.jobs.any(id=job_id))
 
+    if notes_search is not None and notes_search.strip():
+        query = query.filter(
+            models.Scan.notes.ilike(f"%{notes_search.strip()}%")
+        )
+
+    if metadata_search is not None and metadata_search.strip():
+        # PostgreSQL JSONB cast-to-text search (case-insensitive)
+        query = query.filter(
+            models.Scan.metadata_.cast(Text).ilike(f"%{metadata_search.strip()}%")
+        )
+
     return query
 
 
@@ -86,6 +99,8 @@ def get_scans(
     sha: Optional[str] = None,
     uuid: Optional[str] = None,
     job_id: Optional[int] = None,
+    notes_search: Optional[str] = None,
+    metadata_search: Optional[str] = None,
 ):
     query = _get_scans_query(
         db,
@@ -101,6 +116,8 @@ def get_scans(
         sha,
         uuid,
         job_id,
+        notes_search,
+        metadata_search,
     )
 
     return query.order_by(desc(models.Scan.created)).offset(skip).limit(limit).all()
@@ -120,6 +137,8 @@ def get_scans_count(
     sha: Optional[str] = None,
     uuid: Optional[str] = None,
     job_id: Optional[int] = None,
+    notes_search: Optional[str] = None,
+    metadata_search: Optional[str] = None,
 ):
     query = _get_scans_query(
         db,
@@ -135,6 +154,8 @@ def get_scans_count(
         sha,
         uuid,
         job_id,
+        notes_search,
+        metadata_search,
     )
 
     return query.count()

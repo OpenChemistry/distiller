@@ -29,6 +29,8 @@ import {
   intSerializer,
   dateTimeDeserializer,
   dateTimeSerializer,
+  stringDeserializer,
+  stringSerializer,
 } from '../routes/url-state';
 import { getUser } from '../features/auth';
 import { getBlob } from '../client/blob';
@@ -107,6 +109,20 @@ const ScansPage: React.FC<ScansPageProps> = (props) => {
     dateTimeDeserializer,
   );
 
+  const [notesSearch, setNotesSearch] = useUrlState<string>(
+    'notesSearch',
+    '',
+    stringSerializer,
+    stringDeserializer,
+  );
+
+  const [metadataSearch, setMetadataSearch] = useUrlState<string>(
+    'metadataSearch',
+    '',
+    stringSerializer,
+    stringDeserializer,
+  );
+
   const [selectedScanIDs, setSelectedScanIDs] = useState<Set<IdType>>(
     new Set<IdType>(),
   );
@@ -154,6 +170,8 @@ const ScansPage: React.FC<ScansPageProps> = (props) => {
         start: startDateFilter || undefined,
         end: endDateFilter || undefined,
         microscopeId: microscopeId,
+        notesSearch: notesSearch || undefined,
+        metadataSearch: metadataSearch || undefined,
       }),
     );
   }, [
@@ -162,6 +180,8 @@ const ScansPage: React.FC<ScansPageProps> = (props) => {
     rowsPerPage,
     startDateFilter,
     endDateFilter,
+    notesSearch,
+    metadataSearch,
     microscopeId,
   ]);
 
@@ -214,6 +234,22 @@ const ScansPage: React.FC<ScansPageProps> = (props) => {
       setEndDateFilter(date);
     },
     [setPage, setEndDateFilter],
+  );
+
+  const onNotesSearch = useCallback(
+    (value: string) => {
+      setPage(0);
+      setNotesSearch(value);
+    },
+    [setPage, setNotesSearch],
+  );
+
+  const onMetadataSearch = useCallback(
+    (value: string) => {
+      setPage(0);
+      setMetadataSearch(value);
+    },
+    [setPage, setMetadataSearch],
   );
 
   const selectedScans = () => {
@@ -485,10 +521,19 @@ const ScansPage: React.FC<ScansPageProps> = (props) => {
       <ScansToolbar
         startDate={startDateFilter}
         endDate={endDateFilter}
+        notesSearch={notesSearch}
+        metadataSearch={metadataSearch}
         onStartDate={allowFilter ? onStartDate : undefined}
         onEndDate={allowFilter ? onEndDate : undefined}
+        onNotesSearch={allowFilter ? onNotesSearch : undefined}
+        onMetadataSearch={allowFilter ? onMetadataSearch : undefined}
         onExport={allowExport ? onExport : undefined}
-        showFilterBadge={!isNil(startDateFilter) || !isNil(endDateFilter)}
+        showFilterBadge={
+          !isNil(startDateFilter) ||
+          !isNil(endDateFilter) ||
+          (notesSearch !== '' && !isNil(notesSearch)) ||
+          (metadataSearch !== '' && !isNil(metadataSearch))
+        }
       />
       <ScansTableContainer
         currentPage={page}

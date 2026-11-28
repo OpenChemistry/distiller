@@ -3,14 +3,17 @@ import React, { useState } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 import DownloadIcon from '@mui/icons-material/Download';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import SearchIcon from '@mui/icons-material/Search';
 import {
   Badge,
   Box,
   Button,
   Grid,
+  InputAdornment,
   Menu,
   MenuItem,
   Popover,
+  TextField,
   Toolbar,
 } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
@@ -25,14 +28,28 @@ type FilterPopoverProps = {
   anchorEl: HTMLElement | null;
   startDate: DateTime | null;
   endDate: DateTime | null;
+  notesSearch: string;
+  metadataSearch: string;
   onClose: () => void;
   onStartDate: (date: DateTime | null) => void;
   onEndDate: (date: DateTime | null) => void;
+  onNotesSearch: (value: string) => void;
+  onMetadataSearch: (value: string) => void;
 };
 
 const FilterPopover: React.FC<FilterPopoverProps> = (props) => {
-  const { anchorEl, startDate, endDate, onClose, onStartDate, onEndDate } =
-    props;
+  const {
+    anchorEl,
+    startDate,
+    endDate,
+    notesSearch,
+    metadataSearch,
+    onClose,
+    onStartDate,
+    onEndDate,
+    onNotesSearch,
+    onMetadataSearch,
+  } = props;
 
   const onStartDateChange = (date: DateTime | null) => {
     if (!isNull(date) && !date.isValid) {
@@ -53,6 +70,8 @@ const FilterPopover: React.FC<FilterPopoverProps> = (props) => {
   const onResetFiltersClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     onStartDate(null);
     onEndDate(null);
+    onNotesSearch('');
+    onMetadataSearch('');
   };
 
   return (
@@ -71,7 +90,7 @@ const FilterPopover: React.FC<FilterPopoverProps> = (props) => {
         }}
       >
         <LocalizationProvider dateAdapter={AdapterLuxon}>
-          <Box sx={{ flexGrow: 1, margin: 2 }}>
+          <Box sx={{ flexGrow: 1, margin: 2, minWidth: 360 }}>
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <DatePicker
@@ -87,6 +106,40 @@ const FilterPopover: React.FC<FilterPopoverProps> = (props) => {
                   format="MM/dd/yy"
                   value={endDate}
                   onChange={onEndDateChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Search Notes"
+                  placeholder="e.g. gold nanoparticles"
+                  value={notesSearch}
+                  onChange={(e) => onNotesSearch(e.target.value)}
+                  fullWidth
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Search Metadata"
+                  placeholder="e.g. convergence_angle or 21.4"
+                  value={metadataSearch}
+                  onChange={(e) => onMetadataSearch(e.target.value)}
+                  fullWidth
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Grid>
             </Grid>
@@ -162,8 +215,12 @@ const ExportMenu: React.FC<ExportMenuProps> = (props) => {
 type ScansToolbarProps = {
   startDate: DateTime | null;
   endDate: DateTime | null;
+  notesSearch: string;
+  metadataSearch: string;
   onStartDate?: (date: DateTime | null) => void;
   onEndDate?: (date: DateTime | null) => void;
+  onNotesSearch?: (value: string) => void;
+  onMetadataSearch?: (value: string) => void;
   onExport?: (format: ExportFormat) => void;
   showFilterBadge: boolean;
 };
@@ -178,10 +235,14 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
   const {
     startDate,
     endDate,
+    notesSearch,
+    metadataSearch,
     showFilterBadge,
     onExport,
     onStartDate,
     onEndDate,
+    onNotesSearch,
+    onMetadataSearch,
   } = props;
 
   const onFilterClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -227,7 +288,7 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
       )}
       {showFilter && (
         <Box>
-          <Tooltip title="Filter Scans">
+          <Tooltip title="Filter & Search Scans">
             <Button
               onClick={onFilterClick}
               size="small"
@@ -254,8 +315,12 @@ export const ScansToolbar: React.FC<ScansToolbarProps> = (props) => {
           onClose={onFilterClose}
           startDate={startDate}
           endDate={endDate}
+          notesSearch={notesSearch}
+          metadataSearch={metadataSearch}
           onStartDate={onStartDate}
           onEndDate={onEndDate}
+          onNotesSearch={onNotesSearch || (() => {})}
+          onMetadataSearch={onMetadataSearch || (() => {})}
         />
       )}
       {onExport && (

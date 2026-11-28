@@ -10,6 +10,8 @@ export function getScans(
   limit?: number,
   start?: DateTime,
   end?: DateTime,
+  notesSearch?: string,
+  metadataSearch?: string,
 ): Promise<ScansRequestResult> {
   const params: any = { microscope_id: microscopeId };
   if (!isNil(skip)) {
@@ -23,6 +25,12 @@ export function getScans(
   }
   if (!isNil(end)) {
     params['end'] = end;
+  }
+  if (!isNil(notesSearch) && notesSearch !== '') {
+    params['notes_search'] = notesSearch;
+  }
+  if (!isNil(metadataSearch) && metadataSearch !== '') {
+    params['metadata_search'] = metadataSearch;
   }
 
   return apiClient

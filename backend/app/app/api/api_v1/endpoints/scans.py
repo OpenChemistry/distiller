@@ -213,6 +213,8 @@ def read_scans(
     sha: Optional[str] = None,
     uuid: Optional[str] = None,
     job_id: Optional[int] = None,
+    notes_search: Optional[str] = None,
+    metadata_search: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
     scans = crud.get_scans(
@@ -229,6 +231,8 @@ def read_scans(
         sha=sha,
         uuid=uuid,
         job_id=job_id,
+        notes_search=notes_search,
+        metadata_search=metadata_search,
     )
 
     count = crud.get_scans_count(
@@ -245,6 +249,8 @@ def read_scans(
         sha=sha,
         uuid=uuid,
         job_id=job_id,
+        notes_search=notes_search,
+        metadata_search=metadata_search,
     )
 
     response.headers["X-Total-Count"] = str(count)

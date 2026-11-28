@@ -86,3 +86,11 @@ export const intDeserializer: Deserializer<number> = (nStr) => {
 
   return n;
 };
+
+export const stringSerializer: Serializer<string> = (s) => {
+  return s ?? '';
+};
+
+export const stringDeserializer: Deserializer<string> = (s) => {
+  return s;
+};
